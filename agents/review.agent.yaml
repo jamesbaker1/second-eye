@@ -1,0 +1,57 @@
+# The reviewer. Every review is one session against it, with no client
+# attached (docs/migration.md, phases 1 and 5): started, left alone, and read
+# back from the files it leaves. Applied by `lra agents apply`, which fills in
+# what only code or settings know: the model's effort and geography
+# (AGENT_EFFORT, INFERENCE_GEO), whether the web tools are on
+# (WEB_SEARCH_ENABLED) and the skills. Printed as MANAGED_REVIEW_AGENT_ID.
+#
+# Until phase 5 this file was review-detached.agent.yaml, and review.agent.yaml
+# was a streaming reviewer with custom tools (report_findings, the DMS
+# lookups, note_for_next_time). `lra agents apply` updates the agent at
+# MANAGED_REVIEW_AGENT_ID to this definition, or adopts the one at
+# MANAGED_REVIEW_DETACHED_AGENT_ID when that is set (src/lra/cli.py).
+#
+# It has NO custom tools, and must never be given one. A custom tool call
+# leaves the session idle waiting for an answer, and in a detached session
+# nobody is listening for the question: it would wait for ever. So the report
+# is a file (`validate_findings.py` in the lra-document-tools skill writes
+# /mnt/session/outputs/findings.json), notes for next time are a file
+# (notes.json, kept pending by memory.accept_agent_notes), and the DMS
+# lookups are an MCP server (phase 4): an MCP
+# toolset is not a custom tool, and its always_allow policy never waits.
+# tests/test_managed.py holds the applied body to no custom tools.
+#
+# The memory stores are mounted read-only per session; they are resources on
+# the session, not on this file.
+name: LRA reviewer
+description: >-
+  Reviews one legal document per session with no client attached: reads it
+  from /workspace, records structured findings as a validated file early and
+  again as they improve, then runs the product's own tracked-changes writer on
+  a copy. Everything it produces is a file in /mnt/session/outputs.
+model: claude-fable-5-1
+system_file: ../src/lra/prompts/review_system.md
+# Reads the firm's document system (the matter's other documents): with
+# DMS_PROVIDER set, `lra agents apply` gives it the MCP server in
+# cloudflare/dms-mcp with an always_allow toolset, and each session binds it
+# to its matter (src/lra/dms_mcp.py).
+document_system: true
+# The negotiation ledger (lra-negotiation), for a new version from the other
+# side of a document we are negotiating: `lra skills sync lra-negotiation`,
+# then apply again. Only the reviewers read versions against our points.
+extra_skills:
+  - sandbox_negotiation_skill_id
+tools:
+  - type: agent_toolset_20260401
+    default_config:
+      enabled: true
+      permission_policy:
+        type: always_allow
+    configs:
+      # Set by `lra agents apply` from WEB_SEARCH_ENABLED; listed so the
+      # intent is visible here. Off by default: a query written from a
+      # privileged document discloses part of it.
+      - name: web_search
+        enabled: false
+      - name: web_fetch
+        enabled: false

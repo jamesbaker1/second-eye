@@ -1,0 +1,81 @@
+name: Release
+
+# A versioned release, for a self-hosted firm's IT to deploy when it chooses
+# (docs/it/self-hosted.md). Our own deployments do not use this: deploy.yml
+# deploys them on every push to main. Pushing a tag vX.Y.Z builds the release
+# files and attaches them to a DRAFT GitHub release; a person publishes it
+# once CI on the tag is green. Nothing here deploys anything or holds any
+# Cloudflare or Anthropic credential: the only token is the run's own
+# GITHUB_TOKEN, so it works unchanged in the public repository and in a fork
+# that tags its own releases.
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # A release is a commit that is on main, so it is one our own deployment
+      # has already run.
+      - name: Check the tag is a commit on main
+        run: |
+          git fetch origin main
+          git merge-base --is-ancestor "$GITHUB_SHA" origin/main
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      # The source archive (reproducible, less every firm's deployment), the
+      # config template and release.json. Standard library only.
+      - name: Build the source archive, config template and manifest
+        run: PYTHONPATH=src python3 -m lra.release build --version "$GITHUB_REF_NAME" --out dist
+
+      # The Worker as wrangler bundles it, for IT to read. A dry run: nothing
+      # is uploaded, and no account or token is involved.
+      - name: Bundle the Worker (nothing is uploaded)
+        working-directory: cloudflare
+        run: |
+          npm ci
+          npx wrangler deploy --dry-run --containers-rollout=none --outdir ../dist/worker
+          cd .. && PYTHONPATH=src python3 -m lra.release pack dist/worker "dist/redline-desk-${GITHUB_REF_NAME}-worker.tar.gz"
+
+      # The Python dependencies as they resolve today. The image the firm
+      # builds resolves them again; this is what to compare against.
+      - uses: astral-sh/setup-uv@caf0cab7a618c569241d31dcd442f54681755d39 # v3.2.4
+      - name: Record the Python dependencies
+        run: uv pip compile pyproject.toml --quiet -o "dist/redline-desk-${GITHUB_REF_NAME}-requirements.txt"
+
+      # syft, through anchore's action: free, no account. Over the repository
+      # (pyproject.toml, the requirements just written, cloudflare's lockfile).
+      - name: Software bill of materials
+        uses: anchore/sbom-action@66cbf4bc1f1c0d2edc94016e65bc221b6bb0ad6c # v0.24.3
+        with:
+          path: .
+          format: cyclonedx-json
+          output-file: dist/redline-desk-${{ github.ref_name }}-sbom.cdx.json
+          upload-artifact: false
+          upload-release-assets: false
+
+      - name: Checksums
+        run: PYTHONPATH=src python3 -m lra.release checksums dist
+
+      - name: Attach to a draft release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" dist/* --draft --verify-tag \
+            --title "Redline Desk $GITHUB_REF_NAME" \
+            --notes "For a self-hosted firm: check with \`sha256sum -c SHA256SUMS\`, then follow docs/it/self-hosted.md ('Deploying a release'). release.json says what is and is not included."

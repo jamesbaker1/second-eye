@@ -1,0 +1,57 @@
+name: Bug report
+description: Something did the wrong thing, or a check flagged something correct.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **Never attach a real client document, email or matter**, and do not paste text from one. This issue is public. Describe the shape of the problem (the clause, the numbering, the mail client) or attach a synthetic document that reproduces it.
+
+        A security problem goes to private reporting instead: the Security tab, "Report a vulnerability" (SECURITY.md).
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: What you sent or ran, and what came back.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: How to reproduce
+      description: Commands, a synthetic .eml or .docx, or the steps by email. For a misread reply, name the mail client and paste a synthetic reply in its format.
+  - type: dropdown
+    id: where
+    attributes:
+      label: Where it ran
+      options:
+        - Locally (lra replay, compare, clean, or the tests)
+        - Self-hosted on Cloudflare
+        - The hosted service
+        - Other
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Version or commit
+      placeholder: v0.1.0, or a commit hash
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs or output
+      description: Remove names, addresses, matter numbers and document text first.
+      render: text
+  - type: checkboxes
+    id: confirm
+    attributes:
+      label: Confidentiality
+      options:
+        - label: Nothing in this issue comes from a real client document, email or matter.
+          required: true

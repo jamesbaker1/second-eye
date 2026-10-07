@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "A finished review",
+  "description": "summary: usually empty. The verdict line is written for you from the findings, so never say whether the document is safe to send and never repeat a finding. Use at most one sentence, only for context the findings do not carry, such as what you could not check. In question mode it is the answer, in two sentences at most. findings: one object per issue. research_notes: what you looked up and what it told you, when a finding rests on a precedent or a prior draft.",
+  "type": "object",
+  "properties": {
+    "summary": {"type": "string"},
+    "findings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "severity": {"type": "string", "enum": ["blocker", "substantive", "style", "formatting"]},
+          "category": {"type": "string"},
+          "title": {"type": "string"},
+          "explanation": {"type": "string"},
+          "anchor": {"type": "string",
+                     "description": "Text quoted verbatim from the document, long enough to be unique."},
+          "suggested_text": {"type": "string"},
+          "confidence": {"type": "number"},
+          "auto_apply": {"type": "boolean",
+                         "description": "True only for a fix that could not plausibly be a deliberate choice."},
+          "options": {"type": "array", "items": {"type": "string"}},
+          "question": {"type": "string"},
+          "edit_kind": {"type": "string", "enum": ["replace", "insert_after"],
+                        "description": "replace swaps the anchor for suggested_text; insert_after adds suggested_text as a new paragraph after the anchor's. Default replace."},
+          "where": {"type": "string",
+                    "description": "Where the finding is, as a reader would say it: clause 3.2."},
+          "our_position": {"type": "string",
+                           "description": "On the other side's draft only: the firm's position, one sentence."},
+          "response": {"type": "string",
+                       "description": "On the other side's draft only: what to say back, one sentence."}
+        },
+        "required": ["severity", "category", "title", "explanation", "anchor"],
+        "additionalProperties": false
+      }
+    },
+    "research_notes": {"type": "string"}
+  },
+  "required": ["summary", "findings"],
+  "additionalProperties": false
+}

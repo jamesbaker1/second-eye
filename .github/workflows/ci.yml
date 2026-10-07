@@ -1,0 +1,115 @@
+name: CI
+
+# Runs the same in the private development repository, the public one and on a
+# pull request from a fork: it needs no secret, and the token it gets can only
+# read. Never pull_request_target: that would run a fork's code with this
+# repository's token and secrets.
+on: [push, pull_request]
+
+permissions:
+  contents: read
+
+# A newer push to the same branch or pull request supersedes the run in
+# progress. Not on main: deploy.yml and deploy-site.yml start from a completed
+# CI run on main, and each commit there should get its own.
+concurrency:
+  group: ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # An independent word processor, so the redline writer's output is
+      # parsed by something other than the library that wrote it. The
+      # round-trip tests skip without it; they are the closest thing to
+      # "does this open in Word" that runs offline. See docs/verification.md.
+      - name: Install LibreOffice
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends libreoffice-writer
+
+      # No enable-cache: it requires a uv.lock, which this project does not
+      # commit, and the action fails the build rather than skipping the cache.
+      - uses: astral-sh/setup-uv@caf0cab7a618c569241d31dcd442f54681755d39 # v3.2.4
+
+      - name: Install the project and its dev tools
+        run: |
+          uv venv
+          uv pip install -e ".[dev]"
+
+      # Deliberately NOT `uv run`. That re-resolves the environment from the
+      # lock without the dev extra, which drops ruff and pytest and fails with
+      # the executable missing. Calling the venv directly uses exactly what the
+      # step above installed.
+      - name: Lint
+        run: .venv/bin/python -m ruff check src tests scripts
+
+      - name: Test
+        run: .venv/bin/python -m pytest -q
+
+      # The same suite again with storage forced through the Cloudflare D1
+      # adapter, its JSON wire protocol and object storage (tests/conftest.py).
+      # Every test written against sqlite3 is the specification the adapter has
+      # to meet, so a storage change that only works locally fails here.
+      - name: Test against the Cloudflare storage path
+        run: LRA_TEST_BACKEND=d1 .venv/bin/python -m pytest -q
+
+      # The numbers that decide whether the product is usable: catch rate, and
+      # false positives on documents that are correct. Exits non-zero if either
+      # misses its target, so a regression here fails the build.
+      - name: Score the evaluation corpus
+        run: .venv/bin/python -m evals.run_checks
+
+      - name: Confirm the independent parser actually ran
+        run: |
+          .venv/bin/python -c "
+          from lra import convert
+          assert convert.available(), 'LibreOffice missing; round-trip tests silently skipped'
+          print('LibreOffice round-trip tests ran')
+          "
+
+  # The Worker in front of the container. Type-checked, and bundled by Wrangler
+  # itself against the real config, without deploying and without building the
+  # container image.
+  edge:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: cloudflare
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci
+      - run: npm run check
+      # The review Workflow, webhook and outbox, in workerd (cloudflare/test).
+      - run: npm test
+      - run: npx wrangler deploy --dry-run --containers-rollout=none --outdir /tmp/edge
+      # Every firm's generated config (deployments/<firm>/wrangler.jsonc),
+      # bundled the same way, so a firm's deploy cannot be the first to find
+      # a path or binding wrangler rejects.
+      - name: Bundle every firm's deployment
+        run: |
+          for config in ../deployments/*/wrangler.jsonc; do
+            [ -e "$config" ] || continue
+            npx wrangler deploy --dry-run --containers-rollout=none --outdir /tmp/tenant --config "$config"
+          done
+
+  # The document-system MCP server (docs/migration.md, phase 4), in workerd
+  # against a fake iManage.
+  dms-mcp:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: cloudflare/dms-mcp
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci
+      - run: npm run check
+      - run: npm test
+      - run: npx wrangler deploy --dry-run --outdir /tmp/dms-mcp

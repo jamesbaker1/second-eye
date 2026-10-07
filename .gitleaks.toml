@@ -1,0 +1,45 @@
+# gitleaks configuration: the default rules, plus allowlists for the test
+# fixtures they mistake for secrets. Each entry allows only the named fixture
+# value, and only in the file that uses it (condition = "AND"), so the same
+# value anywhere else, or a different value in the same file, is still found.
+# Paths are matched with an optional leading directory so the same file is
+# allowed in a history scan (repository-relative paths) and in a directory
+# scan (`gitleaks dir`, absolute paths), as scripts/export_public.py runs.
+
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = """
+DATA_KEY fixtures for the at-rest encryption tests. Base64 of the ASCII
+strings "0123456789abcdef0123456789abcdef", "fedcba9876543210fedcba9876543210"
+and "too-short": chosen to be obviously not keys.
+"""
+condition = "AND"
+paths = [
+  '''(^|/)tests/test_cloudflare\.py$''',
+  '''(^|/)cloudflare/vitest\.config\.ts$''',
+]
+regexes = [
+  '''^MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY=?$''',
+  '''^ZmVkY2JhOTg3NjU0MzIxMGZlZGNiYTk4NzY1NDMyMTA=?$''',
+  '''^dG9vLXNob3J0$''',
+  # gitleaks also decodes base64 and checks the result, so the plain strings.
+  '''^0123456789abcdef0123456789abcdef$''',
+  '''^fedcba9876543210fedcba9876543210$''',
+]
+
+[[allowlists]]
+description = """
+The webhook signing secret from the Standard Webhooks specification's own
+worked example (whsec_MfKQ9r8...), used so the signature tests can be checked
+against the published test vector.
+"""
+condition = "AND"
+paths = [
+  '''(^|/)cloudflare/test/webhook\.test\.ts$''',
+  '''(^|/)cloudflare/vitest\.config\.ts$''',
+]
+regexes = [
+  '''^whsec_MfKQ9r8GKYqrTwjUPD8ILPZIo2LaLaSw$''',
+]

@@ -1,0 +1,177 @@
+name: Deploy
+
+# Builds the container image and deploys it with the Worker. This runs here
+# rather than on anyone's laptop because building the image needs a Docker
+# engine, and a runner has one. It also means every deployment is a commit on
+# main that passed CI, which is the answer a firm wants to "how does code reach
+# production?".
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+# Every job below is gated on the repository's name. This file also ships in
+# the public repository (and in every fork of it), where it must never run:
+# production deploys only from the private development repository. Without
+# the gate a fork with its own Cloudflare secrets would deploy over its own
+# account on every push, and the public repository would try to deploy ours.
+jobs:
+  deploy:
+    # Only in the private repository, and only after CI has passed on main or
+    # when asked for by hand.
+    if: >-
+      github.repository == 'jamesbaker1/legal-review-agent' &&
+      (github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success')
+    runs-on: ubuntu-latest
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+    steps:
+      # A repository without the token is not a failure, it is a repository
+      # that is not set up to deploy yet. Say so and stop green, rather than
+      # turning every push red.
+      - name: Check that deployment is configured
+        id: configured
+        run: |
+          if [ -z "$CLOUDFLARE_API_TOKEN" ] || [ -z "$CLOUDFLARE_ACCOUNT_ID" ]; then
+            echo "CLOUDFLARE_API_TOKEN / CLOUDFLARE_ACCOUNT_ID are not set; skipping the deploy."
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/checkout@v4
+        if: steps.configured.outputs.ready == 'true'
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+
+      - uses: actions/setup-node@v4
+        if: steps.configured.outputs.ready == 'true'
+        with:
+          node-version: 22
+
+      # Phase 5 (docs/migration.md) took the queue consumers out of
+      # wrangler.jsonc, and `wrangler deploy` adds and updates consumers but
+      # never removes one. Detached here, before the Worker without a queue()
+      # handler goes up. Idempotent: once they are gone this prints an error
+      # and carries on. Safe to delete after the first deploy that runs it.
+      - name: Detach the retired queue consumers
+        if: steps.configured.outputs.ready == 'true'
+        working-directory: cloudflare
+        run: |
+          npm ci
+          npx wrangler queues consumer remove legal-review-inbound legal-review-agent || true
+          npx wrangler queues consumer remove legal-review-inbound-dead legal-review-agent || true
+
+      # The primary deployment's config, rendered from deployments/jim/
+      # (`lra tenant render jim`); cloudflare/wrangler.jsonc holds only
+      # placeholders for its names, ids and vars.
+      - name: Deploy the Worker and the container
+        if: steps.configured.outputs.ready == 'true'
+        working-directory: cloudflare
+        run: |
+          npx wrangler deploy --config ../deployments/jim/wrangler.jsonc
+
+      # The document-system MCP server (cloudflare/dms-mcp). Needs no secret
+      # to deploy: until DMS_MCP_SIGNING_KEY and IMANAGE_BASE_URL are set it
+      # refuses every tool call (docs/deploy-cloudflare.md).
+      - name: Deploy the document-system MCP server
+        if: steps.configured.outputs.ready == 'true'
+        working-directory: cloudflare/dms-mcp
+        run: |
+          npm ci
+          npx wrangler deploy
+
+      # The URL comes from Jim's tenant file (private), so the public copy of
+      # this workflow names no account.
+      - name: Check the edge answers
+        if: steps.configured.outputs.ready == 'true'
+        run: curl --fail --silent --show-error "$(PYTHONPATH=src python3 -m lra.tenant url jim)/health"
+
+  # Every firm's own deployment (deployments/<firm>/, `lra tenant`), after
+  # Jim's: his is the canary, so a commit that does not deploy there goes to
+  # no firm. Jim's is the job above, from deployments/jim/ (primary), and is
+  # not in this list.
+  tenants:
+    needs: deploy
+    if: github.repository == 'jamesbaker1/legal-review-agent'
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.list.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+      # Standard library only, so nothing to install. Empty when there is no
+      # firm yet, and then the job below does not run.
+      - name: List the firms' deployments
+        id: list
+        run: echo "matrix=$(PYTHONPATH=src python3 -m lra.tenant matrix)" >> "$GITHUB_OUTPUT"
+      # A self-hosted firm is never in the matrix: it runs in the firm's own
+      # Cloudflare account, with a token we do not hold, and its IT deploys a
+      # release (release.yml, `lra tenant deploy`) when it chooses. Said here
+      # so a firm missing from the list below is not a mystery.
+      - name: Say which firms deploy themselves
+        run: PYTHONPATH=src python3 -m lra.tenant self-hosted
+
+  # Each firm with its own Cloudflare credentials, named after its tenant:
+  # deployments/acme-llp/ deploys with CLOUDFLARE_API_TOKEN_ACME_LLP and
+  # CLOUDFLARE_ACCOUNT_ID_ACME_LLP. The Worker's own secrets (DATA_KEY,
+  # EDGE_SECRET, ANTHROPIC_API_KEY) are put on the Worker once by
+  # `lra tenant provision` and are never in GitHub.
+  tenant:
+    needs: tenants
+    if: github.repository == 'jamesbaker1/legal-review-agent' && needs.tenants.outputs.matrix != ''
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.tenants.outputs.matrix) }}
+    name: deploy ${{ matrix.tenant }}
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets[format('CLOUDFLARE_API_TOKEN_{0}', matrix.secret)] }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets[format('CLOUDFLARE_ACCOUNT_ID_{0}', matrix.secret)] }}
+    steps:
+      # As for Jim's: a firm whose secrets are not set yet, or whose database
+      # does not exist yet, is not a failure. Say so and stop green.
+      - name: Check that this firm's deployment is configured
+        id: configured
+        run: |
+          if [ -z "$CLOUDFLARE_API_TOKEN" ] || [ -z "$CLOUDFLARE_ACCOUNT_ID" ]; then
+            echo "CLOUDFLARE_API_TOKEN_${{ matrix.secret }} / CLOUDFLARE_ACCOUNT_ID_${{ matrix.secret }} are not set; skipping ${{ matrix.tenant }}."
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+          elif [ "${{ matrix.provisioned }}" != "true" ]; then
+            echo "${{ matrix.tenant }} has no D1 database id yet (lra tenant provision ${{ matrix.tenant }} --apply); skipping."
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/checkout@v4
+        if: steps.configured.outputs.ready == 'true'
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+
+      - uses: actions/setup-node@v4
+        if: steps.configured.outputs.ready == 'true'
+        with:
+          node-version: 22
+
+      - name: Deploy the Worker and the container
+        if: steps.configured.outputs.ready == 'true'
+        working-directory: cloudflare
+        run: |
+          npm ci
+          npx wrangler deploy --config "../${{ matrix.config }}"
+
+      - name: Check the edge answers
+        if: steps.configured.outputs.ready == 'true' && matrix.edge_url != ''
+        run: curl --fail --silent --show-error "${{ matrix.edge_url }}/health"

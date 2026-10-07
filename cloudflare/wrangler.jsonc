@@ -1,0 +1,168 @@
+// The edge of the legal review agent: the configuration every deployment
+// shares. See docs/deploy-cloudflare.md for the order to create the
+// resources in. Nothing here is any deployment's own: every name, id and var
+// below that belongs to one is a placeholder (example.com, a zero database
+// id). Each deployment, the operator's own included, is
+// deployments/<name>/tenant.jsonc (`lra tenant`): its own names, ids and
+// vars, with everything else (code, compatibility date, container class,
+// cron) read from this file, rendered to deployments/<name>/wrangler.jsonc
+// and deployed with `wrangler deploy --config`. So a change here to anything
+// but the placeholders reaches every deployment on the next one. The vars'
+// comments are the reference for what each does; the values a new firm
+// starts from are `lra tenant new`'s (src/lra/tenant.py, KNOBS).
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "legal-review-agent",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-09-01",
+  "observability": { "enabled": true },
+
+  // The Python application. `basic` is 1/4 vCPU and 1 GiB, which is enough for
+  // one lawyer's documents and costs about $6.50 a month if it never slept.
+  // A firm wants `standard-1` (4 GiB): python-docx holds a whole document tree
+  // in memory, and a long credit agreement beside LibreOffice will not fit in
+  // one. One instance only: a second is the first thing a runaway would start.
+  "containers": [
+    {
+      "class_name": "ReviewContainer",
+      "image": "../Dockerfile",
+      "image_build_context": "..",
+      "instance_type": "basic",
+      "max_instances": 1
+    }
+  ],
+  "durable_objects": {
+    "bindings": [{ "name": "REVIEW", "class_name": "ReviewContainer" }]
+  },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["ReviewContainer"] }],
+
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "legal-review-agent",
+      // A placeholder: each deployment's id is in its tenant.jsonc.
+      "database_id": "00000000-0000-0000-0000-000000000000"
+    }
+  ],
+
+  // Documents. Add "jurisdiction": "eu" (and create the bucket with it) for a
+  // firm that has to keep client material in the EU.
+  "r2_buckets": [{ "binding": "DOCS", "bucket_name": "legal-review-agent-docs" }],
+
+  "send_email": [{ "name": "EMAIL" }],
+
+  // One instance per email (src/review-flow.ts). The only path a message
+  // takes: the queue, its dead-letter queue and the job lease were removed in
+  // docs/migration.md, phase 5. Rollback is a git revert, not a flag.
+  "workflows": [
+    { "binding": "REVIEW_FLOW", "name": "legal-review-flow", "class_name": "ReviewFlow" }
+  ],
+
+  // Daily at 04:17 UTC: wake any Workflow a lost webhook left waiting on its
+  // session, purge what the Workflow path keeps past its retention, and run
+  // the application's retention sweep in the container (/retention/sweep).
+  "triggers": { "crons": ["17 4 * * *"] },
+
+  // Not secret. Everything secret is set with `wrangler secret put`:
+  //   EDGE_SECRET  DATA_KEY  ANTHROPIC_API_KEY  ANTHROPIC_WORKSPACE_ID
+  //   ANTHROPIC_WEBHOOK_SIGNING_KEY  the whsec_ secret shown once when the
+  //     endpoint https://<worker>/anthropic/webhook is added in Console ->
+  //     Manage -> Webhooks (subscribe to session.status_idled and
+  //     session.status_terminated, and vault_credential.refresh_failed once
+  //     a document system is configured). Without it /anthropic/webhook answers 404
+  //     and the Workflow simply polls every 60 seconds.
+  //   DMS_MCP_SIGNING_KEY  DMS_CLIENT_SECRET  only with a document system
+  //     (docs/deploy-cloudflare.md, "The document-system MCP server").
+  //   OPERATOR_SECRET  never left set: put for one operator job from a laptop
+  //     (lra purge, audit, a release) and deleted after. Unset, /internal/*
+  //     does not exist on the public hostname (src/operator.ts).
+  "vars": {
+    // The Worker's public URL: the webhook's address, and an operator's.
+    // The container does not use it; it calls the Worker as edge.internal.
+    "EDGE_URL": "https://legal-review-agent.example.workers.dev",
+    // What the container can reach (src/index.ts, egress()). "allowlist":
+    // no internet; the edge, api.anthropic.com, the document system's token
+    // host if one is configured, and EGRESS_ALLOWED_HOSTS. "open": the whole
+    // internet, as before 2026-10; a rollback, not a setting to keep.
+    "CONTAINER_EGRESS": "allowlist",
+    "EGRESS_ALLOWED_HOSTS": "",
+    // Mail is admitted only when the sender's domain passes DMARC on
+    // Cloudflare's own verdict (src/auth.ts). A firm domain with no DMARC
+    // record yet can be listed here to be admitted on a DKIM signature that
+    // passed for exactly that domain. A DMARC failure is never admitted.
+    "DKIM_ONLY_DOMAINS": "",
+    "MAIL_AGENT_ADDRESS": "review@legal.example.com",
+    "MAIL_AGENT_NAME": "Redline Desk",
+    // Needs subaddressing on in this zone's Email Routing settings. Off: a
+    // test to review+routingcheck@ on 2026-09-27 bounced "address not found".
+    "ONE_TAP_LINKS": "false",
+    // "rules" until the account has credit: in "shadow" every email made a
+    // triage call that failed with a 400. Back to "shadow" for the live eval.
+    "TRIAGE": "rules",
+    "FIRM_DOMAINS": "example.com",
+    // Exactly one person: exact addresses or exact domains (a subdomain is not
+    // admitted). Anyone else is dropped silently, with no bounce and no reply,
+    // and spends none of the model budget. Empty drops everything.
+    "ALLOWED_SENDERS": "lawyer@example.com",
+    // The spending cap. Cloudflare has none, so the Worker refuses mail past
+    // this many accepted messages in a UTC day, before anything that costs
+    // money wakes up. Each review session is also capped at
+    // MANAGED_SESSION_BUDGET_CENTS (8 dollars by default), so 30 reviews is
+    // bounded even at Fable prices, which are above Opus.
+    "MAX_EMAILS_PER_DAY": "30",
+    // Who a reply may go to (DECISIONS 31): the sender alone. The Worker
+    // refuses to send anything else, and the container readdresses first.
+    // "model" lets the recipients stand as the model chose them.
+    "REPLY_POLICY": "sender_only",
+    // The kill switch. "true": mail is accepted and held in R2, nothing is
+    // reviewed or sent. "false" again releases it (daily cron, or an
+    // operator's signed POST /internal/release).
+    "SERVICE_PAUSED": "false",
+    // Claude Fable 5.1, the most capable model available (Jim's call,
+    // 2026-09-28). Haiku proved the plumbing and its judgment was visibly
+    // weaker (STATUS.md). This line governs the direct Messages API calls in
+    // the container (transcribing a scan, assessing a comparison); the agents'
+    // model is in agents/*.yaml and is applied by `lra agents apply`.
+    "REVIEW_MODEL": "claude-fable-5-1",
+    // "true" for a zero-data-retention Anthropic organisation, which Fable 5.1
+    // refuses: every call and agent moves to Claude Opus 5 (docs/sandbox.md).
+    // The sandbox's own retention is unchanged by it.
+    "ZERO_RETENTION": "false",
+    // The review runs as an Anthropic Managed Agents session (DECISIONS 29):
+    // the document is mounted in Anthropic's container, which keeps files for
+    // up to thirty days and is not ZDR-eligible. Production security is a
+    // decision still to be made before a firm's documents go through it.
+    // These four are printed by `lra agents apply` (docs/deploy-cloudflare.md)
+    // and are empty until it has been run; until then the review path answers
+    // "Managed Agents is not set up" and clean copies and comparisons still work.
+    "MANAGED_REVIEW_AGENT_ID": "",
+    "MANAGED_ASSOCIATE_AGENT_ID": "",
+    "MANAGED_ENVIRONMENT_ID": "",
+    "MANAGED_FIRM_MEMORY_STORE_ID": "",
+    "SANDBOX_SKILL_ID": "",
+    "SANDBOX_PLAYBOOK_SKILL_ID": "",
+    "SANDBOX_KEY_TERMS_SKILL_ID": "",
+    // The optional agents and their skills. Empty, each feature answers that
+    // it is not set up. `lra live-check` fills every id here from its run.
+    "MANAGED_PLAYBOOK_AGENT_ID": "",
+    "MANAGED_COMMENTS_AGENT_ID": "",
+    "MANAGED_CLOSING_AGENT_ID": "",
+    "MANAGED_BLACKLINE_AGENT_ID": "",
+    "SANDBOX_COMMENTS_SKILL_ID": "",
+    "SANDBOX_CLOSING_SKILL_ID": "",
+    "SANDBOX_BLACKLINE_SKILL_ID": "",
+    "SANDBOX_NEGOTIATION_SKILL_ID": "",
+    // Nothing kept after 7 days (Jim's call, 2026-10-04): a conversation, its
+    // document and versions, a closing and its signed pages, unconfirmed
+    // notes, and each job's Anthropic sessions go 7 days after the last
+    // activity. Swept by the daily cron (src/lra/retention.py). A firm may
+    // shorten it; "0" keeps everything.
+    "THREAD_RETENTION_DAYS": "7",
+    "RETENTION_HOURS": "24",
+    // "false": nothing is learned unless a lawyer asks ("remember that",
+    // "stop flagging X"). "true" learns from undos, dismissals and the sent
+    // version, and keeps the record of each to learn from.
+    "LEARN_FROM_OUTCOMES": "false",
+    "LOG_LEVEL": "INFO"
+  }
+}

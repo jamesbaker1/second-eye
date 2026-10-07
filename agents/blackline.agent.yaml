@@ -1,0 +1,37 @@
+# The blackline agent: Litera Compare's output, by email, with the
+# lra-blackline skill. The Word comparison as tracked changes, a PDF of it
+# whose first page is the change summary (counts, counts by clause, and a
+# line on each material change), and a baseline named in words ("against
+# what we sent on Tuesday", "v4 against v1") chosen from every version the
+# conversation has seen. The host (src/lra/blackline.py) mounts the versions
+# and their list, and checks what comes back against its own comparison of
+# the two versions before anything is attached.
+#
+# Its own agent, and detached, for the reasons comments.agent.yaml gives: no
+# custom tools, ever, because a custom tool call in a session with no client
+# waits for ever; and skills attach to the agent definition, so lra-blackline
+# lives here (extra_skills) instead of being offered to every review.
+#
+# Applied by `lra agents apply`, printed as MANAGED_BLACKLINE_AGENT_ID, after
+# `lra skills sync lra-blackline` has printed SANDBOX_BLACKLINE_SKILL_ID.
+name: LRA blackline
+description: >-
+  Makes a blackline of two versions of a document: picks the baseline the
+  lawyer named from the versions the conversation has seen, compares them as
+  tracked changes, renders the PDF with a change summary, and writes one line
+  on why each material change matters. Everything it produces is a file.
+model: claude-fable-5-1
+system_file: ../src/lra/prompts/blackline_system.md
+extra_skills:
+  - sandbox_blackline_skill_id
+tools:
+  - type: agent_toolset_20260401
+    default_config:
+      enabled: true
+      permission_policy:
+        type: always_allow
+    configs:
+      - name: web_search
+        enabled: false
+      - name: web_fetch
+        enabled: false

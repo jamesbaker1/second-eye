@@ -1,0 +1,281 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Redline Desk Trust</title>
+<meta name="description" content="Where a document goes, who processes it, how long it is kept, and what a firm controls. For a firm's general counsel and risk committee.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;0,6..72,500;1,6..72,300;1,6..72,400&family=Public+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap">
+
+<style>
+/* The landing page's paper and ink, without the word-processor chrome: one
+   printed memo on the desk. Same tokens as index.html, light and dark. */
+:root {
+  --canvas:     #E4E4E2;
+  --page:       #FFFFFF;
+  --markup:     #F3F3F1;
+  --ink:        #1A1D21;
+  --muted:      #666A70;
+  --rule:       #DAD9D4;
+  --heading:    #2F5496;
+  --strike:     #9E2B3A;
+  --insert:     #1D6A6E;
+  --flag:       #B4772A;
+  --comment-bg: #FBF3E4;
+
+  --display: "Newsreader", "Iowan Old Style", Georgia, serif;
+  --body:    "Public Sans", -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+  --mono:    "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --canvas:     #121315;
+    --page:       #1D1F22;
+    --markup:     #17191B;
+    --ink:        #E8E6E1;
+    --muted:      #9A9DA3;
+    --rule:       #33363B;
+    --heading:    #8FB0EA;
+    --strike:     #E0798A;
+    --insert:     #5FBFC3;
+    --flag:       #D9A45F;
+    --comment-bg: #2A261D;
+  }
+}
+:root[data-theme="dark"] {
+  --canvas:     #121315;
+  --page:       #1D1F22;
+  --markup:     #17191B;
+  --ink:        #E8E6E1;
+  --muted:      #9A9DA3;
+  --rule:       #33363B;
+  --heading:    #8FB0EA;
+  --strike:     #E0798A;
+  --insert:     #5FBFC3;
+  --flag:       #D9A45F;
+  --comment-bg: #2A261D;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--canvas);
+  color: var(--ink);
+  font-family: var(--body);
+  font-size: 16px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  padding: 0 0 2.4rem;
+}
+a { color: var(--heading); text-underline-offset: .15em; }
+code { font-family: var(--mono); font-size: .86em; background: var(--markup); padding: .05em .3em; border-radius: 3px; overflow-wrap: anywhere; }
+
+.page {
+  --pad: clamp(1rem, 6vw, 4.5rem);
+  max-width: 50rem;
+  margin: 1.4rem auto;
+  background: var(--page);
+  box-shadow: 0 0 0 1px var(--rule), 0 10px 30px -14px rgb(0 0 0 / .35);
+  padding: 2.2rem var(--pad) 1.6rem;
+}
+@media (max-width: 52rem) { .page { margin: .8rem 16px; } }
+
+.running { display: flex; justify-content: space-between; gap: 1rem; font-size: .7rem; color: var(--muted); letter-spacing: .04em; padding-bottom: 1.6rem; }
+.running a { color: inherit; }
+.folio { text-align: center; font-size: .7rem; color: var(--muted); padding-top: 2rem; }
+
+h1, h2, h3 { margin: 0; text-wrap: balance; }
+h1 { font-family: var(--display); font-weight: 300; font-size: clamp(2rem, 6vw, 3.1rem); line-height: 1.05; letter-spacing: -.015em; }
+h1 ins { color: var(--insert); text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: .09em; }
+.lede { font-size: 1.05rem; color: var(--muted); max-width: 38rem; margin: 1rem 0 0; }
+h2 { font-weight: 300; font-size: clamp(1.4rem, 3.4vw, 1.9rem); line-height: 1.15; color: var(--heading); letter-spacing: -.01em; margin: 2.8rem 0 .9rem; }
+h3 { font-size: 1rem; font-weight: 600; margin: 1.4rem 0 .3rem; }
+p { margin: 0 0 .8rem; }
+ul { margin: 0 0 .8rem; padding-left: 1.2rem; }
+li { margin-bottom: .45rem; }
+
+/* ---------- the data flow ---------- */
+.flow { list-style: none; padding: 0; margin: 1.6rem 0 0; display: grid; gap: 0; }
+.flow li { margin: 0; position: relative; padding-bottom: 1.6rem; }
+.flow li:not(:last-child)::after {
+  content: ""; position: absolute; left: 1.4rem; bottom: .25rem; height: 1.1rem;
+  border-left: 1.5px solid var(--muted);
+}
+.flow li:not(:last-child)::before {
+  content: ""; position: absolute; left: calc(1.4rem - 4px); bottom: .15rem;
+  border: 4.5px solid transparent; border-top-color: var(--muted); border-bottom: 0;
+}
+.box { border: 1px solid var(--rule); background: var(--page); padding: .8rem 1rem; display: grid; gap: .15rem .9rem; }
+@media (min-width: 40rem) { .box { grid-template-columns: 13rem 1fr; align-items: baseline; } }
+.box .who { font-family: var(--display); font-size: 1.25rem; line-height: 1.15; }
+.box .who small { display: block; font-family: var(--body); font-size: .72rem; color: var(--muted); letter-spacing: .03em; text-transform: uppercase; margin-top: .2rem; }
+.box .what { font-size: .88rem; color: var(--muted); }
+.box.vendor { border-left: 3px solid var(--heading); }
+.box.ours { border-left: 3px solid var(--insert); }
+.box.back { border-left: 3px solid var(--flag); background: var(--comment-bg); }
+.flow .step { font-family: var(--mono); font-size: .72rem; color: var(--muted); display: block; margin: 0 0 .35rem 2.4rem; }
+
+/* ---------- tables ---------- */
+.scroll { overflow-x: auto; margin: 0 0 1rem; }
+table { border-collapse: collapse; width: 100%; font-size: .88rem; }
+table.wide { min-width: 40rem; }
+th, td { text-align: left; vertical-align: top; padding: .55rem .7rem; border-bottom: 1px solid var(--rule); }
+th { font-weight: 600; font-size: .78rem; color: var(--muted); letter-spacing: .02em; }
+
+blockquote { margin: .6rem 0 .8rem; padding: .5rem 1rem; border-left: 3px solid var(--rule); font-family: var(--display); font-size: 1.1rem; font-style: italic; }
+.src { font-size: .8rem; color: var(--muted); overflow-wrap: anywhere; }
+.note { background: var(--comment-bg); border: 1px solid var(--rule); padding: .8rem 1rem; font-size: .9rem; margin: 1rem 0; }
+</style>
+
+<main>
+<article class="page">
+  <div class="running"><a href="/">The Redline Desk</a><span>For general counsel and risk committees</span></div>
+
+  <h1>Where a document goes, and <ins>what stops it</ins>.</h1>
+  <p class="lede">Who processes a draft, how long each copy is kept, what the firm controls, and how a supervising partner checks it. Written against ABA Formal Opinion 512: confidentiality across clients, informed consent for a tool that learns, and supervision.</p>
+  <p>It describes this deployment as built. Settings in capitals are switches the firm controls. Where it relies on a vendor&rsquo;s terms it quotes and links them; where it cannot verify something it says so. The one-minute version is the <a href="/security.html">security page</a>.</p>
+
+  <div class="note"><strong>Nothing kept after 7 days. Nothing learned unless you ask.</strong> What we hold about a document is deleted 7 days after the conversation&rsquo;s last activity, and nothing is learned unless a lawyer asks. We delete each review session at Anthropic as soon as it ends; Anthropic may keep its own copies for up to 30 days. The exceptions are listed below.</div>
+
+  <h2>The path of one document</h2>
+  <ol class="flow" aria-label="Data flow">
+    <li>
+      <div class="box ours"><div class="who">The lawyer<small>firm mailbox</small></div>
+        <div class="what">Emails a draft to the firm&rsquo;s review address, or BCCs it.</div></div>
+    </li>
+    <li>
+      <span class="step">received</span>
+      <div class="box vendor"><div class="who">Cloudflare Email<small>edge worker</small></div>
+        <div class="what">Allowlist of the firm&rsquo;s own domains, DMARC check, daily cap. Anything else is dropped, unanswered, before our code runs.</div></div>
+    </li>
+    <li>
+      <span class="step">sealed with the firm&rsquo;s key, AES-256-GCM</span>
+      <div class="box vendor"><div class="who">Encrypted storage<small>Cloudflare R2 and D1</small></div>
+        <div class="what">In the firm&rsquo;s Cloudflare account. Documents are unreadable without the key. Deleted 7 days after the last activity.</div></div>
+    </li>
+    <li>
+      <span class="step">one document, for one review</span>
+      <div class="box vendor"><div class="who">Anthropic<small>Claude Fable 5.1, sandboxed session</small></div>
+        <div class="what">The document is mounted in an isolated container, with read-only memory for this lawyer and this client only. No email access, no document-system token. We delete the session when the review ends; Anthropic may keep its copies for up to 30 days.</div></div>
+    </li>
+    <li>
+      <span class="step">findings and a tracked-changes file, checked by our code</span>
+      <div class="box back"><div class="who">Back to the lawyer only<small>one reply</small></div>
+        <div class="what">To the sender. Never to anyone on CC, never to a client or a counterparty.</div></div>
+    </li>
+  </ol>
+  <p>Nothing leaves the firm except to Cloudflare, which carries and stores it, and Anthropic, which reads it in a review session and may keep its copies for up to 30 days (below). The agent replies only to the lawyer who asked.</p>
+
+  <h2>Who processes what</h2>
+  <div class="scroll" tabindex="0" role="region" aria-label="Processors, scrolls sideways"><table class="wide">
+    <thead><tr><th>Processor</th><th>Receives</th><th>Does</th><th>Governed by</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Cloudflare</strong></td><td>The email and attachments; rows describing each job</td><td>Receives and sends mail, runs our code in a container, stores documents (R2) and rows (D1)</td><td>The firm&rsquo;s (or our) Cloudflare agreement. Documents are encrypted with the firm&rsquo;s key before Cloudflare stores them, on top of Cloudflare&rsquo;s own encryption at rest</td></tr>
+      <tr><td><strong>Anthropic</strong></td><td>The document under review, the email&rsquo;s instructions, this lawyer&rsquo;s style memory and this client&rsquo;s and matter&rsquo;s memory</td><td>Runs Claude Fable 5.1 in a Managed Agents session; returns findings and a file</td><td>Anthropic&rsquo;s Commercial Terms of Service (below)</td></tr>
+      <tr><td><strong>The firm&rsquo;s DMS</strong> <span class="src">(optional)</span></td><td>Searches and reads, as the lawyer</td><td>Lets a review compare against earlier drafts on the same matter</td><td>The firm&rsquo;s own DMS. Our code calls it with the lawyer&rsquo;s own OAuth token, never Anthropic&rsquo;s container</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>Training</h3>
+  <p>Anthropic&rsquo;s Commercial Terms of Service, section B:</p>
+  <blockquote>&ldquo;Anthropic may not train models on Customer Content from Services.&rdquo;</blockquote>
+  <p>API use under those terms is not used to train models by default.</p>
+  <p class="src">Source: <a href="https://www.anthropic.com/legal/commercial-terms">anthropic.com/legal/commercial-terms</a>, read 28 September 2026.</p>
+
+  <h3>Anthropic&rsquo;s retention</h3>
+  <blockquote>&ldquo;For Anthropic API users, we automatically delete inputs and outputs on our backend within 30 days of receipt or generation.&rdquo;</blockquote>
+  <p>Anthropic lists exceptions, including where a customer has agreed otherwise, such as a zero data retention agreement.</p>
+  <p class="src">Source: <a href="https://privacy.claude.com/en/articles/7996866-how-long-do-you-store-my-organization-s-data">privacy.claude.com: How long do you store my organization&rsquo;s data?</a>, read 28 September 2026.</p>
+  <ul>
+    <li><strong>Claude Fable 5.1</strong>, the default, requires that 30-day retention.</li>
+    <li><strong><code>ZERO_RETENTION=true</code></strong> is for a firm whose Anthropic organisation is on zero data retention. Every model call and agent then runs on Claude Opus 5, a model available under ZDR, at some cost in judgment.</li>
+    <li><strong>The sandbox is not zero-retention either way.</strong> Managed Agents, where every review runs, is not eligible for zero data retention, whatever the model. We delete each session as soon as the review ends; Anthropic&rsquo;s documentation says a delete permanently removes the session&rsquo;s record, its events and its sandbox. It does not say whether anything of a deleted session stays on its backend within the 30 days above, so up to 30 days is what we can promise. Memory stores (short sentences a lawyer asked it to keep, not documents) stay until deleted. A client that needs nothing retained anywhere belongs in <code>NO_AI_MATTERS</code>, which sends its documents to no model at all.</li>
+  </ul>
+
+  <div class="note"><strong>Certifications.</strong> This page makes no certification claims for either vendor. Check Cloudflare&rsquo;s and Anthropic&rsquo;s current certifications (SOC&nbsp;2, ISO&nbsp;27001 and the like) on their own trust portals when you decide. We hold none of our own (below).</div>
+
+  <h2>What we keep, and for how long</h2>
+  <p>A daily sweep deletes each item within a day of its window ending. The firm can shorten any window; <code>0</code> keeps for ever.</p>
+  <div class="scroll"><table>
+    <thead><tr><th>What</th><th>Kept for</th><th>Setting</th></tr></thead>
+    <tbody>
+      <tr><td>The conversation and its document, earlier versions, findings, tracked changes and negotiation record</td><td>7 days after the last reply or new version. Undo, clean copy and answers work until then</td><td><code>THREAD_RETENTION_DAYS</code></td></tr>
+      <tr><td>A closing and its signed pages</td><td>7 days after the last email on it</td><td><code>THREAD_RETENTION_DAYS</code></td></tr>
+      <tr><td>A note the agent proposed that the lawyer did not confirm</td><td>7 days, never used</td><td><code>THREAD_RETENTION_DAYS</code></td></tr>
+      <tr><td>At Anthropic: our uploads and the files a session writes</td><td>Deleted when the session ends</td><td>none</td></tr>
+      <tr><td>At Anthropic: the session and its turn-by-turn record</td><td>Deleted when the review ends; a delete that failed is retried once the job is 7 days old</td><td><code>THREAD_RETENTION_DAYS</code></td></tr>
+      <tr><td>The raw incoming message</td><td>Until answered; 7 days if never</td><td>R2 lifecycle rule</td></tr>
+      <tr><td>The job row (sender, status)</td><td>24 hours</td><td><code>RETENTION_HOURS</code></td></tr>
+      <tr><td>Which changes were kept, undone or dismissed</td><td>Not recorded</td><td><code>LEARN_FROM_OUTCOMES</code> (off)</td></tr>
+      <tr><td>The mail archive</td><td>Off; 7 days if switched on</td><td><code>ARCHIVE_ENABLED</code>, <code>ARCHIVE_RETENTION_DAYS</code></td></tr>
+      <tr><td>What a lawyer asked it to remember (our rows and Anthropic&rsquo;s memory stores)</td><td>Until the lawyer or a purge removes it</td><td>none</td></tr>
+      <tr><td>Mail held by the kill switch, sealed</td><td>Until the switch is turned off, then reviewed</td><td><code>SERVICE_PAUSED</code></td></tr>
+      <tr><td>Delivery bookkeeping (ids only: no names, addresses or contents)</td><td>31 days</td><td>none</td></tr>
+      <tr><td>The audit trail (names, times, ids; no contents) and purge records</td><td>Until the firm deletes them; a purge blanks its scope&rsquo;s names and ids</td><td>none</td></tr>
+    </tbody>
+  </table></div>
+  <p><strong>Deleting a client, a matter or a lawyer.</strong> <code>lra purge --client 10234</code>, <code>--matter 10234-0007</code> or <code>--lawyer jane@firm.com</code> deletes everything held for that scope, ours and Anthropic&rsquo;s, at once rather than after 7 days:</p>
+  <ul>
+    <li>conversations and their documents (the rows, and the objects in R2), every earlier version kept for a blackline, and the negotiation ledger;</li>
+    <li>closings and their signed pages;</li>
+    <li>archived mail, its attachments and its search-index entries;</li>
+    <li>remembered notes and suppressions, and any record of accepted, undone and dismissed suggestions;</li>
+    <li>at Anthropic: each review session that worked on the scope, with every file it wrote; every file uploaded for one; and the scope&rsquo;s memory stores. A store shared with other work (the client&rsquo;s, when one of its matters is purged) is rewritten without what was deleted;</li>
+    <li>for a lawyer, also their personal notes and memory store, and any document-system access.</li>
+  </ul>
+  <p>It is a dry run until <code>--apply</code> is given: it lists how many of each it would delete and every Anthropic id it would touch. If Anthropic cannot be reached part way, what failed is recorded and the same command run again finishes it.</p>
+  <p><strong>The audit trail is kept, and blanked.</strong> It is the firm&rsquo;s record of supervising the tool, so a purge does not delete it: who used it, when, what ran, on which model, where the reply went and how it ended stay. What names the client&rsquo;s work goes from each of the scope&rsquo;s rows: the documents&rsquo; and returned files&rsquo; names, the matter, the client, the session and file ids, and the triage plan. Each purge also leaves its own record, with no contents: who ran it, the scope, how many of each kind, and when.</p>
+  <p>What it cannot reach, said plainly: conversations, closings and archived mail from before 4 October 2026 with no matter number cannot be attributed to a client (the dry run counts them; purging the lawyers who sent them reaches them); what Anthropic keeps after a delete under its own retention, up to 30 days; and the firm&rsquo;s own settings (the client register, the no-AI list, the playbook and firm memory, and lawyers&rsquo; personal style notes, which hold no client content).</p>
+
+  <h2>Encryption</h2>
+  <ul>
+    <li>Documents (every stored copy: the one under review, earlier versions, signed pages, held mail, a review&rsquo;s state between steps) and document-system tokens are encrypted with AES-256-GCM under a key the firm generates and holds. Withdrawing it makes everything stored unreadable. The service will not start on hosted storage without one.</li>
+    <li>Said plainly: the rows in D1 (who sent what and when, filenames, findings and the text of each tracked change, remembered notes, the audit trail) are not under the firm&rsquo;s key, nor is the archive&rsquo;s search index if the archive is on. Only Cloudflare&rsquo;s own encryption at rest covers them; check its current documentation for what that is.</li>
+    <li>Everything travels over HTTPS between Cloudflare, our container and Anthropic.</li>
+  </ul>
+
+  <h2>Access</h2>
+  <ul>
+    <li><strong>Who can send to it.</strong> The firm&rsquo;s own domains or addresses (<code>ALLOWED_SENDERS</code>), enforced at the mail edge. Each entry is an exact address or an exact domain: <code>firm.com</code> does not admit <code>london.firm.com</code>. Mail from anyone else is dropped silently before any of our code runs, with no bounce and no reply, so opposing counsel who reply-all learn nothing. An empty list drops everything. A message is admitted only if its sender&rsquo;s domain passed DMARC authentication; one that failed, or whose domain publishes no DMARC record, is dropped the same way.</li>
+    <li><strong>What a review can reach.</strong> The document it was sent and, if the firm connects its DMS, only documents on the same matter, read with the lawyer&rsquo;s own permissions. The document-system token never enters Anthropic&rsquo;s container.</li>
+    <li><strong>Who gets the answer.</strong> The sender, and only the sender (<code>REPLY_POLICY=sender_only</code>, the default), enforced where every message leaves, whatever was composed. Nobody on CC, and never anyone outside the firm. Every message carries the firm&rsquo;s privilege legend (<code>PRIVILEGE_NOTICE</code>) and an <code>X-Privileged</code> header for its mail rules.</li>
+    <li><strong>Clients whose guidelines exclude AI.</strong> Listed in <code>NO_AI_MATTERS</code> (matter ids, client names or mail domains), or added by a playbook admin emailing &ldquo;no AI for Acme&rdquo;. Their documents get the deterministic checks and tools only, with no model call, and the reply says so. List the client&rsquo;s domain or matter to cover its scans, whose parties can only be read by a model.</li>
+  </ul>
+
+  <h2>A lawyer decides every change</h2>
+  <p>The agent returns tracked changes and comments in Word. It never accepts a change, never sends a document to a client, and never files anything. A lawyer reads every change and decides. It is told not to advise on the transaction.</p>
+
+  <h2>Memory: off until asked, and walled by client</h2>
+  <p>By default it learns nothing a lawyer did not ask it to. A note the agent proposes is used only once the lawyer replies &ldquo;remember that&rdquo;, and is deleted after 7 days if they do not. Undos, dismissals and the version the lawyer sent teach it nothing unless the firm turns that on (<code>LEARN_FROM_OUTCOMES</code>). What a lawyer does ask it to keep (&ldquo;remember that&rdquo;, &ldquo;stop flagging X&rdquo;) makes it a self-learning tool in Opinion 512&rsquo;s sense, and the firm should tell clients so. What it keeps is walled:</p>
+  <ul>
+    <li>Anything learned from a client&rsquo;s documents is kept under that client, or that matter, and read only on that client&rsquo;s matters.</li>
+    <li>A lawyer&rsquo;s personal memory holds drafting style only (&ldquo;&lsquo;will&rsquo;, not &lsquo;shall&rsquo;&rdquo;), and code refuses any personal note that names a party, a client, a sum or a proper name.</li>
+    <li>The firm-wide layer is written only from the firm&rsquo;s approved playbook, never from a client&rsquo;s document.</li>
+    <li>A client the system cannot identify with certainty gets no cross-matter memory at all.</li>
+  </ul>
+
+  <h2>Supervision: the audit trail</h2>
+  <p>Every job leaves one row with no contents: when it arrived, who sent it, the matter, the document names, what ran, the model and session ids, the inference geography, where it was stored and until when, who the reply went to and when, and how it ended.</p>
+  <ul>
+    <li><code>lra audit --since 2026-09-01 --format csv</code>, filtered by lawyer or matter.</li>
+    <li>A playbook admin emails &ldquo;audit report for September&rdquo; and gets the CSV back, to them alone.</li>
+    <li>A session can be read turn by turn in the Anthropic Console while it runs. It is deleted when the review ends, so this audit row is the lasting record.</li>
+  </ul>
+
+  <h2>Kill switch</h2>
+  <ul>
+    <li><code>SERVICE_PAUSED=true</code> stops everything at once: mail is accepted and held sealed (never bounced), nothing is reviewed and nothing is sent. Switched back, the held mail goes through. The daily deletion keeps running.</li>
+    <li>A lawyer replies &ldquo;revoke&rdquo; to disconnect their document-system access.</li>
+    <li>Withdrawing the firm&rsquo;s key makes everything stored unreadable.</li>
+  </ul>
+
+  <h2>What we don&rsquo;t have yet</h2>
+  <p>No SOC&nbsp;2 or ISO&nbsp;27001 certification and no independent penetration test. The D1 rows are not under the firm&rsquo;s key. This is a pilot run by one person, not a security team.</p>
+
+  <h2>Before the pilot starts</h2>
+  <p>Confirm each setting named here is as the firm wants it in the deployment itself, and register the firm&rsquo;s clients (<code>lra clients add</code>) so memory can be walled by them.</p>
+  <p class="src" style="margin-top:2.4rem">The same content, for circulation, is kept as <code>docs/trust.md</code> in the product&rsquo;s repository.</p>
+  <div class="folio">Trust</div>
+</article>
+</main>

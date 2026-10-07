@@ -1,0 +1,32 @@
+name: Feature request
+description: Something you would like it to do, by email.
+labels: [enhancement]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Before asking, `ROADMAP.md` has what is planned and in what order, and `DECISIONS.md` has what is settled on purpose. **Never include text from a real client document or matter**; this issue is public.
+  - type: textarea
+    id: problem
+    attributes:
+      label: The problem
+      description: What you are trying to get done, and what gets in the way today. A lawyer's words are as good as an engineer's.
+    validations:
+      required: true
+  - type: textarea
+    id: email
+    attributes:
+      label: What you would send, and what you would want back
+      description: The email you would write to the agent, and the reply or file you would expect.
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: How you do it now
+      description: The tool, add-in or manual step this would replace, if any.
+  - type: checkboxes
+    id: confirm
+    attributes:
+      label: Confidentiality
+      options:
+        - label: Nothing in this issue comes from a real client document, email or matter.
+          required: true

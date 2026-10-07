@@ -1,0 +1,11 @@
+{
+  // The landing page for the legal review agent. Static assets only: there is
+  // no Worker code, because the page does not need any. Assets live in
+  // public/ so this config file is not itself served.
+  "name": "redline-desk",
+  "compatibility_date": "2026-09-18",
+  "observability": { "enabled": true },
+  "assets": {
+    "directory": "./public"
+  }
+}

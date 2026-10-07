@@ -1,0 +1,37 @@
+# The playbook agent: reads what a firm sends as its negotiating positions
+# (precedents, a positions memo, a checklist, or a line in an email) and
+# reports one position per clause family through record_playbook, each with
+# the text it rests on. It edits nothing and writes no file the lawyer gets:
+# the position files and the summary are rendered by src/lra/playbook.py
+# from what it reports, and take effect only once an admin approves them.
+#
+# Its own agent rather than the associate's, for three reasons. The job is
+# the opposite of the associate's: extract what the firm has decided, never
+# propose wording of its own, so the associate's prompt ("draft a new clause
+# from scratch") would argue with this one. It needs none of the associate's
+# tools: the DMS lookups act as the requesting lawyer, and a firm-wide rule
+# should not be shaped by one lawyer's document-system access. And custom
+# tools live on the agent definition, so record_playbook on the associate
+# would be offered to every instruction session as well.
+#
+# Applied by `lra agents apply` with the same skills as the others (the
+# lra-playbook skill gives it the file format and the starter clause families)
+# and the settings-driven model fields.
+name: LRA playbook
+description: >-
+  Reads a firm's precedents, positions memo or email into playbook positions,
+  one per clause family, each citing the text it came from. Reports through
+  record_playbook; invents nothing.
+model: claude-fable-5-1
+system_file: ../src/lra/prompts/playbook_system.md
+tools:
+  - type: agent_toolset_20260401
+    default_config:
+      enabled: true
+      permission_policy:
+        type: always_allow
+    configs:
+      - name: web_search
+        enabled: false
+      - name: web_fetch
+        enabled: false

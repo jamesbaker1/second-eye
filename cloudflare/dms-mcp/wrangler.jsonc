@@ -1,0 +1,22 @@
+// The firm's document system as an MCP server, for Anthropic Managed Agents
+// sessions (docs/migration.md, Phase 4). A separate Worker from the edge: it
+// holds no data, has no bindings, and its only secret is the key it shares
+// with the container to check a session's matter binding.
+//
+// Deployed with nothing configured, it refuses every tool call, so deploying
+// it ahead of the firm's iManage is harmless. One-time setup, in
+// docs/deploy-cloudflare.md under "The document-system MCP server":
+//   wrangler secret put DMS_MCP_SIGNING_KEY   (the same value as the container's)
+//   IMANAGE_BASE_URL below, once the firm's iManage host is known.
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "legal-review-agent-dms-mcp",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-09-01",
+  "observability": { "enabled": true },
+  "vars": {
+    // The firm's iManage Work host, e.g. https://firm.imanage.work. Empty:
+    // every tool call answers "not configured".
+    "IMANAGE_BASE_URL": ""
+  }
+}

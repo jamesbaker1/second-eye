@@ -1,0 +1,8 @@
+To: review@legal.example.com
+Subject: Project Atlas - SPA execution version
+
+Attached is the execution version of the SPA (v5) for Acme Holdings and Northgate Freight Ltd, with the disclosure letter and the board update.
+
+I've capped liability at $2,000,000 and removed the exclusivity clause.
+
+Jim

@@ -1,0 +1,61 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "negotiation.json",
+  "description": "What the other side did with our points in their new version, which of their changes nobody asked for, and whether what their covering email says is true. Recorded only by scripts/validate_negotiation.py, which also holds it to the evidence file.",
+  "type": "object",
+  "properties": {
+    "points": {
+      "type": "array",
+      "description": "Every point in the evidence, exactly once, by its id. A point whose source is \"email\" (our covering email) may instead be split into its asks, as P<n>.1, P<n>.2 and so on, each with `ask`.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {"type": "string", "description": "The point's id from the evidence (\"P12\"), or \"P12.1\" for one ask of an email point."},
+          "ask": {"type": "string", "description": "Only on an ask split from an email point: the ask, in a few words."},
+          "status": {"type": "string", "enum": ["accepted", "rejected", "partial", "changed"], "description": "accepted: their version now does what we asked. rejected: it does not, and the clause is as it was. partial: part of what we asked, not all. changed: they rewrote the clause some other way."},
+          "label": {"type": "string", "minLength": 1, "description": "What a lawyer calls the point in a sentence: \"the cap\", \"governing law\"."},
+          "mentioned": {"type": "boolean", "description": "Whether their covering email says anything about this point."},
+          "changes": {"type": "array", "items": {"type": "integer"}, "description": "The indices of the changes in the evidence that show it. Empty only when no change is the evidence: an issues-list point they rejected, or a tracked change of ours they kept."},
+          "evidence": {"type": "string", "minLength": 1, "description": "One sentence, clause first, quoting what their version now says."}
+        },
+        "required": ["id", "status", "label", "mentioned", "changes", "evidence"],
+        "additionalProperties": false
+      }
+    },
+    "unrequested": {
+      "type": "array",
+      "description": "Every change in the evidence that is not the other side answering one of our points, grouped by clause, riskiest first.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "clause": {"type": "string", "description": "The clause number or name, as a lawyer would find it: \"9.4\", \"Schedule 2\"."},
+          "summary": {"type": "string", "minLength": 1, "description": "What it does, as a verb phrase in the present tense that reads after \"their version\": \"deletes the fraud carve-out in 9.4\", \"moves the long-stop date from 31 March to 31 January\"."},
+          "risk": {"type": "string", "enum": ["high", "medium", "low"]},
+          "mentioned": {"type": "boolean", "description": "Whether their covering email mentions this change."},
+          "changes": {"type": "array", "items": {"type": "integer"}, "minItems": 1}
+        },
+        "required": ["clause", "summary", "risk", "mentioned", "changes"],
+        "additionalProperties": false
+      }
+    },
+    "claims": {
+      "type": "array",
+      "description": "Each thing their covering email says about their version, quoted, with whether it is true. Empty when there is no covering email or it claims nothing.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "quote": {"type": "string", "minLength": 1, "description": "Word for word from their covering email."},
+          "verdict": {"type": "string", "enum": ["true", "false", "partly", "unverifiable"]},
+          "evidence": {"type": "string", "minLength": 1, "description": "One sentence, clause first, saying why."},
+          "points": {"type": "array", "items": {"type": "string"}, "description": "The ids of the points that show it."},
+          "changes": {"type": "array", "items": {"type": "integer"}, "description": "The indices of the changes that show it."}
+        },
+        "required": ["quote", "verdict", "evidence", "points", "changes"],
+        "additionalProperties": false
+      }
+    },
+    "summary": {"type": "string", "description": "Optional. One sentence only, for what the rest does not carry."}
+  },
+  "required": ["points", "unrequested", "claims"],
+  "additionalProperties": false
+}

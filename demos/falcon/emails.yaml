@@ -1,0 +1,328 @@
+# Project Falcon: every email the story sends, in order.
+#
+# Each entry is one email to Redline Desk. `reply_to` names the step whose
+# reply this email answers: it is sent as a reply in that thread (In-Reply-To
+# and References are set from the agent's reply when rehearsing, and in Gmail
+# you press Reply on that reply). `attachments` are keys of build.FILES.
+# `headline` is what the audience must see in the agent's reply, and `absent`
+# what it must not say; the stub rehearsal and tests/test_demo_falcon.py hold
+# every reply to both. `model` says
+# whether the step spends model credit when run live.
+#
+# Sender: every email goes from the one allowlisted address, whoever the
+# story says wrote it. "lawyer" is that address; "agent" is Redline Desk.
+# {{lawyer}}, {{lawyer_first}} and {{agent}} are filled in from cast.py
+# (demos/identity.py): whoever runs the demo, never written here.
+
+people:
+  lawyer: "{{lawyer}}"
+  agent: "{{agent}}"
+  dana: "Dana Whitlock <dana.whitlock@harrowgate.example>"
+  theo: "Theo Marsh <theo.marsh@harrowgate.example>"
+
+steps:
+
+  # ---------------------------------------------------------------- 1. 9:00
+  - id: 1a
+    beat: 1
+    title: "Teach it the firm's playbook"
+    when: "Mon, 28 Sep 2026 09:00:00 +0100"
+    to: [agent]
+    subject: "Our buy-side positions"
+    body: |
+      Here's our playbook for buy-side share purchases: the positions memo the
+      partners signed off this month, and the Heron and Kestrel SPAs, which are
+      our model wording.
+
+      {{lawyer_first}}
+    attachments: [memo, heron, kestrel]
+    model: true
+    headline:
+      - "Playbook updated: 12 positions from 3 documents"
+      - 'Nothing changes until you reply "approve playbook".'
+
+  - id: 1b
+    beat: 1
+    title: "Approve it"
+    when: "Mon, 28 Sep 2026 09:06:00 +0100"
+    to: [agent]
+    reply_to: 1a
+    body: |
+      approve playbook
+    model: false
+    headline:
+      - "Approved. From the next review, documents are checked against the firm's playbook (12 positions)"
+
+  # ---------------------------------------------------------------- 2. 11:30
+  - id: "2"
+    beat: 2
+    title: "Their paper, forwarded with no instructions"
+    when: "Mon, 28 Sep 2026 11:30:00 +0100"
+    to: [agent]
+    subject: "Fwd: Project Falcon - SPA"
+    body: |
+      ---------- Forwarded message ---------
+      From: Dana Whitlock <dana.whitlock@harrowgate.example>
+      Date: Mon, 28 Sep 2026 at 11:12
+      Subject: Project Falcon - SPA
+      To: {{lawyer}}
+
+      {{lawyer_first}},
+
+      As promised, our first draft of the SPA is attached. It is subject to
+      our client's further comments and to contract.
+
+      Kind regards,
+      Dana
+
+      Dana Whitlock
+      Partner, Harrowgate LLP
+    attachments: [spa_v1]
+    model: true
+    headline:
+      - "Their draft: 7 points to push back on."
+      - "14 typo and style points left alone"
+      - "(issues list).docx"
+
+  # ---------------------------------------------------------------- 3. 13:00
+  - id: "3"
+    beat: 3
+    title: "Turn the partner's comments"
+    when: "Mon, 28 Sep 2026 13:00:00 +0100"
+    to: [agent]
+    subject: "Falcon SPA - our response, my comments"
+    body: |
+      turn these
+    attachments: [response_commented]
+    model: true
+    headline:
+      - "Turned 5 comments: 4 done and resolved, 1 left open"
+      - "(comments turned).docx"
+
+  # ---------------------------------------------------------------- 4. 16:00
+  - id: "4"
+    beat: 4
+    title: "v2, and a covering email that is not true"
+    when: "Mon, 28 Sep 2026 16:00:00 +0100"
+    to: [agent]
+    subject: "Fwd: Project Falcon - SPA v2"
+    body: |
+      ---------- Forwarded message ---------
+      From: Dana Whitlock <dana.whitlock@harrowgate.example>
+      Date: Mon, 28 Sep 2026 at 15:48
+      Subject: Project Falcon - SPA v2
+      To: {{lawyer}}
+
+      {{lawyer_first}},
+
+      Thanks for your issues list. We've accepted all your points except the
+      liability cap. Revised draft attached.
+
+      Best,
+      Dana
+    attachments: [spa_v2]
+    model: true
+    headline:
+      - "Not what they said."
+      - "deletes the fraud carve-out in 9.4"
+      - "moves the long-stop date from 31 March to 31 January"
+      - "5 of your 7 points were accepted; 2 were not"
+
+  # ---------------------------------------------------------------- 5. 19:00
+  - id: "5"
+    beat: 5
+    title: "Do the numbers work?"
+    when: "Mon, 28 Sep 2026 19:00:00 +0100"
+    to: [agent]
+    subject: "Falcon v2 - numbers and dates"
+    body: |
+      Their draft v2 again. Before my call with Harrowgate: do the numbers and
+      the dates actually work? Nothing else.
+    attachments: [spa_v2]
+    model: true
+    headline:
+      - "The Purchase Price is £12,500,000 in clause 3.1, but Schedule 2 totals £12,050,000"
+      - "90 days"
+
+  # ---------------------------------------------------------------- 6. 23:47
+  - id: "6"
+    beat: 6
+    title: "The save: the wrong file, with a comment in it, at 23:47"
+    when: "Mon, 28 Sep 2026 23:47:00 +0100"
+    from: lawyer
+    to: [dana]
+    cc: [theo]
+    bcc: [agent]
+    subject: "Project Falcon - SPA: our v3"
+    body: |
+      Dana,
+
+      Please find attached our v3. We have reinstated the fraud carve-out at
+      9.4 and put the long-stop date back to 31 March 2027; everything else is
+      as your v2.
+
+      Speak tomorrow.
+
+      {{lawyer_first}}
+    attachments: [spa_v2_jp]
+    model: true
+    headline:
+      - "Already sent, with"
+      - "internal comment(s) are still in the document"
+      - "not your v3"
+
+  # ---------------------------------------------------------------- 7. next morning
+  - id: 7a
+    beat: 7
+    title: "The agreed form: final check"
+    when: "Tue, 29 Sep 2026 08:30:00 +0100"
+    to: [agent]
+    subject: "Falcon SPA - agreed form"
+    body: |
+      Harrowgate have agreed the form overnight. Final check before we go to
+      signing, please.
+    attachments: [spa_agreed]
+    model: true
+    headline:
+      - "Don't send yet: 3 things to fix first."
+      - "Should this be 30 or 13?"
+      - "Should this be 4 or 5?"
+      - "Clause 4.4: Long Stop Date — on or before 31 March 2027"
+      - "Clause 6.1: Completion step — on the fifth Business Day"
+    absent:
+      - "Time limit for claims — on or before"
+      - "Restrictive covenant period — on the fifth"
+      # The lawyer's own email, from Gmail, read as the other side's.
+      - "which of the 9 points we raised they accepted"
+
+  - id: 7b
+    beat: 7
+    title: "30; 4; clean copy"
+    when: "Tue, 29 Sep 2026 08:36:00 +0100"
+    to: [agent]
+    reply_to: 7a
+    body: |
+      30; 4; clean copy
+    model: false
+    headline:
+      - "(clean).docx"
+      - "Falcon Topco Limited or Falcon Holdings Limited"
+
+  - id: 7c
+    beat: 7
+    title: "Sig pages: blocked by the Buyer's old name"
+    when: "Tue, 29 Sep 2026 08:40:00 +0100"
+    to: [agent]
+    reply_to: 7b
+    body: |
+      sig pages
+    model: false
+    headline:
+      - "Not ready to sign."
+      - "The Buyer's signature block names Falcon Holdings Limited as the Buyer, but the parties clause says Falcon Topco Limited"
+
+  - id: 7d
+    beat: 7
+    title: "Fixed"
+    when: "Tue, 29 Sep 2026 08:43:00 +0100"
+    to: [agent]
+    reply_to: 7c
+    body: |
+      Falcon Topco Limited; clean copy
+    model: false
+    headline:
+      - "(clean).docx"
+
+  - id: 7e
+    beat: 7
+    title: "Sig packets for the closing"
+    when: "Tue, 29 Sep 2026 09:15:00 +0100"
+    to: [agent]
+    subject: "Project Falcon - signing"
+    body: |
+      Sig packets for the closing, please: the SPA, the disclosure letter and
+      Topco's board resolution. Signed pages come back to me.
+    attachments: [spa_execution, disclosure_letter, board_resolution]
+    model: true
+    headline:
+      - "0 of 6 in."
+      - "Signature packet - "
+
+  - id: 7f
+    beat: 7
+    title: "Beta's signed pages, forwarded"
+    when: "Tue, 29 Sep 2026 14:05:00 +0100"
+    to: [agent]
+    subject: "Fwd: Project Falcon - Beta signed pages"
+    body: |
+      ---------- Forwarded message ---------
+      From: Dana Whitlock <dana.whitlock@harrowgate.example>
+      Date: Tue, 29 Sep 2026 at 13:58
+      Subject: Project Falcon - Beta signed pages
+      To: {{lawyer}}
+
+      {{lawyer_first}}, Beta's signed pages attached, to be held to your order.
+
+      Dana
+    attachments: [signed_beta]
+    model: true
+    headline:
+      - "2 of 6 in."
+
+  - id: 7g
+    beat: 7
+    title: "Our side's pages: the executed set"
+    when: "Tue, 29 Sep 2026 16:20:00 +0100"
+    to: [agent]
+    reply_to: 7e
+    body: |
+      Our side's signed pages attached. That should be everything.
+    attachments: [signed_northwind]
+    model: true
+    headline:
+      - "All 6 in."
+      - "Executed set compiled: 3 documents and the closing index."
+      - "closing index.pdf"
+
+  - id: 7h
+    beat: 7
+    title: "The deadlines as a calendar"
+    when: "Tue, 29 Sep 2026 16:30:00 +0100"
+    to: [agent]
+    reply_to: 7d
+    body: |
+      send me the deadlines as a calendar
+    model: false
+    headline:
+      - "1 dated deadline from"
+      - "as a calendar file."
+      - "Long Stop Date (clause 4.4)"
+      - ".ics"
+    absent:
+      - "Accounts Date"
+      - "Clause 11.1: Completion step"
+
+  # ---------------------------------------------------------------- 8. a week later
+  - id: "8"
+    beat: 8
+    title: "Encore: Beta's NDA, same client"
+    when: "Tue, 6 Oct 2026 10:00:00 +0100"
+    to: [agent]
+    subject: "Fwd: Beta Freight - NDA (matter 1042)"
+    body: |
+      Northwind again, matter 1042.
+
+      ---------- Forwarded message ---------
+      From: Dana Whitlock <dana.whitlock@harrowgate.example>
+      Date: Tue, 6 Oct 2026 at 09:41
+      Subject: Beta Freight - NDA
+      To: {{lawyer}}
+
+      {{lawyer_first}}, good to close Falcon last week. Our client would like to talk to
+      Northwind about Beta Freight; our standard NDA is attached.
+
+      Dana
+    attachments: [beta_nda]
+    model: true
+    headline:
+      - "Their draft: 3 points to push back on."

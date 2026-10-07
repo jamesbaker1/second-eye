@@ -1,0 +1,15 @@
+.git
+.venv
+.env
+.env.*
+!.env.example
+work
+samples/private
+cloudflare/node_modules
+cloudflare/.wrangler
+site
+tests
+evals
+docs
+**/__pycache__
+*.sqlite3

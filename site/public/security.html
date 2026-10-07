@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Redline Desk Security</title>
+<meta name="description" content="What is kept and for how long, who can see a document, and what we do not have yet. In one minute, for a lawyer or an IT lead.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;0,6..72,500;1,6..72,300;1,6..72,400&family=Public+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap">
+
+<style>
+/* One printed page on the desk, as trust.html: the landing page's paper and
+   ink without the word-processor chrome. Same tokens, light and dark.
+   Mobile first: one column, and a label beside its text from 40rem. */
+:root {
+  --canvas:     #E4E4E2;
+  --page:       #FFFFFF;
+  --markup:     #F3F3F1;
+  --ink:        #1A1D21;
+  --muted:      #666A70;
+  --rule:       #DAD9D4;
+  --heading:    #2F5496;
+  --strike:     #9E2B3A;
+  --insert:     #1D6A6E;
+  --flag:       #B4772A;
+  --comment-bg: #FBF3E4;
+
+  --display: "Newsreader", "Iowan Old Style", Georgia, serif;
+  --body:    "Public Sans", -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+  --mono:    "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --canvas:     #121315;
+    --page:       #1D1F22;
+    --markup:     #17191B;
+    --ink:        #E8E6E1;
+    --muted:      #9A9DA3;
+    --rule:       #33363B;
+    --heading:    #8FB0EA;
+    --strike:     #E0798A;
+    --insert:     #5FBFC3;
+    --flag:       #D9A45F;
+    --comment-bg: #2A261D;
+  }
+}
+:root[data-theme="dark"] {
+  --canvas:     #121315;
+  --page:       #1D1F22;
+  --markup:     #17191B;
+  --ink:        #E8E6E1;
+  --muted:      #9A9DA3;
+  --rule:       #33363B;
+  --heading:    #8FB0EA;
+  --strike:     #E0798A;
+  --insert:     #5FBFC3;
+  --flag:       #D9A45F;
+  --comment-bg: #2A261D;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--canvas);
+  color: var(--ink);
+  font-family: var(--body);
+  font-size: 16px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  padding: 0 0 2.4rem;
+}
+a { color: var(--heading); text-underline-offset: .15em; }
+code { font-family: var(--mono); font-size: .86em; background: var(--markup); padding: .05em .3em; border-radius: 3px; overflow-wrap: anywhere; }
+
+.page {
+  max-width: 46rem;
+  margin: .8rem 16px;
+  background: var(--page);
+  box-shadow: 0 0 0 1px var(--rule), 0 10px 30px -14px rgb(0 0 0 / .35);
+  padding: 1.6rem 1.1rem 1.4rem;
+}
+@media (min-width: 50rem) { .page { margin: 1.4rem auto; padding: 2.2rem 4rem 1.6rem; } }
+
+.running { display: flex; justify-content: space-between; gap: 1rem; font-size: .7rem; color: var(--muted); letter-spacing: .04em; padding-bottom: 1.4rem; }
+.running a { color: inherit; }
+.folio { text-align: center; font-size: .7rem; color: var(--muted); padding-top: 2rem; }
+
+h1, h2 { margin: 0; text-wrap: balance; }
+h1 { font-family: var(--display); font-weight: 300; font-size: clamp(2rem, 8vw, 3rem); line-height: 1.05; letter-spacing: -.015em; }
+.promise { font-family: var(--display); font-size: clamp(1.25rem, 4.6vw, 1.6rem); line-height: 1.25; margin: 1rem 0 0; }
+.promise ins { color: var(--insert); text-decoration: underline; text-decoration-thickness: 1.5px; text-underline-offset: .12em; }
+.lede { color: var(--muted); margin: .8rem 0 0; }
+h2 { font-weight: 300; font-size: clamp(1.35rem, 4.4vw, 1.75rem); line-height: 1.15; color: var(--heading); letter-spacing: -.01em; margin: 2.4rem 0 .8rem; }
+p { margin: 0 0 .8rem; }
+
+/* A label and its line: stacked on a phone, side by side from 40rem. */
+.facts { margin: 0; border-top: 1px solid var(--rule); }
+.facts > div { padding: .65rem 0; border-bottom: 1px solid var(--rule); }
+.facts dt { font-weight: 600; }
+.facts dd { margin: .15rem 0 0; }
+.facts dd small { display: block; color: var(--muted); font-size: .85rem; margin-top: .2rem; }
+@media (min-width: 40rem) {
+  .facts > div { display: grid; grid-template-columns: 12rem minmax(0, 1fr); gap: 1.2rem; }
+  .facts dd { margin: 0; }
+}
+.facts .when { color: var(--insert); font-weight: 600; white-space: nowrap; }
+.facts .later { color: var(--flag); font-weight: 600; }
+
+.plain { list-style: none; padding: 0; margin: 0; border-top: 1px solid var(--rule); }
+.plain li { padding: .6rem 0; border-bottom: 1px solid var(--rule); }
+.plain b { font-weight: 600; }
+
+.note { background: var(--comment-bg); border: 1px solid var(--rule); border-left: 3px solid var(--flag); padding: .8rem 1rem; margin: 1rem 0 0; }
+.note p:last-child { margin: 0; }
+.src { font-size: .8rem; color: var(--muted); overflow-wrap: anywhere; }
+.more { margin-top: 2.2rem; font-size: 1.05rem; }
+:focus-visible { outline: 2px solid var(--insert); outline-offset: 2px; }
+</style>
+
+<main>
+<article class="page" aria-labelledby="h-top">
+  <div class="running"><a href="/">The Redline Desk</a><span>Security</span></div>
+
+  <h1 id="h-top">Security, in one minute.</h1>
+  <p class="promise"><ins>Nothing kept after 7 days.</ins> <ins>Nothing learned unless you ask.</ins></p>
+  <p class="lede">For a lawyer or an IT lead. Each line is true of the code as it runs. The full detail, with sources, is on the <a href="/trust.html">trust page</a>.</p>
+
+  <h2>What is kept, and for how long</h2>
+  <dl class="facts">
+    <div><dt>Your document and its conversation</dt>
+      <dd><span class="when">7 days</span> after your last reply. Undo, clean copy and answers work until then. Earlier versions and tracked changes go with it.</dd></div>
+    <div><dt>A closing and its signed pages</dt>
+      <dd><span class="when">7 days</span> after the last email on that closing. Pages still arriving keep it open.</dd></div>
+    <div><dt>The email you send in</dt>
+      <dd>Deleted once it is answered. <span class="when">7 days</span> at most if it never is.</dd></div>
+    <div><dt>At Anthropic</dt>
+      <dd>We delete the review session, and everything it wrote, as soon as the review ends.
+        <small>Anthropic may keep its own copies of review sessions for up to 30 days. That cannot be changed while reviews run in Anthropic&rsquo;s sandbox, whatever the model.</small></dd></div>
+  </dl>
+  <p class="src" style="margin-top:.7rem">A daily sweep does the deleting, so each goes within a day of its 7 days ending. Your firm can shorten the 7 days.</p>
+
+  <h2>Kept longer, on purpose</h2>
+  <dl class="facts">
+    <div><dt>What you ask it to remember</dt>
+      <dd><span class="later">Until you or the firm delete it.</span> &ldquo;Remember that&rdquo; and &ldquo;stop flagging X&rdquo; are kept, by us and in Anthropic&rsquo;s memory store, because you asked.</dd></div>
+    <div><dt>The audit trail</dt>
+      <dd><span class="later">Until the firm deletes it.</span> Who sent what, when, the file names, what ran and who got the reply. Never a document&rsquo;s contents.</dd></div>
+    <div><dt>Mail held by the kill switch</dt>
+      <dd><span class="later">Until the switch is turned off.</span> Then it is reviewed as if it had just arrived.</dd></div>
+  </dl>
+
+  <h2>Never kept</h2>
+  <ul class="plain">
+    <li><b>Anything learned without your say-so.</b> A note it proposes is used only if you reply &ldquo;remember that&rdquo;. Ignored, it is deleted after 7 days.</li>
+    <li><b>A record of which changes you kept, undid or dismissed.</b></li>
+    <li><b>An archive of your mail.</b> The archive is off unless your firm turns it on.</li>
+  </ul>
+
+  <h2>No training on your documents</h2>
+  <p>Anthropic&rsquo;s Commercial Terms of Service, section B: &ldquo;Anthropic may not train models on Customer Content from Services.&rdquo;</p>
+  <p class="src">Source: <a href="https://www.anthropic.com/legal/commercial-terms">anthropic.com/legal/commercial-terms</a>, read 28 September 2026.</p>
+
+  <h2>Encryption</h2>
+  <dl class="facts">
+    <div><dt>Under your firm&rsquo;s key</dt>
+      <dd>Every stored copy of a document: the one under review, earlier versions, signed pages, held mail, and a review&rsquo;s state between steps. Also document-system tokens. AES-256-GCM. Without the key, what is stored is unreadable.</dd></div>
+    <div><dt>Not under it yet</dt>
+      <dd>The database rows, which hold who sent what and when, file names, the findings and the text of each tracked change, remembered notes and the audit trail. Only Cloudflare&rsquo;s own encryption at rest covers them.
+        <small>So would the archive&rsquo;s searchable text, if your firm turned the archive on.</small></dd></div>
+    <div><dt>In transit</dt>
+      <dd>HTTPS between Cloudflare, our code and Anthropic.</dd></div>
+  </dl>
+
+  <h2>Who can see a document</h2>
+  <dl class="facts">
+    <div><dt>You</dt>
+      <dd>The reply goes to you alone. A colleague cannot open your conversations.</dd></div>
+    <div><dt>Us</dt>
+      <dd>We run the service. We can read the database rows above, and a review session in Anthropic&rsquo;s console while it runs. The service holds the key so it can do its work. If your firm prefers, its IT can run the whole service in your own Cloudflare and Anthropic accounts instead, and then we have no access unless you grant it.</dd></div>
+    <div><dt>Cloudflare</dt>
+      <dd>Delivers the email, runs our code, and stores documents sealed under your key.</dd></div>
+    <div><dt>Anthropic</dt>
+      <dd>Reads the document in a sandboxed review session. No email access; no document-system access unless your firm connects one, and then only the same matter. May keep its copies for up to 30 days.</dd></div>
+    <div><dt>Nobody else</dt>
+      <dd>Not anyone on CC, not the other side, not a client.</dd></div>
+  </dl>
+
+  <h2>Who it answers</h2>
+  <ul class="plain">
+    <li><b>Replies go only to the sender.</b> Enforced where mail leaves, whatever was written.</li>
+    <li><b>Outsiders are dropped.</b> Mail from anyone not on your firm&rsquo;s list gets no reply at all.</li>
+    <li><b>Forged mail is dropped.</b> A message that fails its domain&rsquo;s authentication (DMARC) is ignored.</li>
+  </ul>
+
+  <h2>What your firm controls</h2>
+  <ul class="plain">
+    <li><b>The kill switch.</b> One setting stops all reviewing and sending at once. Mail is held, sealed, never bounced.</li>
+    <li><b>No-AI clients.</b> A client whose terms exclude AI gets the mechanical checks only. No model sees its documents.</li>
+    <li><b>Deletion on request.</b> One command (<code>lra purge</code>) deletes everything held for a lawyer, a client or a matter, ours and Anthropic&rsquo;s, and records that it ran. Anthropic&rsquo;s own copies, kept up to 30 days, run their course; the trust page has the limits.</li>
+  </ul>
+
+  <h2>What we don&rsquo;t have yet</h2>
+  <div class="note">
+    <p>No SOC&nbsp;2 or ISO&nbsp;27001 certification. No independent penetration test. The database rows are not under your key. This is a pilot, run by one person, not a security team.</p>
+  </div>
+
+  <p class="more"><a href="/trust.html">The full detail for your general counsel</a>.</p>
+  <div class="folio">Security</div>
+</article>
+</main>

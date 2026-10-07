@@ -1,0 +1,14 @@
+.venv/
+__pycache__/
+*.pyc
+.env
+.env.local
+*.sqlite3
+.pytest_cache/
+.ruff_cache/
+samples/private/
+work/
+.DS_Store
+.claude/worktrees/
+# uv writes this when run locally; the project installs with pip and does not pin through it (see ci.yml)
+uv.lock

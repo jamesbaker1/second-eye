@@ -1,0 +1,133 @@
+name: Deploy site
+# The commit this run deploys, in its title. A workflow_run run's own head_sha
+# is wherever main was when it started, which may be later than the commit CI
+# passed; the next run reads the commit from here instead (below).
+run-name: Deploy site at ${{ github.event.workflow_run.head_sha || github.sha }}
+
+# The landing site (site/, the static-assets Worker `redline-desk`). Deployed
+# the way the app is, from a commit on main that passed CI, so the page a
+# firm reads is always one that was reviewed and merged, never a copy from
+# someone's laptop. Separate from deploy.yml so a wording change on the site
+# does not rebuild the container, and a site deploy cannot hold up the app's.
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-site
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  deploy:
+    # Only in the private development repository (never the public one or a
+    # fork, which carry this file too), and only after CI has passed on main
+    # or when asked for by hand.
+    if: >-
+      github.repository == 'jamesbaker1/legal-review-agent' &&
+      (github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success')
+    runs-on: ubuntu-latest
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      HEAD_SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
+    steps:
+      # As in deploy.yml: a repository without the token is not set up to
+      # deploy yet. Say so and stop green.
+      - name: Check that deployment is configured
+        id: configured
+        run: |
+          if [ -z "$CLOUDFLARE_API_TOKEN" ] || [ -z "$CLOUDFLARE_ACCOUNT_ID" ]; then
+            echo "CLOUDFLARE_API_TOKEN / CLOUDFLARE_ACCOUNT_ID are not set; skipping the deploy."
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/checkout@v4
+        if: steps.configured.outputs.ready == 'true'
+        with:
+          ref: ${{ env.HEAD_SHA }}
+          fetch-depth: 0
+
+      # workflow_run has no paths filter, so the "only when site/ changed"
+      # test is made here. The baseline is the commit of the last run on
+      # main in which this job got as far as this step and then succeeded:
+      # such a run either deployed site/ as it stood at that commit or found
+      # it unchanged from one that did, so site/ there is what is live. Runs
+      # that stopped earlier (CI failed, or no token yet) deployed nothing
+      # and are passed over. Comparing against that commit rather than
+      # HEAD~1 also catches a push of several commits. No baseline, or one no
+      # longer in history after a force push, means deploy. A run by hand
+      # always deploys.
+      - name: Decide whether site/ changed
+        id: changed
+        if: steps.configured.outputs.ready == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EVENT: ${{ github.event_name }}
+        run: |
+          if [ "$EVENT" = "workflow_dispatch" ]; then
+            echo "Run by hand; deploying."
+            echo "deploy=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          base=""
+          for run in $(gh run list --repo "$GITHUB_REPOSITORY" --workflow deploy-site.yml \
+                         --branch main --status success --limit 30 --json databaseId --jq '.[].databaseId'); do
+            decided=$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$run/jobs" \
+                        --jq '[.jobs[] | select(.conclusion == "success") | .steps[]
+                               | select(.name == "Decide whether site/ changed" and .conclusion == "success")] | length')
+            if [ "$decided" -gt 0 ]; then
+              base=$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$run" --jq '.display_title' \
+                       | sed -n 's/^Deploy site at \([0-9a-f]\{40\}\)$/\1/p')
+              break
+            fi
+          done
+          if [ -z "$base" ] || ! git cat-file -e "$base^{commit}" 2>/dev/null; then
+            echo "No earlier deploy to compare against; deploying."
+            echo "deploy=true" >> "$GITHUB_OUTPUT"
+          elif git diff --quiet "$base" "$HEAD_SHA" -- site/; then
+            echo "site/ unchanged since $base; nothing to deploy."
+            echo "deploy=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "site/ changed since $base:"
+            git diff --stat "$base" "$HEAD_SHA" -- site/
+            echo "deploy=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/setup-node@v4
+        if: steps.changed.outputs.deploy == 'true'
+        with:
+          node-version: 22
+
+      # site/ has no package.json of its own: it uses the Wrangler locked in
+      # cloudflare/package-lock.json, so both Workers deploy with the same
+      # version.
+      - name: Deploy the site
+        if: steps.changed.outputs.deploy == 'true'
+        run: |
+          npm ci --prefix cloudflare
+          cd site
+          ../cloudflare/node_modules/.bin/wrangler deploy
+
+      # The site's URL is a repository variable, not written here, so the
+      # public copy of this file names no account. Set in the private
+      # repository: Settings > Secrets and variables > Actions > Variables,
+      # SITE_URL (no trailing slash).
+      - name: Check the site answers
+        if: steps.changed.outputs.deploy == 'true'
+        env:
+          SITE_URL: ${{ vars.SITE_URL }}
+        run: |
+          if [ -z "$SITE_URL" ]; then
+            echo "::warning::SITE_URL is not set; not checking the site."
+            exit 0
+          fi
+          curl --fail --silent --show-error --output /dev/null "$SITE_URL/"

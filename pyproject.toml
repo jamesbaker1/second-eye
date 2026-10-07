@@ -1,0 +1,78 @@
+[project]
+name = "legal-review-agent"
+version = "0.1.0"
+description = "A legal review agent that lives as an email contact."
+# SPDX expression (PEP 639). Dual-licensed: a commercial licence is also
+# available from the copyright holder; see LICENSING.md. LICENSE is found by
+# hatchling's default glob rather than named in license-files, because the
+# Dockerfile builds its dependency layer from this file without it, and a
+# named file that is missing fails the build.
+license = "AGPL-3.0-only"
+requires-python = ">=3.11"
+dependencies = [
+  "fastapi>=0.115",
+  "uvicorn[standard]>=0.32",
+  "pydantic>=2.9",
+  "pydantic-settings>=2.6",
+  # The strict tool schemas are closed TypedDicts, and on Python 3.11 pydantic
+  # only accepts the typing_extensions one. It arrives with pydantic anyway.
+  "typing-extensions>=4.12",
+  "httpx>=0.27",
+  # Managed Agents (client.beta.agents/sessions/memory_stores) arrived in
+  # the 1.x line; the session-scoped files listing needs 0.92 or later.
+  "anthropic>=1.8",
+  # MIT. The agent definitions under agents/ are YAML manifests, as the
+  # `ant` CLI's version-controlled flow expects; `lra agents apply` reads them.
+  "pyyaml>=6",
+  "python-docx>=1.1",
+  "lxml>=5.3",
+  # Apache-2.0 / BSD. AES-GCM for documents and tokens at rest, under a key the
+  # firm holds. See src/lra/crypto.py and docs/deploy-cloudflare.md.
+  "cryptography>=43",
+  # BSD-3. Deliberately not PyMuPDF, which is AGPL.
+  "pypdfium2>=4.30",
+  # BSD-3. Writes the sticky-note and highlight annotations onto a PDF the
+  # lawyer sent, beside the redline built from its text. pypdfium2 reads and
+  # locates; it cannot write, and pdf2docx/PyMuPDF are AGPL.
+  "pypdf>=5",
+  # MIT. Decks and workbooks, read in-process. The code-execution container
+  # has these same libraries; doing it here avoids sending the document
+  # off-box for work we can do locally. See docs/sandbox.md.
+  "python-pptx>=1.0",
+  "openpyxl>=3.1",
+  # main.py imports run_in_threadpool directly. It arrives transitively via
+  # FastAPI today, but an import we make ourselves is one we should declare:
+  # a transitive dependency can be swapped out by its parent without warning.
+  "starlette>=0.40",
+]
+# Nothing declared here that nothing imports. python-multipart went when it
+# turned out FastAPI only needs it for Form/File endpoints and this service
+# has none; quotequail went because router.py strips quoted history itself,
+# for reasons its docstring records. A dependency nobody imports still lands
+# in every production image, and it implies a code path a reader then goes
+# looking for.
+
+[project.optional-dependencies]
+dev = ["pytest>=8", "ruff>=0.7", "respx>=0.21", "reportlab>=4.2", "pillow>=10"]
+# respx serves the mail vendors' APIs offline; reportlab builds real PDFs for
+# the extraction tests. reportlab and Pillow are also what the closing tools
+# (pipeline/closing_docs.py) draw PDFs and read photos with; those run in the
+# sandbox, whose container has both, so the server image does not need them
+# and they stay here, for the tests that run the skill locally. pytest-asyncio
+# was dropped: the webhook endpoint is exercised through fastapi.testclient,
+# so there is not an `async def test` in
+# the suite for it to collect.
+
+[project.scripts]
+lra = "lra.cli:main"
+
+[build-system]
+# 1.27 is the first hatchling to read a PEP 639 licence expression.
+requires = ["hatchling>=1.27"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/lra"]
+
+[tool.ruff]
+line-length = 100

@@ -1,0 +1,43 @@
+# The closing agent: runs a deal's closing by email with the lra-closing
+# skill. Signature packets per signatory across several documents, signed
+# pages read and filed as they come back, the executed set with a closing
+# index, and the closing checklist. The host (src/lra/closing.py) keeps the
+# state, mounts it as /workspace/closing-state.json, and stores only an update
+# that passes the same validator the skill runs.
+#
+# Its own agent rather than the associate's, for three reasons. It has no
+# custom tools, so a session never waits on a connected client: the whole
+# answer comes back as files in /mnt/session/outputs (closing.json and the
+# PDFs), which is the clientless shape docs/migration.md moves every agent
+# to. The associate carries make_changes, the DMS lookups and
+# note_for_next_time, none of which a closing uses, and an open custom tool
+# is a session that can hang. The job is different: the associate edits one
+# document's words, this one never edits a word and instead reads scans by
+# eye and keeps a ledger, so the two prompts would argue. And skills attach
+# to the agent definition: lra-closing lives here (extra_skills) instead of
+# being offered to every review and instruction session.
+#
+# Applied by `lra agents apply`, which fills in the model's settings-driven
+# fields and the skills: Anthropic's four document skills, this product's,
+# and SANDBOX_CLOSING_SKILL_ID.
+name: LRA closing
+description: >-
+  Runs a closing: signature packets per signatory across a deal's documents,
+  signed pages read and matched as they come back, the executed set and
+  closing index, and the closing checklist. Writes the closing's new state
+  and its files to the session outputs; edits no document.
+model: claude-fable-5-1
+system_file: ../src/lra/prompts/closing_system.md
+extra_skills:
+  - sandbox_closing_skill_id
+tools:
+  - type: agent_toolset_20260401
+    default_config:
+      enabled: true
+      permission_policy:
+        type: always_allow
+    configs:
+      - name: web_search
+        enabled: false
+      - name: web_fetch
+        enabled: false
