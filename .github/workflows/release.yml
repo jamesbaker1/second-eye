@@ -54,7 +54,7 @@ jobs:
 
       # The Python dependencies as they resolve today. The image the firm
       # builds resolves them again; this is what to compare against.
-      - uses: astral-sh/setup-uv@caf0cab7a618c569241d31dcd442f54681755d39 # v3.2.4
+      - uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
       - name: Record the Python dependencies
         run: uv pip compile pyproject.toml --quiet -o "dist/second-eye-${GITHUB_REF_NAME}-requirements.txt"
 
