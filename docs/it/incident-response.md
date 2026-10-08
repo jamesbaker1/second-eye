@@ -28,8 +28,8 @@ What exists, and what would show an incident:
 | --- | --- | --- |
 | Worker logs | Cloudflare dashboard, Workers Observability (on in `cloudflare/wrangler.jsonc`), or `npx wrangler tail --config ../deployments/<firm>/wrangler.jsonc` | Drops ("dropped mail from a sender not on the allowlist", "...did not authenticate"), refused sends ("refused a send"), held mail, internal endpoint errors |
 | Workflow instances | `npx wrangler workflows instances list <workflow>` | A failed review, and which step failed |
-| Audit trail | `lra audit --since <date> --format csv` | Who sent what, when, what ran, where the reply went (`reply_to`), outcome. A reply addressed to anyone but the sender is the signal of a policy failure |
-| Purge history | `lra purge --history` | Every purge: who, scope, counts, finished or not |
+| Audit trail | `second-eye audit --since <date> --format csv` | Who sent what, when, what ran, where the reply went (`reply_to`), outcome. A reply addressed to anyone but the sender is the signal of a policy failure |
+| Purge history | `second-eye purge --history` | Every purge: who, scope, counts, finished or not |
 | Anthropic Console | The organisation that owns the key | Sessions turn by turn, usage and spend, API key activity |
 | Spend | Anthropic prepaid balance; Cloudflare budget alert | A loop or abuse |
 | The firm's mail logs | Exchange message trace, Mimecast or Proofpoint logs | What was copied to the agent and what came back |
@@ -45,11 +45,11 @@ Not built: alerting of any kind, and a SIEM feed (`questionnaire.md`, 5).
 | **Disable the firm's transport rule** | Firm IT | `Disable-TransportRule -Identity "Second Eye: copy pilot outbound documents"` (`mail-flow.md`) | As fast as Exchange applies a rule change | No more BCC copies. Forwarded mail still arrives |
 | **Delete or disable the Email Routing rule** | Holder of the Cloudflare account | Dashboard: the zone → Email → Email Routing → rules, or `npx wrangler email routing rules ...` | When Cloudflare applies it; not timed by us | Nothing reaches the Worker. Senders may get bounces, **not verified** |
 | **Revoke the Anthropic API key** | Holder of the Anthropic organisation | Console → API keys | Immediately for new requests, per the Console | No model calls. Reviews fall back to the deterministic checks, or the "I couldn't review" email |
-| **Kill switch `SERVICE_PAUSED`** | Whoever can deploy the tenant | Set `"SERVICE_PAUSED": "true"` in `deployments/<firm>/tenant.jsonc`, `lra tenant render <firm>`, commit, push to `main`. CI runs, then `deploy.yml` deploys. In an emergency, deploy that tenant directly: `npx wrangler deploy --config ../deployments/<firm>/wrangler.jsonc`, then commit the same change at once, or the next deploy from `main` undoes it | The Worker enforces it as soon as its new version is live: the end of the deploy. The container picks it up only when its rollout replaces the old instance, which took one to two minutes in production (`docs/deploy-cloudflare.md`, "A deploy is not instant"), but the Worker already refuses every send. Through CI it also waits for the whole test suite; we have not timed that end to end | Mail accepted and held sealed in R2, never bounced; nothing reviewed; nothing sent (the Worker refuses every send while paused). Switched back, held mail is released by the daily cron or `POST /internal/release` |
+| **Kill switch `SERVICE_PAUSED`** | Whoever can deploy the tenant | Set `"SERVICE_PAUSED": "true"` in `deployments/<firm>/tenant.jsonc`, `second-eye tenant render <firm>`, commit, push to `main`. CI runs, then `deploy.yml` deploys. In an emergency, deploy that tenant directly: `npx wrangler deploy --config ../deployments/<firm>/wrangler.jsonc`, then commit the same change at once, or the next deploy from `main` undoes it | The Worker enforces it as soon as its new version is live: the end of the deploy. The container picks it up only when its rollout replaces the old instance, which took one to two minutes in production (`docs/deploy-cloudflare.md`, "A deploy is not instant"), but the Worker already refuses every send. Through CI it also waits for the whole test suite; we have not timed that end to end | Mail accepted and held sealed in R2, never bounced; nothing reviewed; nothing sent (the Worker refuses every send while paused). Switched back, held mail is released by the daily cron or `POST /internal/release` |
 | **Withdraw `DATA_KEY`** | Holder of the Worker's secrets and every copy | `npx wrangler secret delete DATA_KEY --config ../deployments/<firm>/wrangler.jsonc`, and destroy every other copy (`deployments/<firm>/.env`, the firm's vault) | When the Worker's new version is live | Everything sealed (documents, held mail, Workflow state, DMS tokens) is unreadable for good. The container refuses to start; new mail should fail at the Worker's seal step (not tested). **Irreversible.** D1 rows are not sealed and are not affected: purge or delete them too |
 
-A no-deploy kill switch (an admin email, `lra pause`, or a KV flag) is
-**not built**. `lra selftest` shows the switch's state.
+A no-deploy kill switch (an admin email, `second-eye pause`, or a KV flag) is
+**not built**. `second-eye selftest` shows the switch's state.
 
 ## Scenarios
 
@@ -78,7 +78,7 @@ A no-deploy kill switch (an admin email, `lra pause`, or a KV flag) is
 **A reply went somewhere it should not.** Under `REPLY_POLICY=sender_only`
 the application readdresses every send to the sender and the Worker refuses
 any send not to exactly one allowlisted sender, so this needs two failures.
-Pause; find the job in `lra audit` (`reply_to`, `reply_sent_at`); recover
+Pause; find the job in `second-eye audit` (`reply_to`, `reply_sent_at`); recover
 the message with the recipient's firm if possible; then notify (below).
 
 **A forged sender got a review.** The allowlist admits by address or domain
@@ -89,7 +89,7 @@ DMARC `p=reject`. Requiring a DMARC pass at the Worker is in progress.
 
 **A client says its guidelines forbid AI and its documents went through.**
 Add it to `NO_AI_MATTERS` (by deploy) or have an admin email "no AI for
-<client>"; then `lra purge --client <number>` (or `--matter`) with
+<client>"; then `second-eye purge --client <number>` (or `--matter`) with
 `--apply`, which deletes Anthropic's sessions, files and memory stores for
 that scope as well as ours; keep the purge record for the client.
 
@@ -117,7 +117,7 @@ the agreement; this is the template.
 > or longer if the Customer asks, and will not purge them meanwhile.
 
 Inside that window, in order: contain (the levers above); preserve
-(`lra audit` export for the period, Worker logs, Workflow instance details,
+(`second-eye audit` export for the period, Worker logs, Workflow instance details,
 the Anthropic session ids from the audit rows, before any purge); assess
 (which jobs, lawyers, clients); notify; remediate; write up.
 
@@ -126,24 +126,24 @@ notice commitment. **[Founder decision]**
 
 ## Offboarding a firm
 
-There is no single `lra tenant offboard` command yet, and no signed
+There is no single `second-eye tenant offboard` command yet, and no signed
 deletion certificate. The steps, in order, with what exists:
 
 1. **Stop new mail.** The firm disables its transport rule; the routing rule
    for the agent's address is deleted; `SERVICE_PAUSED=true` meanwhile.
-2. **Export what the firm keeps.** `lra audit --since <first day> --format
+2. **Export what the firm keeps.** `second-eye audit --since <first day> --format
    csv` (the supervision record). Replies and their files are already in the
    lawyers' mailboxes.
 3. **Purge, Anthropic included.** For each lawyer who used it
    (`ALLOWED_SENDERS`, and senders in the audit trail):
-   `lra purge --lawyer <address> --apply --by <name>`, and for each
-   registered client `lra purge --client <number> --apply`. This deletes
+   `second-eye purge --lawyer <address> --apply --by <name>`, and for each
+   registered client `second-eye purge --client <number> --apply`. This deletes
    conversations, documents and versions, closings, archived mail, memory
    notes and suppressions, job rows, and at Anthropic each session (with its
    files), each uploaded file and each memory store for that scope; it runs
    from a machine with the firm's `DATABASE_URL=d1://`, `EDGE_URL`,
    `EDGE_SECRET`, `DATA_KEY` and `ANTHROPIC_API_KEY`. Run each again until
-   it reports nothing left; `lra purge --history` is the record.
+   it reports nothing left; `second-eye purge --history` is the record.
 4. **Delete the rest at Anthropic.** In the firm's (or our) Anthropic
    organisation: archive or delete the agents and the environment named in
    the tenant's vars, delete the firm memory store
@@ -168,7 +168,7 @@ deletion certificate. The steps, in order, with what exists:
    from the current tree; they remain in git history) and the GitHub
    secrets `CLOUDFLARE_API_TOKEN_<FIRM>` and `CLOUDFLARE_ACCOUNT_ID_<FIRM>`.
 8. **Confirm in writing.** Until a certificate is generated, a letter
-   listing steps 1-7 with dates, the purge ids from `lra purge --history`,
+   listing steps 1-7 with dates, the purge ids from `second-eye purge --history`,
    and the Anthropic ids deleted. **[Founder decision]** on the form.
 
 Customer-hosted, the firm runs steps 2-7 itself; Second Eye deletes any

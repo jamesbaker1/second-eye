@@ -21,7 +21,7 @@ from anthropic.types.beta.sessions.beta_managed_agents_session_event import (
     BetaManagedAgentsSessionEvent,
 )
 
-from lra import managed
+from secondeye import managed
 from tests import api_contract as contract
 from tests import fake_sessions as fs
 
@@ -33,7 +33,7 @@ def configured(monkeypatch, tmp_path):
     monkeypatch.setenv("DATABASE_URL", f"sqlite:///{tmp_path}/contract.sqlite3")
     fs.configure(monkeypatch)
     yield
-    from lra.config import settings
+    from secondeye.config import settings
 
     settings.cache_clear()
 
@@ -152,9 +152,9 @@ def _agents_client(created: list, updated: list):
 
 @pytest.mark.parametrize("dms", ["none", "imanage"])
 def test_every_agent_definition_is_a_valid_create_and_update(configured, monkeypatch, dms):
-    from lra import closing, playbook
-    from lra.config import settings
-    from lra.pipeline import instruct
+    from secondeye import closing, playbook
+    from secondeye.config import settings
+    from secondeye.pipeline import instruct
 
     monkeypatch.setenv("DMS_PROVIDER", dms)
     monkeypatch.setenv("DMS_MCP_URL", "https://dms.example.com/mcp")
@@ -188,11 +188,11 @@ def test_the_environment_is_a_valid_create_and_update(configured):
 
 
 def test_a_review_session_is_a_valid_create(configured, monkeypatch):
-    from lra.models import Mode
-    from lra.pipeline import review
+    from secondeye.models import Mode
+    from secondeye.pipeline import review
 
     monkeypatch.setenv("MANAGED_SESSION_BUDGET_CENTS", "4000")
-    from lra.config import settings
+    from secondeye.config import settings
 
     settings.cache_clear()
     from tests.test_detached import a_document
@@ -209,8 +209,8 @@ def test_a_review_session_is_a_valid_create(configured, monkeypatch):
 
 
 def test_skills_sync_uploads_a_valid_skill(configured, monkeypatch):
-    import lra.config
-    from lra import skillsync
+    import secondeye.config
+    from secondeye import skillsync
 
     calls: list = []
     client = contract.strict(NS(skills=NS(
@@ -218,7 +218,7 @@ def test_skills_sync_uploads_a_valid_skill(configured, monkeypatch):
                                                  "display_name": kw["display_name"]},
         versions=NS(create=lambda skill_id, **kw: calls.append(kw) or {"id": "v2",
                                                                        "skill_id": skill_id}))))
-    monkeypatch.setattr(lra.config, "anthropic_client", lambda: client)
+    monkeypatch.setattr(secondeye.config, "anthropic_client", lambda: client)
     for name in skillsync.CATALOGUE:
         assert skillsync.sync("", name) == ("skill_1", "v1")
     assert skillsync.sync("skill_1", "lra-playbook") == ("skill_1", "v2")
@@ -257,7 +257,7 @@ def test_every_event_kind_managed_reads_exists_in_the_sdk():
     """The event types managed.py switches on, each a member of the union."""
     import re
 
-    source = (ROOT / "src" / "lra" / "managed.py").read_text()
+    source = (ROOT / "src" / "secondeye" / "managed.py").read_text()
     kinds = set(re.findall(r'"((?:agent|session|span|user)\.[a-z_]+)"', source))
     known = {t for arm in BetaManagedAgentsSessionEvent.__args__[0].__args__
              for t in arm.model_fields["type"].annotation.__args__}

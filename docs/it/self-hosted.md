@@ -117,7 +117,7 @@ What the checksums prove, and what they do not:
 - **They do not prove who listed them.** That evidence is the tag and the
   GitHub release it is attached to.
 - **The source archive is reproducible.** Anyone can rebuild it from the tag
-  with `python -m lra.release build --version vX.Y.Z --out dist` and compare
+  with `python -m secondeye.release build --version vX.Y.Z --out dist` and compare
   the checksum.
 - **The container image is not shipped prebuilt.** It is built on your
   machine from the `Dockerfile`. Its Debian packages and Python dependencies
@@ -131,7 +131,7 @@ It holds names, ids and settings, and no secrets. We can prepare it with you,
 or you can create it yourself:
 
 ```bash
-.venv/bin/lra tenant new acme-llp --self-hosted \
+.venv/bin/second-eye tenant new acme-llp --self-hosted \
   --account-id <your 32-character Cloudflare account id> \
   --anthropic-org <org id> --anthropic-workspace <workspace id> \
   --address review@legal.acme.com --domains acme.com \
@@ -140,7 +140,7 @@ or you can create it yourself:
 
 Read the settings it wrote, such as `ALLOWED_SENDERS`, `NO_AI_MATTERS`,
 `MAX_EMAILS_PER_DAY` and the retention settings. Then run
-`.venv/bin/lra tenant render acme-llp` and keep the `deployments/acme-llp/`
+`.venv/bin/second-eye tenant render acme-llp` and keep the `deployments/acme-llp/`
 folder. You will copy it into each new release. Because the tenant is
 marked self-hosted, our deployment pipeline never deploys it, even if the
 file is in our repository.
@@ -155,9 +155,9 @@ chmod 600 deployments/acme-llp/.env
 ## 3. Create the resources (once)
 
 ```bash
-.venv/bin/lra tenant provision acme-llp            # a dry run: every command, nothing created
+.venv/bin/second-eye tenant provision acme-llp            # a dry run: every command, nothing created
 export CLOUDFLARE_API_TOKEN=<your deploy token>
-.venv/bin/lra tenant provision acme-llp --apply
+.venv/bin/second-eye tenant provision acme-llp --apply
 ```
 
 `--apply` does the following, in order:
@@ -181,7 +181,7 @@ It then prints what is left to do by hand. In order:
 3. **The webhook.** In your Anthropic Console, go to Manage -> Webhooks.
    Point it at `<Worker URL>/anthropic/webhook`, then store its signing
    secret on the Worker with the command printed.
-4. **The agents.** Run `.venv/bin/lra live-check --tenant acme-llp --dry-run`,
+4. **The agents.** Run `.venv/bin/second-eye live-check --tenant acme-llp --dry-run`,
    then the same command without `--dry-run`. This creates the skills, the
    agents, the environment and the memory store in your workspace, using
    your key, and writes their ids into your tenant file. It runs a scored
@@ -190,8 +190,8 @@ It then prints what is left to do by hand. In order:
 ## 4. Deploy a release
 
 ```bash
-.venv/bin/lra tenant deploy acme-llp --release vX.Y.Z --assets ../   # dry run
-.venv/bin/lra tenant deploy acme-llp --release vX.Y.Z --assets ../ --apply
+.venv/bin/second-eye tenant deploy acme-llp --release vX.Y.Z --assets ../   # dry run
+.venv/bin/second-eye tenant deploy acme-llp --release vX.Y.Z --assets ../ --apply
 ```
 
 `--assets` points at the folder holding the downloaded release files. The
@@ -219,12 +219,12 @@ needs us.
 
 | How | Effect | Time to take effect |
 | --- | --- | --- |
-| `.venv/bin/lra pause acme-llp --apply` (a dry run without `--apply`) | Writes one row in your D1 database. Mail from your lawyers is accepted and held sealed. Nothing is reviewed or sent. A review already under way waits before it sends | The next message. A review already under way stops before its next step |
-| The same SQL in the dashboard, under Storage & Databases -> D1 -> your database -> Console. `lra pause` prints it | As above, with no command line | As above |
+| `.venv/bin/second-eye pause acme-llp --apply` (a dry run without `--apply`) | Writes one row in your D1 database. Mail from your lawyers is accepted and held sealed. Nothing is reviewed or sent. A review already under way waits before it sends | The next message. A review already under way stops before its next step |
+| The same SQL in the dashboard, under Storage & Databases -> D1 -> your database -> Console. `second-eye pause` prints it | As above, with no command line | As above |
 | Disable the Email Routing rule, or your own transport rule | No mail reaches it | Minutes |
 | Delete the Anthropic API key in the Console | No review can run. A message that arrives fails, and the lawyer is told it could not be reviewed | Immediate |
 
-`.venv/bin/lra resume acme-llp --apply` turns the service back on. Held mail
+`.venv/bin/second-eye resume acme-llp --apply` turns the service back on. Held mail
 is released at the next daily run (04:17 UTC). To release it straight away,
 run the `curl` command that `resume` prints. A review that was waiting picks
 up within the hour.
@@ -237,8 +237,8 @@ tenant file and deploying it pauses the service, and it wins over `resume`.
 When you want our help, run:
 
 ```bash
-.venv/bin/lra tenant support acme-llp            # read-only, 3 days
-.venv/bin/lra tenant support acme-llp --days 7 --write
+.venv/bin/second-eye tenant support acme-llp            # read-only, 3 days
+.venv/bin/second-eye tenant support acme-llp --days 7 --write
 ```
 
 It prints the exact token to create in your dashboard. The token has these
@@ -274,13 +274,13 @@ delete it afterwards. Console -> Usage can be filtered by key.
 1. Download the new release and check it (step 1).
 2. Unpack it to a new folder and copy your `deployments/acme-llp/` folder
    into it, including `.env`.
-3. Run `.venv/bin/lra tenant render acme-llp` and read the diff of
+3. Run `.venv/bin/second-eye tenant render acme-llp` and read the diff of
    `deployments/acme-llp/wrangler.jsonc`. It shows everything the new
    release changes in your configuration.
-4. Run `lra tenant deploy ... --release vX.Y.Z`: first the dry run, then
+4. Run `second-eye tenant deploy ... --release vX.Y.Z`: first the dry run, then
    `--apply`.
 5. If the release notes say that agents or skills changed, run
-   `.venv/bin/lra live-check --tenant acme-llp --from skills`.
+   `.venv/bin/second-eye live-check --tenant acme-llp --from skills`.
 
 **To roll back,** deploy the previous release the same way. Our schema
 changes so far have only added tables and columns, which an older release
@@ -290,10 +290,10 @@ rolling back across a release.
 ## Leaving: offboarding and the deletion certificate
 
 ```bash
-.venv/bin/lra tenant offboard acme-llp                   # lists everything it would delete
+.venv/bin/second-eye tenant offboard acme-llp            # lists everything it would delete
 head -c 32 /dev/urandom > offboard.key                   # your signing key; keep it
-.venv/bin/lra tenant offboard acme-llp --apply --key-file offboard.key
-.venv/bin/lra tenant certificate deployments/acme-llp/offboarding/deletion-certificate-*.json \
+.venv/bin/second-eye tenant offboard acme-llp --apply --key-file offboard.key
+.venv/bin/second-eye tenant certificate deployments/acme-llp/offboarding/deletion-certificate-*.json \
   --key-file offboard.key
 ```
 
@@ -304,7 +304,7 @@ does the following, in order:
 1. **Pauses the service.**
 2. **Exports the audit trail** to `deployments/acme-llp/offboarding/`. This
    is your record of what the tool did, and you keep it.
-3. **Purges every registered client.** This is `lra purge --client` run for
+3. **Purges every registered client.** This is `second-eye purge --client` run for
    each one.
 4. **Deletes your copies at Anthropic.** This covers every session of your
    deployment's agents and every session the audit trail names, with their
@@ -325,7 +325,7 @@ does the following, in order:
 7. **Writes the deletion certificate.** For each item it records what was
    deleted, its id, the count and the time. It contains no document, name
    or finding. It carries the SHA-256 of itself and an HMAC-SHA256 under
-   your key. `lra tenant certificate` checks both.
+   your key. `second-eye tenant certificate` checks both.
 
 If anything at Anthropic fails, nothing at Cloudflare is deleted, because
 the database is the list of what remains. Run the same command again to

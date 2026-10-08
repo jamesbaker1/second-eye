@@ -17,10 +17,10 @@ from io import BytesIO
 import pytest
 from docx import Document
 
-from lra import handler
-from lra.mail.console import ConsoleProvider
-from lra.models import Attachment, Finding, InboundEmail, ReviewResult, Severity
-from lra.pipeline import compare, redline
+from secondeye import handler
+from secondeye.mail.console import ConsoleProvider
+from secondeye.models import Attachment, Finding, InboundEmail, ReviewResult, Severity
+from secondeye.pipeline import compare, redline
 
 DOCX = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
 
@@ -51,7 +51,7 @@ def captured(monkeypatch, tmp_path):
     monkeypatch.setenv("DATABASE_URL", f"sqlite:///{tmp_path}/since.sqlite3")
     monkeypatch.setenv("MAIL_AGENT_ADDRESS", "review@firm.com")
     monkeypatch.setenv("FIRM_DOMAINS", "firm.com")
-    from lra.config import settings
+    from secondeye.config import settings
 
     settings.cache_clear()
     provider = Captured()
@@ -253,7 +253,7 @@ def test_the_quick_similarity_answers_exactly_as_the_full_measure_does():
     from difflib import SequenceMatcher
 
     from evals import corpus
-    from lra import reconcile
+    from secondeye import reconcile
 
     texts = {}
     for spec in corpus.ALL[::3]:
@@ -280,7 +280,7 @@ def test_the_quick_similarity_answers_exactly_as_the_full_measure_does():
 
 def test_other_conversations_are_ruled_out_without_reading_their_ledgers(
         captured, seen, monkeypatch):
-    from lra import thread
+    from secondeye import thread
 
     others = [
         ["1. Scope. The Consultant provides the Services described in Schedule 1.",

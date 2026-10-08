@@ -25,9 +25,9 @@ from docx import Document
 from docx.oxml.ns import qn
 from lxml import etree
 
-from lra.models import Finding, Mode, ReviewResult, Severity
-from lra.pipeline import redline
-from lra.pipeline.ooxml import (
+from secondeye.models import Finding, Mode, ReviewResult, Severity
+from secondeye.pipeline import redline
+from secondeye.pipeline.ooxml import (
     AnchorAmbiguous,
     AnchorNotSafelyEditable,
     Revision,
@@ -35,7 +35,7 @@ from lra.pipeline.ooxml import (
     _all_paragraphs,
     _paragraph_text,
 )
-from lra.pipeline.validate import validate
+from secondeye.pipeline.validate import validate
 
 W = "http://schemas.openxmlformats.org/wordprocessingml/2006/main"
 MC = "http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -215,16 +215,16 @@ def test_an_edit_straddling_another_authors_insertion_is_refused():
     content = mixed_authorship_document()
     doc = Document(BytesIO(content))
     with pytest.raises(AnchorNotSafelyEditable):
-        RevisionWriter(doc, "LRA").apply(
-            Revision("thirty (13) days", "thirty (30) days", "LRA"))
+        RevisionWriter(doc, "Second Eye").apply(
+            Revision("thirty (13) days", "thirty (30) days", "Second Eye"))
 
 
 def test_a_refusal_across_authorship_leaves_the_text_exactly_as_it_was():
     content = mixed_authorship_document()
     doc = Document(BytesIO(content))
     with pytest.raises(AnchorNotSafelyEditable):
-        RevisionWriter(doc, "LRA").apply(
-            Revision("thirty (13) days", "thirty (30) days", "LRA"))
+        RevisionWriter(doc, "Second Eye").apply(
+            Revision("thirty (13) days", "thirty (30) days", "Second Eye"))
     assert _paragraph_text(doc.paragraphs[0]) == (
         "The Recipient shall pay thirty (13) days after closing."
     )
@@ -467,7 +467,7 @@ def numbered(text: str, bold: bool = False):
 
 def decided_text(content: bytes, accepting: bool) -> str:
     """The paragraph as it reads once every change is accepted, or rejected."""
-    from lra.pipeline.ooxml import decide, tracked_changes
+    from secondeye.pipeline.ooxml import decide, tracked_changes
 
     doc = Document(BytesIO(content))
     ids = [c.id for c in tracked_changes(doc)]
@@ -673,7 +673,7 @@ def test_paragraph_dedup_survives_garbage_collection():
 
     from docx.enum.section import WD_SECTION
 
-    from lra.pipeline.ooxml import _all_paragraphs, _paragraph_text
+    from secondeye.pipeline.ooxml import _all_paragraphs, _paragraph_text
 
     d = Document()
     d.sections[0].header.paragraphs[0].text = "ACME CONFIDENTIAL"

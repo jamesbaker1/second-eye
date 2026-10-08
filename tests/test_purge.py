@@ -1,4 +1,4 @@
-"""`lra purge --client / --matter / --lawyer`: everything held for one scope,
+"""`second-eye purge --client / --matter / --lawyer`: everything held for one scope,
 Anthropic's copies included, and nothing outside it (purge.py).
 
 The fixture builds two clients' work side by side: Acme (client 100) on two
@@ -19,10 +19,10 @@ import anthropic
 import httpx2
 import pytest
 
-from lra import archive, audit, blackline, blobs, clients, closing, memory, purge, thread
-from lra.memory import Kind, MemoryEntry, Scope
-from lra.models import Attachment, InboundEmail
-from lra.store import claim, connect
+from secondeye import archive, audit, blackline, blobs, clients, closing, memory, purge, thread
+from secondeye.memory import Kind, MemoryEntry, Scope
+from secondeye.models import Attachment, InboundEmail
+from secondeye.store import claim, connect
 from tests import api_contract as contract
 from tests import fake_sessions as fs
 from tests.test_learning import FakeMemoryStores
@@ -117,7 +117,7 @@ class FakeAnthropic:
 
 @pytest.fixture
 def api(monkeypatch, tmp_path):
-    import lra.config
+    import secondeye.config
 
     monkeypatch.setenv("DATABASE_URL", f"sqlite:///{tmp_path}/purge.sqlite3")
     monkeypatch.setenv("INTERNAL_DOMAINS", "firm.com")
@@ -126,9 +126,9 @@ def api(monkeypatch, tmp_path):
     monkeypatch.setenv("LEARN_FROM_OUTCOMES", "true")
     fs.configure(monkeypatch, MANAGED_FIRM_MEMORY_STORE_ID="memstore_firm")
     fake = FakeAnthropic()
-    monkeypatch.setattr(lra.config, "anthropic_client", lambda: fake.client)
+    monkeypatch.setattr(secondeye.config, "anthropic_client", lambda: fake.client)
     yield fake
-    from lra.config import settings
+    from secondeye.config import settings
 
     settings.cache_clear()
 
@@ -245,7 +245,7 @@ def held(api):
 
 
 def negotiate(thread_id: str) -> None:
-    from lra import negotiation
+    from secondeye import negotiation
 
     negotiation.init()
     now = datetime.now(UTC).isoformat()
@@ -313,7 +313,7 @@ def test_a_dry_run_lists_everything_and_touches_nothing(held):
 
 
 def test_a_client_purge_deletes_every_kind_and_leaves_the_other_client(held, monkeypatch):
-    monkeypatch.setattr("lra.purge._actor", lambda: "gc")
+    monkeypatch.setattr("secondeye.purge._actor", lambda: "gc")
     globex_stores = {store_id("client", "200"), store_id("matter", "200-0001")}
     acme_stores = {store_id("client", "100"), store_id("matter", "100-0001"),
                    store_id("matter", "100-0002")}
@@ -401,7 +401,7 @@ def test_a_matter_purge_leaves_the_clients_other_matter(held):
 
 def test_a_lawyer_purge_takes_their_personal_memory_and_leaves_colleagues(held, monkeypatch):
     revoked = []
-    monkeypatch.setattr("lra.oauth.revoke", lambda who: revoked.append(who))
+    monkeypatch.setattr("secondeye.oauth.revoke", lambda who: revoked.append(who))
     kate_store = store_id("personal", KATE)
     jim_store = store_id("personal", JIM)
 
@@ -423,10 +423,10 @@ def test_a_lawyer_purge_takes_their_personal_memory_and_leaves_colleagues(held, 
 
 
 def test_a_failure_half_way_is_finished_by_running_it_again(held, capsys, monkeypatch):
-    from lra import cli
+    from secondeye import cli
 
     held.fail_once |= {"sesn_b", "file_a"}
-    monkeypatch.setattr("sys.argv", ["lra", "purge", "--client", "100", "--apply"])
+    monkeypatch.setattr("sys.argv", ["second-eye", "purge", "--client", "100", "--apply"])
 
     assert cli.main() == 1
     out = capsys.readouterr().out
@@ -468,7 +468,7 @@ def test_objects_already_gone_at_anthropic_count_as_deleted(held):
 
 def test_without_an_api_key_our_rows_go_and_anthropics_wait(held, monkeypatch):
     monkeypatch.setenv("ANTHROPIC_API_KEY", "")
-    from lra.config import settings
+    from secondeye.config import settings
 
     settings.cache_clear()
     result = purge.run("client", "100", apply=True)
@@ -479,9 +479,9 @@ def test_without_an_api_key_our_rows_go_and_anthropics_wait(held, monkeypatch):
 
 
 def test_the_command_line_is_a_dry_run_unless_told(held, capsys, monkeypatch):
-    from lra import cli
+    from secondeye import cli
 
-    monkeypatch.setattr("sys.argv", ["lra", "purge", "--client", "100"])
+    monkeypatch.setattr("sys.argv", ["second-eye", "purge", "--client", "100"])
     assert cli.main() == 0
     out = capsys.readouterr().out
     assert "Dry run for client 100 (Acme Corporation)" in out
@@ -489,16 +489,16 @@ def test_the_command_line_is_a_dry_run_unless_told(held, capsys, monkeypatch):
     assert "1 conversations" in out  # the one with no client or matter
     assert ids("SELECT id FROM threads") >= {"t-acme"}
 
-    monkeypatch.setattr("sys.argv", ["lra", "purge", "--matter", "100-0002", "--apply",
+    monkeypatch.setattr("sys.argv", ["second-eye", "purge", "--matter", "100-0002", "--apply",
                                      "--by", "gc@firm.com"])
     assert cli.main() == 0
-    monkeypatch.setattr("sys.argv", ["lra", "purge", "--history"])
+    monkeypatch.setattr("sys.argv", ["second-eye", "purge", "--history"])
     assert cli.main() == 0
     out = capsys.readouterr().out
     assert "matter 100-0002  by gc@firm.com  finished" in out
 
     # The old form, an address, is a lawyer's purge, and a dry run too.
-    monkeypatch.setattr("sys.argv", ["lra", "purge", KATE])
+    monkeypatch.setattr("sys.argv", ["second-eye", "purge", KATE])
     assert cli.main() == 0
     assert "Dry run for lawyer kate@firm.com" in capsys.readouterr().out
 
@@ -510,12 +510,12 @@ def test_a_review_records_whose_it_is_where_a_purge_looks(monkeypatch, tmp_path)
     """Through the handler: a conversation known to be Acme's only from the
     counterparty on the email carries the client, and so does its audit row,
     with the session it ran."""
-    from lra import handler
+    from secondeye import handler
     from tests.test_handler import Captured, email_with_sample, stub_review
 
     monkeypatch.setenv("DATABASE_URL", f"sqlite:///{tmp_path}/links.sqlite3")
     monkeypatch.setenv("INTERNAL_DOMAINS", "firm.com")
-    from lra.config import settings
+    from secondeye.config import settings
 
     settings.cache_clear()
     monkeypatch.setattr(handler, "get_provider", lambda: Captured())
@@ -539,7 +539,7 @@ def test_a_review_records_whose_it_is_where_a_purge_looks(monkeypatch, tmp_path)
 
 
 def test_uploads_are_recorded_against_the_job(monkeypatch, tmp_path):
-    from lra import managed
+    from secondeye import managed
 
     monkeypatch.setenv("DATABASE_URL", f"sqlite:///{tmp_path}/uploads.sqlite3")
     fs.configure(monkeypatch)
@@ -572,7 +572,7 @@ def test_the_documents_go_from_object_storage_too(held, _storage_backend):
     """On Cloudflare a row holds a reference and the document is in R2: the
     object goes before its row, and Globex's stay."""
     if _storage_backend is None:
-        pytest.skip("object storage is the D1 backend's (LRA_TEST_BACKEND=d1)")
+        pytest.skip("object storage is the D1 backend's (SECOND_EYE_TEST_BACKEND=d1)")
 
     def refs(sql) -> set[str]:
         return {bytes(r[0]).split(b":", 2)[2].decode() for r in _all(sql)

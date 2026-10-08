@@ -1,6 +1,6 @@
 """Check a closing update and, only if it passes, write closing.json.
 
-The host runs the same checks again (src/lra/pipeline/closing_state.py) and
+The host runs the same checks again (src/secondeye/pipeline/closing_state.py) and
 stores nothing that fails them, so an update this script refuses would be
 refused there too. See SKILL.md and reference/state.md.
 """
@@ -25,7 +25,7 @@ def main() -> None:
     parser.add_argument("--write", default="/mnt/session/outputs/closing.json")
     args = parser.parse_args()
 
-    from lra.pipeline import closing_state
+    from secondeye.pipeline import closing_state
 
     update = load_json(args.update)
     previous = load_json(args.previous) if Path(args.previous).is_file() else None

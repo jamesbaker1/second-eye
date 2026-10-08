@@ -2,7 +2,7 @@
 # (precedents, a positions memo, a checklist, or a line in an email) and
 # reports one position per clause family through record_playbook, each with
 # the text it rests on. It edits nothing and writes no file the lawyer gets:
-# the position files and the summary are rendered by src/lra/playbook.py
+# the position files and the summary are rendered by src/secondeye/playbook.py
 # from what it reports, and take effect only once an admin approves them.
 #
 # Its own agent rather than the associate's, for three reasons. The job is
@@ -14,7 +14,7 @@
 # tools live on the agent definition, so record_playbook on the associate
 # would be offered to every instruction session as well.
 #
-# Applied by `lra agents apply` with the same skills as the others (the
+# Applied by `second-eye agents apply` with the same skills as the others (the
 # lra-playbook skill gives it the file format and the starter clause families)
 # and the settings-driven model fields.
 name: LRA playbook
@@ -23,7 +23,7 @@ description: >-
   one per clause family, each citing the text it came from. Reports through
   record_playbook; invents nothing.
 model: claude-fable-5-1
-system_file: ../src/lra/prompts/playbook_system.md
+system_file: ../src/secondeye/prompts/playbook_system.md
 tools:
   - type: agent_toolset_20260401
     default_config:

@@ -1,5 +1,5 @@
 /**
- * The same envelope src/lra/crypto.py writes: "enc:v1:" + 12-byte nonce +
+ * The same envelope src/secondeye/crypto.py writes: "enc:v1:" + 12-byte nonce +
  * AES-256-GCM ciphertext. A raw message waits in R2 between arriving and
  * being reviewed, and it is a client document like any other, so it waits
  * under the firm's key. With no key it is stored as it came; the application

@@ -11,8 +11,8 @@ from datetime import datetime as dt
 import pytest
 
 from evals import realistic
-from lra.models import Attachment, InboundEmail, ReviewResult
-from lra.pipeline import extract, ics, intake
+from secondeye.models import Attachment, InboundEmail, ReviewResult
+from secondeye.pipeline import extract, ics, intake
 
 DOCX = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
 
@@ -101,9 +101,9 @@ def test_asking_for_a_calendar(words, asked):
 
 @pytest.fixture
 def captured(monkeypatch, tmp_path):
-    from lra import handler
-    from lra.config import settings
-    from lra.mail.console import ConsoleProvider
+    from secondeye import handler
+    from secondeye.config import settings
+    from secondeye.mail.console import ConsoleProvider
 
     class Captured(ConsoleProvider):
         def __init__(self):
@@ -134,7 +134,7 @@ def _email(n, content, body="Quick look?", filename="Falcon SPA.docx", **kw):
 
 
 def test_a_review_attaches_the_deadlines_calendar(captured):
-    from lra import handler
+    from secondeye import handler
 
     handler.handle(_email(1, realistic.falcon_spa(3)))
     out = captured.sent[0]
@@ -146,7 +146,7 @@ def test_a_review_attaches_the_deadlines_calendar(captured):
 
 
 def test_the_calendar_on_request_for_the_attached_document(captured):
-    from lra import handler
+    from secondeye import handler
 
     handler.handle(_email(1, realistic.falcon_spa(3), body="Send me the deadlines as a calendar"))
     out = captured.sent[0]
@@ -158,7 +158,7 @@ def test_the_calendar_on_request_for_the_attached_document(captured):
 
 
 def test_the_calendar_on_request_on_a_review_thread(captured):
-    from lra import handler
+    from secondeye import handler
 
     handler.handle(_email(1, realistic.falcon_spa(3)))
     first = captured.sent[0]

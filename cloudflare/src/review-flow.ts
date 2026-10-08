@@ -186,7 +186,7 @@ export class ReviewFlow extends WorkflowEntrypoint<Env, FlowParams> {
 
   /**
    * Wait, without waking anything, while the kill switch is on (pause.ts).
-   * Every five minutes for the first hour, then hourly: `lra resume` reaches
+   * Every five minutes for the first hour, then hourly: `second-eye resume` reaches
    * a waiting instance within the hour (and mail held at the door at once,
    * by the release). Bounded by the instance's step budget; a message still
    * waiting after 7 days is gone with every unreviewed message (the R2

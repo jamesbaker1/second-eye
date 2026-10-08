@@ -22,8 +22,8 @@ from types import SimpleNamespace as NS
 
 import pytest
 
-from lra import clients, killswitch, offboard, release, support, tenant
-from lra.store import connect
+from secondeye import clients, killswitch, offboard, release, support, tenant
+from secondeye.store import connect
 from tests.test_tenant import ROOT, Wrangler, _never, acme, make_repo
 
 ACCOUNT = "0123456789abcdef0123456789abcdef"
@@ -54,7 +54,7 @@ def firm(repo, **kw) -> tenant.Tenant:
 def provisioned(repo) -> tenant.Tenant:
     t = firm(repo)
     tenant._update(t, "d1_database_id", D1)
-    tenant._update(t, "EDGE_URL", "https://legal-review-agent-acme-llp.acme.workers.dev")
+    tenant._update(t, "EDGE_URL", "https://second-eye-acme-llp.acme.workers.dev")
     return tenant.load("acme-llp", repo)
 
 
@@ -95,7 +95,7 @@ def test_self_hosted_firms_are_not_in_the_deploy_matrix(repo, capsys):
     assert tenant.main(["self-hosted"], root=repo) == 0
     out = capsys.readouterr().out
     assert "acme-llp: self-hosted, so not deployed here" in out and ACCOUNT in out
-    assert "lra tenant deploy acme-llp --release vX.Y.Z" in out
+    assert "second-eye tenant deploy acme-llp --release vX.Y.Z" in out
     assert tenant.main(["list"], root=repo) == 0
     assert "self-hosted: the firm deploys" in capsys.readouterr().out
 
@@ -110,9 +110,9 @@ def test_provisioning_a_self_hosted_firm_ends_in_a_release_not_github_secrets(re
     assert tenant.main(["provision", "acme-llp"], root=repo, runner=_never) == 0
     out = capsys.readouterr().out
     assert f"CLOUDFLARE_ACCOUNT_ID={ACCOUNT} npx wrangler d1 create" in out
-    assert "lra tenant deploy acme-llp --release '<vX.Y.Z>'" in out
+    assert "second-eye tenant deploy acme-llp --release '<vX.Y.Z>'" in out
     assert "gh secret set" not in out and "CLOUDFLARE_API_TOKEN_ACME_LLP" not in out
-    assert "rolls out with `lra tenant deploy`" in out
+    assert "rolls out with `second-eye tenant deploy`" in out
 
 
 def test_deploy_yml_says_which_firms_deploy_themselves():
@@ -120,8 +120,8 @@ def test_deploy_yml_says_which_firms_deploy_themselves():
 
     jobs = yaml.safe_load((ROOT / ".github" / "workflows" / "deploy.yml").read_text())["jobs"]
     runs = [s.get("run", "") for s in jobs["tenants"]["steps"]]
-    assert any("lra.tenant matrix" in r for r in runs)
-    assert any("lra.tenant self-hosted" in r for r in runs)
+    assert any("secondeye.tenant matrix" in r for r in runs)
+    assert any("secondeye.tenant self-hosted" in r for r in runs)
 
 
 # --- releases -------------------------------------------------------------------
@@ -137,9 +137,9 @@ def test_the_release_workflow_builds_a_draft_and_deploys_nothing():
     steps = wf["jobs"]["release"]["steps"]
     runs = "\n".join(s.get("run", "") for s in steps)
     assert "merge-base --is-ancestor" in runs
-    assert "lra.release build --version" in runs
-    assert "wrangler deploy --dry-run" in runs and "lra.release pack" in runs
-    assert "lra.release checksums dist" in runs
+    assert "secondeye.release build --version" in runs
+    assert "wrangler deploy --dry-run" in runs and "secondeye.release pack" in runs
+    assert "secondeye.release checksums dist" in runs
     assert "gh release create" in runs and "--draft" in runs and "--verify-tag" in runs
     assert any(s.get("uses", "").startswith("anchore/sbom-action") for s in steps)
     # Never a real deploy, and no Cloudflare or Anthropic credential anywhere.
@@ -187,7 +187,7 @@ def test_release_files_are_checked_against_their_checksums(tmp_path):
     assert any("prebuilt container image" in n for n in manifest["not_included"])
     assert any("not who listed them" in n for n in manifest["not_included"])
     template = tenant.parse_jsonc((tmp_path / written[1].name).read_text())
-    assert template["name"] == "legal-review-agent-<firm>"
+    assert template["name"] == "second-eye-<firm>"
     assert template["vars"]["MAIL_AGENT_ADDRESS"] == "<review@legal.firm.com>"
     sums = release.checksums(tmp_path).read_text()
     assert any(re.match(r"^[0-9a-f]{64}  second-eye-v1\.2\.3-source\.tar\.gz$", line) for line in sums.splitlines())
@@ -287,7 +287,7 @@ def test_pause_is_a_dry_run_that_prints_the_command(repo, capsys):
                            runner=_never) == 0
     out = capsys.readouterr().out
     assert (f"(cd cloudflare && CLOUDFLARE_ACCOUNT_ID={ACCOUNT} npx wrangler d1 execute "
-            "legal-review-agent-acme-llp --remote --config ../deployments/acme-llp/wrangler.jsonc"
+            "second-eye-acme-llp --remote --config ../deployments/acme-llp/wrangler.jsonc"
             ' --yes --command "CREATE TABLE IF NOT EXISTS edge_settings') in out
     assert "VALUES ('service_paused', 'true', " in out and "'it@acme-law.com')" in out
     assert "held sealed, nothing is sent" in out
@@ -302,7 +302,7 @@ def test_resume_says_how_to_release_held_mail_and_when_the_var_wins(repo, capsys
     assert "'service_paused', 'false'" in out
     assert "the var wins" in out
     assert ('curl -X POST -H "Authorization: Bearer $EDGE_SECRET" '
-            "https://legal-review-agent-acme-llp.acme.workers.dev/internal/release") in out
+            "https://second-eye-acme-llp.acme.workers.dev/internal/release") in out
 
 
 def test_pause_apply_writes_the_row_with_the_firms_account(repo, capsys):
@@ -387,14 +387,14 @@ class FakeAnthropic:
 def held(repo, tmp_path, monkeypatch):
     """A self-hosted firm with a client, an audit row naming a session and an
     upload, a memory store, a vault, and DATA_KEY in its local .env."""
-    import lra.config
-    from lra import audit, memory
-    from lra.config import settings
+    import secondeye.config
+    from secondeye import audit, memory
+    from secondeye.config import settings
 
     monkeypatch.setenv("DATABASE_URL", f"sqlite:///{tmp_path}/firm.sqlite3")
-    # The per-client purges reach Anthropic as `lra purge` does, through config.
+    # The per-client purges reach Anthropic as `second-eye purge` does, through config.
     monkeypatch.setenv("ANTHROPIC_API_KEY", "sk-test")
-    monkeypatch.setattr(lra.config, "anthropic_client", lambda: FakeAnthropic().client)
+    monkeypatch.setattr(secondeye.config, "anthropic_client", lambda: FakeAnthropic().client)
     settings.cache_clear()
     t = provisioned(repo)
     for key, value in {"MANAGED_REVIEW_AGENT_ID": "agent_review",
@@ -441,10 +441,10 @@ def test_offboard_is_a_dry_run_that_lists_everything(held, capsys):
     for line in ("delete --config ../deployments/acme-llp/wrangler.jsonc --force",
                  "workflows delete legal-review-flow-acme-llp",
                  "containers list --json",
-                 "d1 delete legal-review-agent-acme-llp -y",
-                 ("r2 bucket lifecycle add legal-review-agent-acme-llp-docs "
+                 "d1 delete second-eye-acme-llp -y",
+                 ("r2 bucket lifecycle add second-eye-acme-llp-docs "
                   "offboard-expire-everything '' --expire-days 1 -y --jurisdiction eu"),
-                 "r2 bucket delete legal-review-agent-acme-llp-docs --jurisdiction eu"):
+                 "r2 bucket delete second-eye-acme-llp-docs --jurisdiction eu"):
         assert f"{pre} {line}" in out, line
     assert "DATA_KEY in deployments/acme-llp/.env" in out
     assert "Every other copy of DATA_KEY" in out and "wrkspc_acme" in out
@@ -461,13 +461,13 @@ def test_offboard_apply_deletes_everything_and_certifies_it(held, capsys):
 
     # Paused first, Anthropic before Cloudflare, sessions before what they used.
     lines = run.lines()
-    assert lines[0].startswith("d1 execute legal-review-agent-acme-llp --remote")
+    assert lines[0].startswith("d1 execute second-eye-acme-llp --remote")
     assert "'service_paused', 'true'" in lines[0]
     assert [line.split(" --")[0] for line in lines[2:]] == [
         "delete", "workflows delete legal-review-flow-acme-llp", "containers list",
-        "d1 delete legal-review-agent-acme-llp -y",
-        "r2 bucket lifecycle add legal-review-agent-acme-llp-docs offboard-expire-everything ",
-        "r2 bucket delete legal-review-agent-acme-llp-docs"]
+        "d1 delete second-eye-acme-llp -y",
+        "r2 bucket lifecycle add second-eye-acme-llp-docs offboard-expire-everything ",
+        "r2 bucket delete second-eye-acme-llp-docs"]
     kinds = [name for name, _ in fake.calls]
     assert kinds.index("sessions.delete") < kinds.index("memory_stores.delete") < \
         kinds.index("environments.delete") < kinds.index("agents.archive")
@@ -553,21 +553,21 @@ def test_offboard_will_not_touch_jims_deployment(repo, capsys):
 
 
 def test_cli_lists_the_new_commands():
-    from lra import cli
+    from secondeye import cli
 
-    for words in ("lra tenant deploy", "lra tenant support", "lra tenant offboard",
-                  "lra pause <firm>"):
+    for words in ("second-eye tenant deploy", "second-eye tenant support",
+                  "second-eye tenant offboard", "second-eye pause <firm>"):
         assert words in cli.USAGE
 
 
 def test_the_new_modules_import_only_the_standard_library_at_the_top():
-    """release.yml runs `python -m lra.release` on a bare runner."""
+    """release.yml runs `python -m secondeye.release` on a bare runner."""
     for name in ("release.py", "tenant.py"):
-        top = (ROOT / "src" / "lra" / name).read_text().split("\ndef ")[0]
+        top = (ROOT / "src" / "secondeye" / name).read_text().split("\ndef ")[0]
         for line in top.splitlines():
             if line.startswith(("import ", "from ")):
                 mod = line.split()[1].split(".")[0]
                 assert mod in {"__future__", "argparse", "contextlib", "gzip", "hashlib", "io",
                                "json", "os", "re", "subprocess", "sys", "tarfile", "pathlib",
-                               "collections", "dataclasses", "lra"}, line
+                               "collections", "dataclasses", "secondeye"}, line
 

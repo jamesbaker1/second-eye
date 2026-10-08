@@ -1,7 +1,7 @@
 /**
  * The three document-system tools, answered for one bound (lawyer, matter).
  *
- * A port of the custom tools in src/lra/tools/__init__.py, with the same
+ * A port of the custom tools in src/secondeye/tools/__init__.py, with the same
  * rules and the same words, because those words often end up in the email
  * to the lawyer:
  *

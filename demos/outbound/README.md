@@ -39,7 +39,7 @@ It writes the files to `demos/outbound/files/` and runs `files/email.eml`
 through the same handler production runs, printing the reply instead of
 sending it. The model is switched off for the run and the database is a
 temporary file, whatever `.env` says. `--build` only writes the files.
-`lra replay demos/outbound/files/email.eml` does the same with your own
+`second-eye replay demos/outbound/files/email.eml` does the same with your own
 settings.
 
 ## Send it to production

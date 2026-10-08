@@ -1,6 +1,6 @@
 /**
  * The break-glass door to /internal/* from outside: for an operator running
- * `lra purge`, `lra audit` or a release from a laptop, never for the
+ * `second-eye purge`, `second-eye audit` or a release from a laptop, never for the
  * container, which reaches the same handlers through its outbound handler
  * and never touches the internet to do it (index.ts, ReviewContainer).
  *
@@ -9,11 +9,11 @@
  *
  *   v1 \n METHOD \n /path?query \n unix-seconds \n nonce \n hex(sha256(body))
  *
- * in `x-lra-signature`, with `x-lra-time` and `x-lra-nonce`. A request more
+ * in `x-second-eye-signature`, with `x-second-eye-time` and `x-second-eye-nonce`. A request more
  * than five minutes from the Worker's clock is refused, and so is a nonce
  * already used, so a captured request cannot be replayed or kept for later.
  * The signature covers the body, so a captured request cannot be edited
- * either. src/lra/edge.py signs the same way.
+ * either. src/secondeye/edge.py signs the same way.
  *
  * The secret is not EDGE_SECRET and is never given to the container: a
  * container that leaked its environment would leak nothing that opens this.
@@ -62,9 +62,9 @@ export async function sameSecret(a: string, b: string): Promise<boolean> {
  */
 export async function verifyOperator(request: Request, secret: string, db: D1Database,
   now = Date.now()): Promise<{ request: Request } | { refused: string }> {
-  const time = request.headers.get("x-lra-time") ?? "";
-  const nonce = request.headers.get("x-lra-nonce") ?? "";
-  const signature = (request.headers.get("x-lra-signature") ?? "").toLowerCase();
+  const time = request.headers.get("x-second-eye-time") ?? "";
+  const nonce = request.headers.get("x-second-eye-nonce") ?? "";
+  const signature = (request.headers.get("x-second-eye-signature") ?? "").toLowerCase();
   if (!/^\d{1,12}$/.test(time) || !NONCE.test(nonce) || !/^[0-9a-f]{64}$/.test(signature)) {
     return { refused: "unsigned" };
   }

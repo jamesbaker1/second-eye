@@ -1,5 +1,5 @@
 [project]
-name = "legal-review-agent"
+name = "second-eye"
 version = "0.1.0"
 description = "A legal review agent that lives as an email contact."
 # SPDX expression (PEP 639). Dual-licensed: a commercial licence is also
@@ -22,12 +22,12 @@ dependencies = [
   # the 1.x line; the session-scoped files listing needs 0.92 or later.
   "anthropic>=1.8",
   # MIT. The agent definitions under agents/ are YAML manifests, as the
-  # `ant` CLI's version-controlled flow expects; `lra agents apply` reads them.
+  # `ant` CLI's version-controlled flow expects; `second-eye agents apply` reads them.
   "pyyaml>=6",
   "python-docx>=1.1",
   "lxml>=5.3",
   # Apache-2.0 / BSD. AES-GCM for documents and tokens at rest, under a key the
-  # firm holds. See src/lra/crypto.py and docs/deploy-cloudflare.md.
+  # firm holds. See src/secondeye/crypto.py and docs/deploy-cloudflare.md.
   "cryptography>=43",
   # BSD-3. Deliberately not PyMuPDF, which is AGPL.
   "pypdfium2>=4.30",
@@ -64,7 +64,7 @@ dev = ["pytest>=8", "ruff>=0.7", "respx>=0.21", "reportlab>=4.2", "pillow>=10"]
 # the suite for it to collect.
 
 [project.scripts]
-lra = "lra.cli:main"
+second-eye = "secondeye.cli:main"
 
 [build-system]
 # 1.27 is the first hatchling to read a PEP 639 licence expression.
@@ -72,7 +72,7 @@ requires = ["hatchling>=1.27"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/lra"]
+packages = ["src/secondeye"]
 
 [tool.ruff]
 line-length = 100

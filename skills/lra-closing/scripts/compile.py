@@ -17,7 +17,7 @@ def main() -> None:
     parser.add_argument("--out", default="/mnt/session/outputs")
     args = parser.parse_args()
 
-    from lra.pipeline import closing_docs
+    from secondeye.pipeline import closing_docs
 
     dirs = [Path(d) for d in (args.dir or ["/mnt/session/outputs", "/workspace"])]
     try:

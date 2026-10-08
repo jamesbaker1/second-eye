@@ -2,8 +2,8 @@
 
 from datetime import UTC, datetime
 
-from lra.models import Attachment, InboundEmail, Severity
-from lra.pipeline import email_checks, extract
+from secondeye.models import Attachment, InboundEmail, Severity
+from secondeye.pipeline import email_checks, extract
 
 
 def mk_email(subject="", body="", to=None) -> InboundEmail:
@@ -213,7 +213,7 @@ def test_a_one_word_removal_claim_stays_quiet():
 def _to(*addresses, name="Jane Partner"):
     from datetime import UTC, datetime
 
-    from lra.models import InboundEmail
+    from secondeye.models import InboundEmail
 
     return InboundEmail(
         message_id="p-1", from_address="jane.partner@firm.com", from_name=name,
@@ -222,7 +222,7 @@ def _to(*addresses, name="Jane Partner"):
 
 
 def test_mailing_it_to_your_own_gmail_is_flagged():
-    from lra.pipeline import email_checks
+    from secondeye.pipeline import email_checks
 
     for address in ("jane.partner@gmail.com", "partnerjane77@icloud.com"):
         found = email_checks.own_personal_address(_to(address), [address])
@@ -230,7 +230,7 @@ def test_mailing_it_to_your_own_gmail_is_flagged():
 
 
 def test_a_client_on_gmail_is_not_flagged():
-    from lra.pipeline import email_checks
+    from secondeye.pipeline import email_checks
 
     address = "bob.client@gmail.com"
     assert email_checks.own_personal_address(_to(address), [address]) == []
@@ -279,7 +279,7 @@ def test_a_schedule_in_neither_the_file_nor_the_email_is_a_question():
 def test_a_document_with_schedules_of_its_own_is_left_to_cross_references():
     """Schedule 1 is there and Schedule 2 is not: checks.cross_references
     reports that already, and one anchor must not carry two findings."""
-    from lra.pipeline import checks
+    from secondeye.pipeline import checks
     d = execution_version("SCHEDULE 1", "Warranties.")
     assert email_checks.missing_annexes(with_attachments(), d, MAIN) == []
     assert any("Schedule 2" in f.title for f in checks.cross_references(d))

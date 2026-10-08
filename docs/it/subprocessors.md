@@ -11,7 +11,7 @@ Last checked: 2026-10-04.
 ## Whose contract
 
 A firm can run its deployment in **its own** Cloudflare account and **its
-own** Anthropic organisation (`lra tenant new --account-id`, and the firm's
+own** Anthropic organisation (`second-eye tenant new --account-id`, and the firm's
 API key in `deployments/<firm>/.env`). Then Cloudflare and Anthropic are the
 firm's own vendors under the firm's own agreements, and the firm can assess
 them as it already assesses any cloud provider. Otherwise they run in our

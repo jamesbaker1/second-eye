@@ -17,8 +17,8 @@ from pathlib import Path
 import pytest
 from docx import Document
 
-from lra import managed, skillsync
-from lra.pipeline.ooxml import Revision, RevisionWriter
+from secondeye import managed, skillsync
+from secondeye.pipeline.ooxml import Revision, RevisionWriter
 
 
 def docx(path: Path, paragraphs, author: str = "") -> Path:
@@ -40,7 +40,7 @@ def bundle(tmp_path_factory) -> Path:
 def run(bundle: Path, script: str, *args: str, shim: bool) -> dict:
     env = {k: v for k, v in os.environ.items() if k != "PYTHONPATH"}
     if shim:
-        env["LRA_FORCE_SHIM"] = "1"
+        env["SECOND_EYE_FORCE_SHIM"] = "1"
     done = subprocess.run(
         [sys.executable, str(bundle / "scripts" / script), *args],
         capture_output=True, text=True, env=env, cwd=bundle, timeout=60, check=False,
@@ -63,18 +63,18 @@ def test_the_bundle_has_the_shape_the_skills_api_requires(bundle):
 
 def test_the_bundle_carries_the_real_modules_not_a_fork(bundle):
     for relative in skillsync.BUNDLED:
-        assert (bundle / "lib" / "lra" / relative).read_bytes() == (
+        assert (bundle / "lib" / "secondeye" / relative).read_bytes() == (
             skillsync.PACKAGE / relative).read_bytes()
 
 
 def test_nothing_bundled_reaches_for_configuration_at_import(bundle):
     for relative in skillsync.BUNDLED:
         top_level = [
-            line for line in (bundle / "lib" / "lra" / relative).read_text().splitlines()
+            line for line in (bundle / "lib" / "secondeye" / relative).read_text().splitlines()
             if line.startswith(("import ", "from "))
         ]
-        assert not [line for line in top_level if "lra.config" in line
-                    or "lra.managed" in line or "anthropic" in line], relative
+        assert not [line for line in top_level if "secondeye.config" in line
+                    or "secondeye.managed" in line or "anthropic" in line], relative
 
 
 @pytest.mark.parametrize("shim", [False, True], ids=["pydantic", "stand-in"])
@@ -134,7 +134,7 @@ def test_the_deal_math_scripts_run_from_the_bundle(bundle, tmp_path, shim):
 def test_the_writer_runs_from_the_bundle_and_verifies_its_own_output(bundle, tmp_path, shim):
     """The redline is written in the container now (DECISIONS 28), so the
     writer has to stand on its own there like the other scripts."""
-    from lra.pipeline import redline
+    from secondeye.pipeline import redline
 
     source = docx(tmp_path / "spa.docx", ["1. The term is thirty (13) days.",
                                           "2. Law: New York. Law: New York."])
@@ -184,7 +184,7 @@ def test_a_failure_is_json_not_a_traceback(bundle, tmp_path):
 
 
 def test_the_custom_skill_is_loaded_only_once_it_has_an_id(monkeypatch):
-    from lra.config import settings
+    from secondeye.config import settings
 
     monkeypatch.setenv("SANDBOX_SKILL_ID", "")
     monkeypatch.setenv("SANDBOX_PLAYBOOK_SKILL_ID", "")
@@ -204,7 +204,7 @@ def test_the_custom_skill_is_loaded_only_once_it_has_an_id(monkeypatch):
 
 
 def test_the_playbook_skill_builds_without_code_and_has_a_file_per_clause(tmp_path):
-    from lra import skillsync
+    from secondeye import skillsync
 
     bundle = skillsync.build(tmp_path, "lra-playbook")
     assert (bundle / "SKILL.md").exists()
@@ -220,7 +220,7 @@ def test_the_playbook_skill_builds_without_code_and_has_a_file_per_clause(tmp_pa
 
 
 def test_the_playbook_skill_is_loaded_alongside_the_document_tools(monkeypatch):
-    from lra.config import settings
+    from secondeye.config import settings
 
     monkeypatch.setenv("SANDBOX_SKILL_ID", "skill_tools")
     monkeypatch.setenv("SANDBOX_PLAYBOOK_SKILL_ID", "skill_playbook")
@@ -235,14 +235,14 @@ def test_the_playbook_skill_is_loaded_alongside_the_document_tools(monkeypatch):
 def test_an_unknown_skill_name_is_refused(tmp_path):
     import pytest
 
-    from lra import skillsync
+    from secondeye import skillsync
 
     with pytest.raises(KeyError, match="no such skill"):
         skillsync.build(tmp_path, "lra-nonsense")
 
 
 def test_the_key_terms_skill_builds_and_quotes_rather_than_infers(tmp_path):
-    from lra import skillsync
+    from secondeye import skillsync
 
     bundle = skillsync.build(tmp_path, "lra-key-terms")
     text = (bundle / "SKILL.md").read_text()
@@ -288,7 +288,7 @@ def test_the_findings_schema_is_models_finding_field_for_field():
     """The schema the sandbox checks against and the model the server builds
     must agree, or a finding the agent was told is recorded fails on arrival,
     or one the server would take is refused in the sandbox."""
-    from lra.models import Finding
+    from secondeye.models import Finding
 
     items = _schema()["properties"]["findings"]["items"]
     assert set(items["properties"]) == set(Finding.model_fields)
@@ -304,7 +304,7 @@ def test_the_host_reads_findings_with_the_schema_the_skill_ships():
     """One schema: the sandbox validates with it, the finish checks with it,
     and it is closed, because a list of free-form objects is where a bad
     severity gets through."""
-    from lra.pipeline import review
+    from secondeye.pipeline import review
 
     assert review.findings_schema() == _schema()
     items = _schema()["properties"]["findings"]["items"]
@@ -326,7 +326,7 @@ GOOD = {"severity": "blocker", "category": "amount", "title": "Mismatch",
 def _run_raw(bundle: Path, *args: str, shim: bool) -> subprocess.CompletedProcess:
     env = {k: v for k, v in os.environ.items() if k != "PYTHONPATH"}
     if shim:
-        env["LRA_FORCE_SHIM"] = "1"
+        env["SECOND_EYE_FORCE_SHIM"] = "1"
     return subprocess.run([sys.executable, str(bundle / "scripts" / "validate_findings.py"),
                            *args], capture_output=True, text=True, env=env, cwd=bundle,
                           timeout=60, check=False)
@@ -394,7 +394,7 @@ def test_the_writer_takes_the_recorded_file_as_it_stands(bundle, tmp_path):
 
 
 def test_the_server_and_the_sandbox_refuse_in_the_same_words():
-    from lra.pipeline import review
+    from secondeye.pipeline import review
 
     answer = review._Report().record("", [dict(GOOD, severity="critical")])
     assert answer.startswith("NOTHING WAS RECORDED")
@@ -412,7 +412,7 @@ def test_the_closing_skill_validates_its_own_state_from_the_bundle(tmp_path, shi
     bundle = skillsync.build(tmp_path / "b", "lra-closing")
     assert (bundle / "shims" / "pydantic" / "__init__.py").exists()
     for relative in skillsync.CLOSING_BUNDLED:
-        assert (bundle / "lib" / "lra" / relative).exists(), relative
+        assert (bundle / "lib" / "secondeye" / relative).exists(), relative
     update = tmp_path / "update.json"
     update.write_text(json.dumps({"schema": "lra-closing-update/1", "message": ["x"],
                                   "attach": ["missing.pdf"], "state": {}}))

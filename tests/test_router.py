@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import pytest
 
-from lra.pipeline.router import (
+from secondeye.pipeline.router import (
     Intent,
     is_automated,
     looks_like_an_answer,

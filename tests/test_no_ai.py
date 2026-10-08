@@ -14,10 +14,10 @@ from datetime import UTC, datetime
 
 import pytest
 
-from lra import config, crypto, handler, managed, policy, sessions_api, thread
-from lra.config import settings
-from lra.models import InboundEmail
-from lra.pipeline import instruct
+from secondeye import config, crypto, handler, managed, policy, sessions_api, thread
+from secondeye.config import settings
+from secondeye.models import InboundEmail
+from secondeye.pipeline import instruct
 from tests.fake_sessions import configure
 from tests.fake_sessions_api import FakeSessionsApi
 from tests.test_cloudflare import cloud  # noqa: F401  (the fixture)
@@ -179,7 +179,7 @@ def test_the_workflow_sends_the_checks_from_prepare_and_starts_no_session(
         cloud, traps, monkeypatch):  # noqa: F811
     from fastapi.testclient import TestClient
 
-    from lra import main
+    from secondeye import main
     from tests.test_workflow_steps import AUTH, JOB, raw_review
 
     configure(monkeypatch, NO_AI_MATTERS="Acme")

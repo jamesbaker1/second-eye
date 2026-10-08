@@ -49,9 +49,9 @@ def main(argv: list[str]) -> int:
         # The handler logs the model being unavailable as a failure, with a
         # traceback; for the demo that is expected, and only the reply matters.
         logging.disable(logging.CRITICAL)
-        from lra.config import settings
-        from lra.handler import handle
-        from lra.mail.console import ConsoleProvider
+        from secondeye.config import settings
+        from secondeye.handler import handle
+        from secondeye.mail.console import ConsoleProvider
 
         settings.cache_clear()
         console = ConsoleProvider()

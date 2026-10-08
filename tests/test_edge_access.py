@@ -15,11 +15,11 @@ from pathlib import Path
 import httpx
 import pytest
 
-from lra import edge
+from secondeye import edge
 
 ROOT = Path(__file__).resolve().parents[1]
 OPERATOR = "o" * 40
-# The real one: with LRA_TEST_BACKEND=d1, conftest replaces it with the fake
+# The real one: with SECOND_EYE_TEST_BACKEND=d1, conftest replaces it with the fake
 # Worker for every test, and these are about the real request on the wire.
 _REAL_CALL = edge.call
 
@@ -27,7 +27,7 @@ _REAL_CALL = edge.call
 @pytest.fixture
 def wire(monkeypatch):
     """edge.call against a recording transport instead of the network."""
-    from lra.config import settings
+    from secondeye.config import settings
 
     seen: list[httpx.Request] = []
 
@@ -58,7 +58,7 @@ def test_the_container_sends_its_bearer_and_no_operator_headers(wire, monkeypatc
     [request] = wire
     assert str(request.url) == "http://edge.internal/internal/db"
     assert request.headers["authorization"] == "Bearer s3cret"
-    assert "x-lra-signature" not in request.headers
+    assert "x-second-eye-signature" not in request.headers
 
 
 def test_an_operator_signs_every_request_with_a_fresh_nonce(wire, monkeypatch):
@@ -70,16 +70,17 @@ def test_an_operator_signs_every_request_with_a_fresh_nonce(wire, monkeypatch):
     edge.call("/internal/blob/job/" + "a" * 32, method="GET")
     first, second = wire
     assert "authorization" not in first.headers
-    assert first.headers["x-lra-nonce"] != second.headers["x-lra-nonce"]
+    assert first.headers["x-second-eye-nonce"] != second.headers["x-second-eye-nonce"]
     for request in wire:
         expected = edge.operator_signature(
-            OPERATOR, request.method, request.url.raw_path.decode(), request.headers["x-lra-time"],
-            request.headers["x-lra-nonce"], request.content)
-        assert request.headers["x-lra-signature"] == expected
+            OPERATOR, request.method, request.url.raw_path.decode(),
+            request.headers["x-second-eye-time"], request.headers["x-second-eye-nonce"],
+            request.content)
+        assert request.headers["x-second-eye-signature"] == expected
 
 
 def test_nothing_is_configured_without_a_url_or_a_credential(monkeypatch):
-    from lra.config import settings
+    from secondeye.config import settings
 
     monkeypatch.setenv("EDGE_URL", "https://edge.test")
     monkeypatch.setenv("EDGE_SECRET", "")

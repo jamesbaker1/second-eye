@@ -39,7 +39,7 @@ one to one:
 | The review needs | The platform gives |
 | --- | --- |
 | A loop over tools, with the model deciding what to look up | The session: Anthropic runs the loop |
-| A persisted, versioned configuration (model, prompt, tools, skills) | The agent object, `agents/*.yaml`, applied by `lra agents apply` |
+| A persisted, versioned configuration (model, prompt, tools, skills) | The agent object, `agents/*.yaml`, applied by `second-eye agents apply` |
 | The document readable as a file, not only as text | A Files API upload mounted at `/workspace` |
 | Code against the file, and our own tested tools beside the model's | The sandbox, with Anthropic's `docx`/`xlsx`/`pdf`/`pptx` skills and ours |
 | A cap on time and money | A dollar budget on the session; our deadline as `user.interrupt` |
@@ -113,7 +113,7 @@ off unless `WEB_SEARCH_ENABLED`.
 
 The associate still has custom tools, answered by `managed.run_session` over
 the event stream: `read_document`, `note_for_next_time` and `make_changes`.
-Their schemas and handlers are in one file (`src/lra/tools`,
+Their schemas and handlers are in one file (`src/secondeye/tools`,
 `pipeline/instruct.py`), so a parameter cannot be renamed in one and not the
 other.
 

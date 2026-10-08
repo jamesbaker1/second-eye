@@ -13,8 +13,8 @@ from io import BytesIO
 import pytest
 from docx import Document
 
-from lra import archive
-from lra.models import Attachment, InboundEmail
+from secondeye import archive
+from secondeye.models import Attachment, InboundEmail
 
 DOCX = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
 
@@ -23,7 +23,7 @@ DOCX = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
 def db(monkeypatch, tmp_path):
     monkeypatch.setenv("DATABASE_URL", f"sqlite:///{tmp_path}/a.sqlite3")
     monkeypatch.setenv("ARCHIVE_ENABLED", "true")
-    from lra.config import settings
+    from secondeye.config import settings
 
     settings.cache_clear()
     yield
@@ -57,7 +57,7 @@ def mail(mid="m1", subject="Acme NDA", body="Please review the indemnity cap.",
 def test_nothing_is_stored_unless_the_firm_switched_it_on(monkeypatch, tmp_path):
     monkeypatch.setenv("DATABASE_URL", f"sqlite:///{tmp_path}/off.sqlite3")
     monkeypatch.setenv("ARCHIVE_ENABLED", "false")
-    from lra.config import settings
+    from secondeye.config import settings
 
     settings.cache_clear()
     try:
@@ -185,7 +185,7 @@ def test_deleting_one_lawyers_archive_leaves_another_alone(db):
 def test_every_read_is_logged(db):
     archive.store(mail(), owner="jim@firm.com", direction="received")
     archive.search("jim@firm.com", "indemnity")
-    from lra.store import connect
+    from secondeye.store import connect
 
     with connect() as c:
         rows = c.execute(
@@ -209,7 +209,7 @@ READS = [
 @pytest.mark.parametrize("action,call", READS, ids=[n for n, _ in READS])
 def test_each_public_read_leaves_an_access_log_entry(db, action, call):
     archive.store(mail(), owner="jim@firm.com", direction="received")
-    from lra.store import connect
+    from secondeye.store import connect
 
     call("jim@firm.com")
     with connect() as c:
@@ -234,7 +234,7 @@ def test_the_audit_trail_test_covers_every_public_function_in_the_module():
         name for name, obj in vars(archive).items()
         if inspect.isfunction(obj)
         and not name.startswith("_")
-        and obj.__module__ == "lra.archive"
+        and obj.__module__ == "secondeye.archive"
     }
     writes_and_admin = {"store", "purge", "log_access", "init"}
     assert public - writes_and_admin - {name for name, _ in READS} == set()
@@ -251,8 +251,8 @@ def test_an_expired_message_is_swept_when_the_next_one_is_archived(monkeypatch, 
     """
     from datetime import timedelta
 
-    from lra.config import settings
-    from lra.store import connect
+    from secondeye.config import settings
+    from secondeye.store import connect
 
     monkeypatch.setenv("DATABASE_URL", f"sqlite:///{tmp_path}/r.sqlite3")
     monkeypatch.setenv("ARCHIVE_ENABLED", "true")

@@ -9,7 +9,7 @@ comments, closing and blackline agents went unconfigurable in production.
 import re
 from pathlib import Path
 
-from lra.config import Settings
+from secondeye.config import Settings
 
 INDEX_TS = Path(__file__).resolve().parents[1] / "cloudflare" / "src" / "index.ts"
 
@@ -23,7 +23,7 @@ NOT_FORWARDED = {
     "AGENTMAIL_WEBHOOK_SECRET": "another mail provider, not used on Cloudflare",
     "POSTMARK_SERVER_TOKEN": "another mail provider, not used on Cloudflare",
     "POSTMARK_INBOUND_SECRET": "another mail provider, not used on Cloudflare",
-    "MANAGED_REVIEW_DETACHED_AGENT_ID": "read only by `lra agents apply`, run locally",
+    "MANAGED_REVIEW_DETACHED_AGENT_ID": "read only by `second-eye agents apply`, run locally",
 }
 
 

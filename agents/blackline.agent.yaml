@@ -3,7 +3,7 @@
 # whose first page is the change summary (counts, counts by clause, and a
 # line on each material change), and a baseline named in words ("against
 # what we sent on Tuesday", "v4 against v1") chosen from every version the
-# conversation has seen. The host (src/lra/blackline.py) mounts the versions
+# conversation has seen. The host (src/secondeye/blackline.py) mounts the versions
 # and their list, and checks what comes back against its own comparison of
 # the two versions before anything is attached.
 #
@@ -12,8 +12,8 @@
 # waits for ever; and skills attach to the agent definition, so lra-blackline
 # lives here (extra_skills) instead of being offered to every review.
 #
-# Applied by `lra agents apply`, printed as MANAGED_BLACKLINE_AGENT_ID, after
-# `lra skills sync lra-blackline` has printed SANDBOX_BLACKLINE_SKILL_ID.
+# Applied by `second-eye agents apply`, printed as MANAGED_BLACKLINE_AGENT_ID, after
+# `second-eye skills sync lra-blackline` has printed SANDBOX_BLACKLINE_SKILL_ID.
 name: LRA blackline
 description: >-
   Makes a blackline of two versions of a document: picks the baseline the
@@ -21,7 +21,7 @@ description: >-
   tracked changes, renders the PDF with a change summary, and writes one line
   on why each material change matters. Everything it produces is a file.
 model: claude-fable-5-1
-system_file: ../src/lra/prompts/blackline_system.md
+system_file: ../src/secondeye/prompts/blackline_system.md
 extra_skills:
   - sandbox_blackline_skill_id
 tools:

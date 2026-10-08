@@ -21,7 +21,7 @@ def main() -> None:
     parser.add_argument("later")
     args = parser.parse_args()
 
-    from lra.pipeline import blackline_pdf, compare
+    from secondeye.pipeline import blackline_pdf, compare
 
     earlier, later = read(args.earlier), read(args.later)
     try:

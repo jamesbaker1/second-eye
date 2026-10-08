@@ -67,8 +67,8 @@ sender, no-AI clients get no model call, memory is walled by client.
 | Document system through our MCP server and Anthropic vaults | Stubs; no iManage instance | `dms_mcp.py`, `cloudflare/dms-mcp/` |
 | Security pack: sender-only replies, no-AI clients, privilege notice, zero-retention option, kill switch, client memory walls, audit export, trust page | Tests | `policy.py`, `clients.py`, `audit.py`, `docs/trust.md` |
 | Nothing kept after 7 days, nothing learned unless asked (2026-10-04): a daily sweep from the cron deletes conversations, closings, unconfirmed notes and leftover Anthropic sessions 7 days after the last activity; sessions are deleted, not archived, when a review ends; `LEARN_FROM_OUTCOMES` off; security page | Tests; not yet deployed (the first sweep deletes production threads idle over 7 days) | `retention.py`, `site/public/security.html` |
-| `lra purge --client/--matter/--lawyer`: every kind we hold plus Anthropic's sessions, files and memory stores, dry run by default, resumable, audit rows blanked and the purge recorded | Tests (strict SDK fakes, both storage modes) | `purge.py`, `docs/trust.md` |
-| Self-hosted option (2026-10-04; hosting by us stays the default): the firm runs it in its own Cloudflare account and Anthropic organisation, skipped by `deploy.yml`, deployed from a draft release built on a `v*` tag; `lra pause`/`resume` flip a D1 kill switch with no deploy; scoped, expiring support tokens; `lra tenant offboard` with a signed deletion certificate | Tests (fakes; the Worker switch in workerd); never run against a real account, no release tagged yet | `release.py`, `killswitch.py`, `offboard.py`, `cloudflare/src/pause.ts`, `docs/it/self-hosted.md` |
+| `second-eye purge --client/--matter/--lawyer`: every kind we hold plus Anthropic's sessions, files and memory stores, dry run by default, resumable, audit rows blanked and the purge recorded | Tests (strict SDK fakes, both storage modes) | `purge.py`, `docs/trust.md` |
+| Self-hosted option (2026-10-04; hosting by us stays the default): the firm runs it in its own Cloudflare account and Anthropic organisation, skipped by `deploy.yml`, deployed from a draft release built on a `v*` tag; `second-eye pause`/`resume` flip a D1 kill switch with no deploy; scoped, expiring support tokens; `second-eye tenant offboard` with a signed deletion certificate | Tests (fakes; the Worker switch in workerd); never run against a real account, no release tagged yet | `release.py`, `killswitch.py`, `offboard.py`, `cloudflare/src/pause.ts`, `docs/it/self-hosted.md` |
 | The Project Falcon demo, 16 steps | Stub rehearsal passes | `demos/falcon/RUNSHEET.md` |
 
 ## What has not been run, and why it matters
@@ -93,13 +93,13 @@ sender, no-AI clients get no model call, memory is walled by client.
 ## What to do next
 
 **First, the live run.** An Anthropic organisation with credit and 30-day
-data retention (Claude Fable 5.1 requires it), then `lra live-check`: it
+data retention (Claude Fable 5.1 requires it), then `second-eye live-check`: it
 applies the agents and skills, runs the eval and the triage scorecard, and
 rehearses the Project Falcon demo, stopping at the first failure.
 
 **For the design-partner firm:** `docs/onboarding/README.md` is the checklist, with what the firm signs, sends and what we configure, and each launch blocker's state.
-For the firm's IT and security review: `docs/it/README.md`, the IT pack (questionnaire, architecture, mail flow, incident response) and `lra selftest`.
-The firm's own deployment is built (`lra tenant new`, then `lra tenant provision <firm> --apply`, `lra live-check --tenant <firm>`; `docs/deploy-cloudflare.md`, "One deployment per firm"): run it once the firm's address and domains are known.
+For the firm's IT and security review: `docs/it/README.md`, the IT pack (questionnaire, architecture, mail flow, incident response) and `second-eye selftest`.
+The firm's own deployment is built (`second-eye tenant new`, then `second-eye tenant provision <firm> --apply`, `second-eye live-check --tenant <firm>`; `docs/deploy-cloudflare.md`, "One deployment per firm"): run it once the firm's address and domains are known.
 
 **Then, in code:** whatever the live runs find. After that, from
 `docs/migration.md`: switch `TRIAGE` to shadow and then model once the
@@ -173,7 +173,7 @@ What was built and found, newest first.
 
 - *The cut-over to Anthropic Managed Agents* (DECISIONS 29, 2026-09-27). The
   review and the instruction agent are persisted agent definitions
-  (`agents/*.yaml`, applied by `lra agents apply`); every review is a session
+  (`agents/*.yaml`, applied by `second-eye agents apply`); every review is a session
   with the document mounted read-only in Anthropic's sandbox, opened with an
   outcome whose rubric (`agents/review_rubric.md`) a separate grader scores,
   capped in dollars by the platform and in time by us. `report_findings` and
@@ -186,7 +186,7 @@ What was built and found, newest first.
   Memory is read from Anthropic memory stores, one per scope, projected from
   our table. Deleted: the tool-runner loop, the sandbox and capabilities modules,
   the container-upload plumbing, the advisor and iteration-cap settings.
-  `lra review --live` is the first-run command. Nothing here has run live.
+  `second-eye review --live` is the first-run command. Nothing here has run live.
 - *Scanned PDFs, read by the model* (2026-09-27). A PDF with no text layer is
   transcribed by the model in one call, page by page, and the transcription
   builds the Word copy for the redline and the comparison. No OCR engine: the
@@ -209,7 +209,7 @@ What was built and found, newest first.
 - *The playbook skill* (`skills/lra-playbook`, `docs/playbook.md`): Lito's
   headline feature. Twelve starter position files, each saying it is a
   starter; the review reports off-playbook clauses as questions and proposes
-  the fallback wording only where it fits verbatim. `lra skills sync
+  the fallback wording only where it fits verbatim. `second-eye skills sync
   lra-playbook` uploads it; `SANDBOX_PLAYBOOK_SKILL_ID` attaches it.
 - *Two decisions, recorded in DECISIONS 25 and 29:* the sandbox is on in
   production, and the review loop is moving to Anthropic Managed Agents with

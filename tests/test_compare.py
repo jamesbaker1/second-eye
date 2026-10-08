@@ -16,8 +16,8 @@ from io import BytesIO
 from docx import Document
 from docx.shared import Pt
 
-from lra.pipeline import compare, redline
-from lra.pipeline.validate import validate
+from secondeye.pipeline import compare, redline
+from secondeye.pipeline.validate import validate
 
 EARLIER = [
     "1. Definitions",
@@ -176,7 +176,7 @@ def test_output_passes_the_same_gate_as_every_redline():
 
 def test_another_authors_revisions_are_left_alone():
     d = Document(BytesIO(build(EARLIER)))
-    from lra.pipeline.ooxml import Revision, RevisionWriter
+    from secondeye.pipeline.ooxml import Revision, RevisionWriter
 
     RevisionWriter(d, "Opposing Counsel").apply(
         Revision("ten days", "fourteen days", "Opposing Counsel"))
@@ -221,7 +221,7 @@ def test_a_change_inside_a_hyperlink_is_reported_not_forced():
 
 
 def test_text_comparison_lists_changes_without_markup():
-    from lra.pipeline.extract import Block, ExtractedDoc
+    from secondeye.pipeline.extract import Block, ExtractedDoc
 
     def doc(lines):
         return ExtractedDoc([Block(i, t, "Normal", "paragraph") for i, t in enumerate(lines)],
@@ -244,7 +244,7 @@ def test_a_failed_assessment_keeps_the_change_list(monkeypatch):
         raise RuntimeError("no network")
 
     monkeypatch.setattr(compare, "_assess", boom)
-    from lra.pipeline.extract import ExtractedDoc
+    from secondeye.pipeline.extract import ExtractedDoc
 
     out = compare.explain(result, ExtractedDoc([], None, "later.docx"))
     assert len(out.changes) == 1 and not out.changes[0].risk

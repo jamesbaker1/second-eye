@@ -32,7 +32,7 @@ team; we will say so if a fix will take longer, and keep you informed.
 - **Sender authentication**: getting mail admitted without passing DMARC (or
   DKIM for a domain in `DKIM_ONLY_DOMAINS`), forging an allowlisted sender,
   or making a reply go to anyone but the authenticated sender.
-- **The container** (`src/lra`, `Dockerfile`): parsing hostile attachments
+- **The container** (`src/secondeye`, `Dockerfile`): parsing hostile attachments
   (Word, PDF, zip bombs, legacy formats through LibreOffice), prompt
   injection from a document or a covering email that changes who receives a
   reply, what is stored or what a session can reach, and file verification
@@ -42,7 +42,7 @@ team; we will say so if a fix will take longer, and keep you informed.
   and anything that reaches Anthropic or a third party that `docs/trust.md`
   says does not.
 - **Retention and purge**: anything kept longer than `docs/trust.md` says,
-  or left behind by `lra purge` or `lra tenant offboard`, here or at
+  or left behind by `second-eye purge` or `second-eye tenant offboard`, here or at
   Anthropic.
 - **The document-system MCP server** (`cloudflare/dms-mcp/`) and the
   per-lawyer OAuth flow (`oauth.py`, `consent.py`): reaching a matter the
@@ -66,5 +66,5 @@ Only the latest release is supported; a firm running its own deployment
   for how long, and what we do not have yet.
 - `docs/it/README.md`: the IT pack for a firm's security review, including
   the architecture, the sub-processors, a pre-filled questionnaire, the
-  incident runbook, and `lra selftest`, which checks a deployment's security
+  incident runbook, and `second-eye selftest`, which checks a deployment's security
   settings and prints a dated report.

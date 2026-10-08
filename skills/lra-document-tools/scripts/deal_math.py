@@ -14,8 +14,8 @@ def main() -> None:
     parser.add_argument("input")
     args = parser.parse_args()
 
-    from lra.models import Attachment
-    from lra.pipeline import dealmath, extract
+    from secondeye.models import Attachment
+    from secondeye.pipeline import dealmath, extract
 
     content = read(args.input)
     try:

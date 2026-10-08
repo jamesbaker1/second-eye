@@ -54,7 +54,7 @@ leftovers, all in exact code rather than model calls. This is Litera Check
 parity on the mechanics, and it runs before the agent so the agent is told what
 was already caught. See `docs/litera-parity.md`.
 
-The pipeline runs end to end locally via `lra replay samples/example.eml`.
+The pipeline runs end to end locally via `second-eye replay samples/example.eml`.
 
 ### Phase 1 - Prove the redline (done)
 The writer is built and tested. `pipeline/ooxml.py` emits native revision markup

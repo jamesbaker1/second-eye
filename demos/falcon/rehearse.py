@@ -7,7 +7,7 @@
 
 Each step of emails.yaml is built as the .eml a mailbox would receive (the
 Bcc line gone, as delivery removes it), threaded under the agent's reply it
-answers, parsed by the console provider exactly as `lra replay` parses a
+answers, parsed by the console provider exactly as `second-eye replay` parses a
 file, and handed to `handler.handle`. Every reply is written to
 out/<step>/: the text, the HTML, and each attachment. With --stub every reply
 is also held to the step's headline lines, and the run fails if one is
@@ -49,7 +49,7 @@ class Capture:
     """The console provider, keeping every reply instead of printing it."""
 
     def __init__(self) -> None:
-        from lra.mail.console import ConsoleProvider
+        from secondeye.mail.console import ConsoleProvider
 
         self._console = ConsoleProvider()
         self.name = "console"
@@ -73,7 +73,7 @@ class Capture:
 def configure(out: Path, live: bool) -> dict[str, str | None]:
     """Settings for the run, as environment variables (they win over .env).
     Returns what they replaced, for `restore`."""
-    from lra.config import settings
+    from secondeye.config import settings
 
     env = dict(SETTINGS)
     env["DATABASE_URL"] = f"sqlite:///{out / 'rehearsal.sqlite3'}"
@@ -90,7 +90,7 @@ def configure(out: Path, live: bool) -> dict[str, str | None]:
 
 
 def restore(before: dict[str, str | None]) -> None:
-    from lra.config import settings
+    from secondeye.config import settings
 
     for key, value in before.items():
         if value is None:
@@ -165,12 +165,12 @@ def run(out: Path = DEFAULT_OUT, live: bool = False, until: str | None = None,
 
 
 def _run(out: Path, live: bool, until: str | None, only: list[str] | None, echo) -> dict:
-    from lra import clients, handler, managed
+    from secondeye import clients, handler, managed
 
     files = build.build_files()
     if live and not managed.configured():
         raise SystemExit("--live needs the agents applied: ANTHROPIC_API_KEY and the "
-                         "MANAGED_* ids in .env (lra skills sync; lra agents apply).")
+                         "MANAGED_* ids in .env (second-eye skills sync; second-eye agents apply).")
     clients.register(cast.MATTER, cast.CLIENT, aliases=["Northwind"],
                      domains=[cast.CLIENT_DOMAIN])
     clients.link(cast.MATTER, cast.MATTER)

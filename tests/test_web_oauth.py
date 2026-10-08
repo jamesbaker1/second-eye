@@ -14,10 +14,10 @@ import httpx
 import pytest
 from fastapi.testclient import TestClient
 
-from lra import main, oauth
-from lra.config import settings
-from lra.models import InboundEmail
-from lra.store import connect
+from secondeye import main, oauth
+from secondeye.config import settings
+from secondeye.models import InboundEmail
+from secondeye.store import connect
 
 AUTHORIZE = "https://dms.example.com/auth/oauth2/authorize"
 TOKEN = "https://dms.example.com/auth/oauth2/token"
@@ -30,7 +30,7 @@ def env(monkeypatch, tmp_path):
     monkeypatch.setenv("DMS_PROVIDER", "imanage")
     monkeypatch.setenv("DMS_AUTHORIZE_URL", AUTHORIZE)
     monkeypatch.setenv("DMS_TOKEN_URL", TOKEN)
-    monkeypatch.setenv("DMS_CLIENT_ID", "lra-client")
+    monkeypatch.setenv("DMS_CLIENT_ID", "second-eye-client")
     monkeypatch.setenv("DMS_CLIENT_SECRET", "shh")
     monkeypatch.setenv("PUBLIC_BASE_URL", "https://review.firm.com")
     # The token table, which only the capability binding still uses.
@@ -120,7 +120,7 @@ def test_the_consent_link_asks_for_the_read_only_scopes(env):
     query = parse_qs(urlparse(issue_link(env)).query)
 
     assert query["response_type"] == ["code"]
-    assert query["client_id"] == ["lra-client"]
+    assert query["client_id"] == ["second-eye-client"]
     assert query["scope"][0].split() == oauth.DEFAULT_SCOPES["imanage"]
     assert query["state"][0]
     # Spaces as %20, not "+": a few authorization servers take the plus sign

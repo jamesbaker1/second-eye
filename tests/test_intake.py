@@ -4,8 +4,8 @@ from io import BytesIO
 import pytest
 from docx import Document
 
-from lra.models import Attachment, InboundEmail, Mode
-from lra.pipeline import intake
+from secondeye.models import Attachment, InboundEmail, Mode
+from secondeye.pipeline import intake
 
 DOCX = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
 
@@ -140,7 +140,7 @@ def test_do_not_edit_beats_fix_the_typos():
 def test_no_allowlist_means_the_firm_not_everyone(monkeypatch):
     """The agent's address is visible whenever it is CC'd. An empty allowlist
     used to review a counterparty's reply-all and mail them the firm's view."""
-    from lra.config import settings
+    from secondeye.config import settings
 
     monkeypatch.setenv("ALLOWED_SENDERS", "")
     monkeypatch.setenv("FIRM_DOMAINS", "firm.com")
@@ -177,7 +177,7 @@ def test_forward_as_attachment_finds_the_document_inside():
     """Outlook wraps the original as message/rfc822, which decoded to nothing."""
     from email.message import EmailMessage
 
-    from lra.mail.console import ConsoleProvider
+    from secondeye.mail.console import ConsoleProvider
 
     inner = EmailMessage()
     inner["From"], inner["To"], inner["Subject"] = "a@x.com", "b@y.com", "SPA"

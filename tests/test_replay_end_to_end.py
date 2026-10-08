@@ -4,7 +4,7 @@ The other end-to-end tests build an InboundEmail by hand, which skips the part
 real mail breaks: MIME structure, HTML-only bodies, display names, quoted
 threads, a reply that has to find its conversation by Message-ID. These build
 the message the way a mail client does, write it out as bytes, and put it
-through the same `parse_eml` and `handle` that `lra replay` uses.
+through the same `parse_eml` and `handle` that `second-eye replay` uses.
 
 There is no API key in CI, so the model call fails for real here rather than
 being stubbed, and what each test sees is what a lawyer would get on a day the
@@ -20,10 +20,10 @@ from io import BytesIO
 import pytest
 from docx import Document
 
-from lra import handler
-from lra.mail.console import ConsoleProvider
-from lra.pipeline import checks, compare, redline
-from lra.pipeline.ooxml import Revision, RevisionWriter
+from secondeye import handler
+from secondeye.mail.console import ConsoleProvider
+from secondeye.pipeline import checks, compare, redline
+from secondeye.pipeline.ooxml import Revision, RevisionWriter
 
 DOCX = ("application", "vnd.openxmlformats-officedocument.wordprocessingml.document")
 
@@ -61,7 +61,7 @@ def replay(monkeypatch, tmp_path):
     monkeypatch.setenv("FIRM_DOMAINS", "firm.com")
     monkeypatch.setenv("ANTHROPIC_API_KEY", "")
     monkeypatch.setenv("ARCHIVE_ENABLED", "true")
-    from lra.config import settings
+    from secondeye.config import settings
 
     settings.cache_clear()
     provider = Replay()
@@ -192,7 +192,7 @@ def test_a_review_then_a_reply_asking_for_a_clean_copy(replay):
 
 
 def test_stop_flagging_is_remembered_even_when_the_model_is_down(replay):
-    from lra import memory
+    from secondeye import memory
 
     replay.run(eml("Check this please.", {"Supply.docx": docx(V1)},
                    message_id="<a@firm.com>"))

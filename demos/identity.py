@@ -5,7 +5,7 @@ A demo that ends in a real email (Project Falcon's .eml files, sent from the
 one allowlisted mailbox to the live agent) needs addresses that belong to
 whoever runs it. They come from the environment, or else from `demo.env` in
 the primary deployment's private folder (deployments/<name>/demo.env, see
-`lra tenant`), one KEY=value a line:
+`second-eye tenant`), one KEY=value a line:
 
   DEMO_LAWYER       "Name <address>": the allowlisted sender the demo writes as
   DEMO_AGENT        the agent's address (the deployment's MAIL_AGENT_ADDRESS)
@@ -60,7 +60,7 @@ def _file() -> Path | None:
     if explicit:
         return Path(explicit).expanduser()
     try:
-        from lra import tenant
+        from secondeye import tenant
 
         primary = tenant.primary_tenant()
     except Exception:  # noqa: BLE001 - no tenant to read is no file, not an error

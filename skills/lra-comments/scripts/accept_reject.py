@@ -23,7 +23,7 @@ def main() -> None:
 
     from docx import Document
 
-    from lra.pipeline import ooxml
+    from secondeye.pipeline import ooxml
 
     content = read(args.input)
     try:

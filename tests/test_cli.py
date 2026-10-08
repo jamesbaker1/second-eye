@@ -2,25 +2,25 @@
 
 import sys
 
-from lra import cli
+from secondeye import cli
 
 
 def test_replay_with_no_file_prints_usage_instead_of_a_traceback(monkeypatch, capsys):
     """A new contributor mistyping the command from the README got an
     IndexError, from a function that already knew the usage line."""
-    monkeypatch.setattr(sys, "argv", ["lra", "replay"])
+    monkeypatch.setattr(sys, "argv", ["second-eye", "replay"])
     assert cli.main() == 1
-    assert "usage: lra replay" in capsys.readouterr().out
+    assert "usage: second-eye replay" in capsys.readouterr().out
 
 
 def test_no_command_prints_usage(monkeypatch, capsys):
-    monkeypatch.setattr(sys, "argv", ["lra"])
+    monkeypatch.setattr(sys, "argv", ["second-eye"])
     assert cli.main() == 1
-    assert "usage: lra replay" in capsys.readouterr().out
+    assert "usage: second-eye replay" in capsys.readouterr().out
 
 
 def test_an_unknown_command_says_so(monkeypatch, capsys):
-    monkeypatch.setattr(sys, "argv", ["lra", "reviewify"])
+    monkeypatch.setattr(sys, "argv", ["second-eye", "reviewify"])
     assert cli.main() == 1
     assert "unknown command: reviewify" in capsys.readouterr().out
 
@@ -30,14 +30,14 @@ def test_a_live_review_without_the_agent_ids_fails_in_one_sentence(monkeypatch, 
     be a sentence naming it, not a traceback from inside the SDK."""
     monkeypatch.setenv("ANTHROPIC_API_KEY", "sk-test")
     monkeypatch.setenv("MANAGED_REVIEW_AGENT_ID", "")
-    from lra.config import settings
+    from secondeye.config import settings
 
     settings.cache_clear()
     try:
-        monkeypatch.setattr(sys, "argv", ["lra", "review", "--live", "samples/simple.docx"])
+        monkeypatch.setattr(sys, "argv", ["second-eye", "review", "--live", "samples/simple.docx"])
         assert cli.main() == 1
         out = capsys.readouterr().out
-        assert "MANAGED_REVIEW_AGENT_ID" in out and "lra agents apply" in out
+        assert "MANAGED_REVIEW_AGENT_ID" in out and "second-eye agents apply" in out
         assert out.count("\n") <= 2
     finally:
         settings.cache_clear()
@@ -49,7 +49,7 @@ def test_a_live_review_polls_to_the_end_with_no_webhook(monkeypatch, tmp_path, c
     import json
     import shutil
 
-    from lra import managed
+    from secondeye import managed
     from tests import fake_sessions as fs
 
     fs.configure(monkeypatch, DATABASE_URL=f"sqlite:///{tmp_path}/live.sqlite3")
@@ -63,10 +63,10 @@ def test_a_live_review_polls_to_the_end_with_no_webhook(monkeypatch, tmp_path, c
     target = tmp_path / "NDA.docx"
     shutil.copy("samples/simple.docx", target)
     try:
-        monkeypatch.setattr(sys, "argv", ["lra", "review", "--live", str(target)])
+        monkeypatch.setattr(sys, "argv", ["second-eye", "review", "--live", str(target)])
         assert cli.main() == 0
     finally:
-        from lra.config import settings
+        from secondeye.config import settings
 
         settings.cache_clear()
     out = capsys.readouterr().out
@@ -79,7 +79,7 @@ def test_a_live_review_polls_to_the_end_with_no_webhook(monkeypatch, tmp_path, c
 def test_agents_apply_creates_the_agents_and_prints_the_ids(monkeypatch, capsys):
     from types import SimpleNamespace as NS
 
-    import lra.config
+    import secondeye.config
     from tests import fake_sessions as fs
 
     fs.configure(monkeypatch, MANAGED_REVIEW_AGENT_ID="", MANAGED_ASSOCIATE_AGENT_ID="",
@@ -100,12 +100,12 @@ def test_agents_apply_creates_the_agents_and_prints_the_ids(monkeypatch, capsys)
         environments=NS(create=lambda **kw: NS(id="env_1", name=kw["name"])),
         memory_stores=NS(create=lambda **kw: NS(id="memstore_1")),
     )))
-    monkeypatch.setattr(lra.config, "anthropic_client", lambda: client)
+    monkeypatch.setattr(secondeye.config, "anthropic_client", lambda: client)
     try:
-        monkeypatch.setattr(sys, "argv", ["lra", "agents", "apply"])
+        monkeypatch.setattr(sys, "argv", ["second-eye", "agents", "apply"])
         assert cli.main() == 0
     finally:
-        from lra.config import settings
+        from secondeye.config import settings
 
         settings.cache_clear()
     out = capsys.readouterr().out
@@ -131,7 +131,7 @@ def test_replay_never_reaches_a_live_mail_provider(monkeypatch, tmp_path, capsys
     mailed a real redline to whoever was in the .eml."""
     monkeypatch.setenv("MAIL_PROVIDER", "postmark")
     monkeypatch.setenv("DATABASE_URL", f"sqlite:///{tmp_path}/cli.sqlite3")
-    from lra.config import settings
+    from secondeye.config import settings
 
     settings.cache_clear()
     try:
@@ -142,7 +142,7 @@ def test_replay_never_reaches_a_live_mail_provider(monkeypatch, tmp_path, capsys
             b"From: jim@firm.com\r\nTo: review@firm.com\r\nSubject: hello\r\n"
             b"Message-ID: <1@firm.com>\r\n\r\nhave a look\r\n"
         )
-        monkeypatch.setattr(sys, "argv", ["lra", "replay", str(eml)])
+        monkeypatch.setattr(sys, "argv", ["second-eye", "replay", str(eml)])
         assert cli.main() == 0
         assert used and isinstance(used[0], cli.ConsoleProvider)
     finally:
@@ -152,7 +152,7 @@ def test_replay_never_reaches_a_live_mail_provider(monkeypatch, tmp_path, capsys
 def _apply(monkeypatch, capsys, **env):
     from types import SimpleNamespace as NS
 
-    import lra.config
+    import secondeye.config
     from tests import fake_sessions as fs
 
     fs.configure(monkeypatch, MANAGED_FIRM_MEMORY_STORE_ID="memstore_1", **env)
@@ -167,16 +167,16 @@ def _apply(monkeypatch, capsys, **env):
             networking={"type": "limited", "allow_package_managers": True,
                         "allow_mcp_servers": False, "allowed_hosts": []}))),
     )))
-    monkeypatch.setattr(lra.config, "anthropic_client", lambda: client)
+    monkeypatch.setattr(secondeye.config, "anthropic_client", lambda: client)
     for name in ("MANAGED_PLAYBOOK_AGENT_ID", "MANAGED_CLOSING_AGENT_ID",
                  "MANAGED_COMMENTS_AGENT_ID", "MANAGED_BLACKLINE_AGENT_ID"):
         monkeypatch.setenv(name, name.lower())
-    lra.config.settings.cache_clear()
+    secondeye.config.settings.cache_clear()
     try:
-        monkeypatch.setattr(sys, "argv", ["lra", "agents", "apply"])
+        monkeypatch.setattr(sys, "argv", ["second-eye", "agents", "apply"])
         assert cli.main() == 0
     finally:
-        lra.config.settings.cache_clear()
+        secondeye.config.settings.cache_clear()
     return dict(updated), capsys.readouterr().out
 
 

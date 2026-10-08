@@ -56,7 +56,7 @@ An example, with only the mechanical pass running:
 > checks. Treat it as incomplete: nothing here speaks to the substance of the
 > document.
 
-That is a real reply from `lra replay samples/example.eml` with no model
+That is a real reply from `second-eye replay samples/example.eml` with no model
 configured, lightly shortened. With the model, the review adds the
 substantive points and returns `Acme NDA (redline).docx` with the changes it
 can articulate tracked and a reason for each in the margin. The lawyer
@@ -153,8 +153,8 @@ In short (`docs/trust.md` has the detail and the sources):
   when the review ends. Anthropic's terms say it does not train on this
   content; it may keep its own copies for up to 30 days, and Managed Agents
   is not eligible for zero data retention.
-- `lra purge --client/--matter/--lawyer` deletes everything held for that
-  scope, ours and Anthropic's. `lra audit` exports who used it and how.
+- `second-eye purge --client/--matter/--lawyer` deletes everything held for that
+  scope, ours and Anthropic's. `second-eye audit` exports who used it and how.
 - No SOC 2, ISO 27001 or independent penetration test of Second Eye
   itself.
 
@@ -167,7 +167,7 @@ You need Python 3.11+ and [uv](https://docs.astral.sh/uv/).
 ```bash
 uv venv && uv pip install -e ".[dev]"
 cp .env.example .env
-.venv/bin/lra replay samples/example.eml    # prints the reply it would send
+.venv/bin/second-eye replay samples/example.eml    # prints the reply it would send
 ```
 
 Nothing is sent: the console mail provider prints the reply. Without an
@@ -179,13 +179,13 @@ Several things it does by email also run from the command line with no model
 and no network:
 
 ```bash
-.venv/bin/lra compare earlier.docx later.docx   # writes "later (comparison).docx"
-.venv/bin/lra clean draft.docx                  # writes "draft (clean).docx"
-.venv/bin/python -m evals.word_pack             # files to open in real Word, with a checklist
+.venv/bin/second-eye compare earlier.docx later.docx  # writes "later (comparison).docx"
+.venv/bin/second-eye clean draft.docx                 # writes "draft (clean).docx"
+.venv/bin/python -m evals.word_pack                   # files to open in real Word, with a checklist
 ```
 
-With an Anthropic organisation set up, `lra agents apply` creates the agent
-definitions and `lra live-check --dry-run` shows the steps of a first live
+With an Anthropic organisation set up, `second-eye agents apply` creates the agent
+definitions and `second-eye live-check --dry-run` shows the steps of a first live
 run and its budget before anything is spent.
 
 ## Deploy it
@@ -202,15 +202,15 @@ model.
 
 The same `Dockerfile` builds an ordinary container image, and the Python
 service also runs behind a mail provider's inbound webhook
-(`.venv/bin/uvicorn lra.main:app`), though the Cloudflare path is the one in
+(`.venv/bin/uvicorn secondeye.main:app`), though the Cloudflare path is the one in
 production.
 
 ## Where things are
 
 | Path | What it is |
 | --- | --- |
-| `src/lra/` | The Python application: intake, checks, the review, redlines, threads, memory, retention, the CLI |
-| `src/lra/pipeline/` | The document pipeline: extraction, deterministic checks, comparison, clean copies, the OOXML revision writer |
+| `src/secondeye/` | The Python application: intake, checks, the review, redlines, threads, memory, retention, the CLI |
+| `src/secondeye/pipeline/` | The document pipeline: extraction, deterministic checks, comparison, clean copies, the OOXML revision writer |
 | `cloudflare/` | The Worker, the review Workflow and the outbox; `cloudflare/dms-mcp/` is the document-system MCP server |
 | `agents/` | The Managed Agents definitions and the rubric each review is graded against |
 | `skills/` | Our tools, packaged as Agent Skills to run in Anthropic's sandbox |

@@ -32,7 +32,7 @@ uv pip install -e ".[dev]"
 cp .env.example .env           # nothing in it is needed for the tests
 ```
 
-Call the tools in the venv directly (`.venv/bin/python`, `.venv/bin/lra`),
+Call the tools in the venv directly (`.venv/bin/python`, `.venv/bin/second-eye`),
 not through `uv run`. In a directory with a `[project]` table, `uv run`
 re-syncs the environment first, without the `dev` extra, and uninstalls
 pytest and ruff.
@@ -40,9 +40,9 @@ pytest and ruff.
 To see it work with no model and no network:
 
 ```bash
-.venv/bin/lra replay samples/example.eml     # prints the reply it would send
-.venv/bin/lra compare earlier.docx later.docx
-.venv/bin/lra clean draft.docx
+.venv/bin/second-eye replay samples/example.eml     # prints the reply it would send
+.venv/bin/second-eye compare earlier.docx later.docx
+.venv/bin/second-eye clean draft.docx
 ```
 
 ## Running the tests
@@ -53,11 +53,11 @@ Cloudflare D1 adapter. CI runs both, and a pull request should pass both.
 ```bash
 .venv/bin/python -m ruff check src tests
 .venv/bin/python -m pytest -q
-LRA_TEST_BACKEND=d1 .venv/bin/python -m pytest -q
+SECOND_EYE_TEST_BACKEND=d1 .venv/bin/python -m pytest -q
 .venv/bin/python -m evals.run_checks          # catch rate and false positives
 ```
 
-With `LRA_TEST_BACKEND=d1`, every test's storage goes through the D1 adapter
+With `SECOND_EYE_TEST_BACKEND=d1`, every test's storage goes through the D1 adapter
 and its JSON wire protocol against a fake Worker (`tests/conftest.py`), so a
 storage change that only works on SQLite fails. `evals.run_checks` exits
 non-zero if the deterministic checks miss a planted defect or raise a false

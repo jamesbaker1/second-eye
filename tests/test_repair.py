@@ -13,9 +13,9 @@ import pytest
 from docx import Document
 from docx.shared import Pt
 
-from lra import managed
-from lra.pipeline import repair
-from lra.pipeline.ooxml import Revision, RevisionWriter
+from secondeye import managed
+from secondeye.pipeline import repair
+from secondeye.pipeline.ooxml import Revision, RevisionWriter
 
 PARAGRAPHS = [
     "1. Term. This Agreement continues for twelve months.",

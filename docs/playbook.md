@@ -36,17 +36,17 @@ click is worse than none.
 ## Uploading it
 
 ```bash
-.venv/bin/lra skills sync lra-playbook      # prints SANDBOX_PLAYBOOK_SKILL_ID
+.venv/bin/second-eye skills sync lra-playbook      # prints SANDBOX_PLAYBOOK_SKILL_ID
 ```
 
 Set the id in `.env` (or the deployment's `tenant.jsonc` vars) and run
-`lra agents apply`, which attaches the skill to both agents alongside
+`second-eye agents apply`, which attaches the skill to both agents alongside
 `lra-document-tools`. Run the sync again after editing a position and the next
 review uses the new version; the agents ask for `latest`.
 
 ## On the other side's draft
 
-When the document is the counterparty's paper (`src/lra/pipeline/their_paper.py`),
+When the document is the counterparty's paper (`src/secondeye/pipeline/their_paper.py`),
 the review answers it rather than polishing it. It is their paper when the
 lawyer says so ("their draft", "opposing counsel's"; "our draft" says the
 opposite and wins), when the lawyer forwarded it from someone outside the
@@ -68,7 +68,7 @@ A playbook admin (`PLAYBOOK_ADMINS`; empty means the `ALLOWLIST_CONTACT`
 address, or failing that anyone on `FIRM_DOMAINS`) emails "here's our
 playbook" with the firm's precedents, positions memo and checklist attached
 (Word, PDF, Excel), or writes "update the playbook: we now accept a 2x cap".
-`src/lra/playbook.py` hands the material to the playbook agent
+`src/secondeye/playbook.py` hands the material to the playbook agent
 (`agents/playbook.agent.yaml`, its own agent: its job is to extract, never to
 draft, and it carries none of the associate's tools), in a session opened with
 an outcome whose rubric (`agents/playbook_rubric.md`) says every position cites

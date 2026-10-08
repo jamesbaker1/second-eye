@@ -29,7 +29,7 @@ jobs:
     # Only in the private repository, and only after CI has passed on main or
     # when asked for by hand.
     if: >-
-      github.repository == 'jamesbaker1/legal-review-agent' &&
+      github.repository == 'jamesbaker1/second-eye-private' &&
       (github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success')
     runs-on: ubuntu-latest
     env:
@@ -73,7 +73,7 @@ jobs:
           npx wrangler queues consumer remove legal-review-inbound-dead legal-review-agent || true
 
       # The primary deployment's config, rendered from deployments/jim/
-      # (`lra tenant render jim`); cloudflare/wrangler.jsonc holds only
+      # (`second-eye tenant render jim`); cloudflare/wrangler.jsonc holds only
       # placeholders for its names, ids and vars.
       - name: Deploy the Worker and the container
         if: steps.configured.outputs.ready == 'true'
@@ -95,15 +95,15 @@ jobs:
       # this workflow names no account.
       - name: Check the edge answers
         if: steps.configured.outputs.ready == 'true'
-        run: curl --fail --silent --show-error "$(PYTHONPATH=src python3 -m lra.tenant url jim)/health"
+        run: curl --fail --silent --show-error "$(PYTHONPATH=src python3 -m secondeye.tenant url jim)/health"
 
-  # Every firm's own deployment (deployments/<firm>/, `lra tenant`), after
+  # Every firm's own deployment (deployments/<firm>/, `second-eye tenant`), after
   # Jim's: his is the canary, so a commit that does not deploy there goes to
   # no firm. Jim's is the job above, from deployments/jim/ (primary), and is
   # not in this list.
   tenants:
     needs: deploy
-    if: github.repository == 'jamesbaker1/legal-review-agent'
+    if: github.repository == 'jamesbaker1/second-eye-private'
     runs-on: ubuntu-latest
     outputs:
       matrix: ${{ steps.list.outputs.matrix }}
@@ -115,22 +115,22 @@ jobs:
       # firm yet, and then the job below does not run.
       - name: List the firms' deployments
         id: list
-        run: echo "matrix=$(PYTHONPATH=src python3 -m lra.tenant matrix)" >> "$GITHUB_OUTPUT"
+        run: echo "matrix=$(PYTHONPATH=src python3 -m secondeye.tenant matrix)" >> "$GITHUB_OUTPUT"
       # A self-hosted firm is never in the matrix: it runs in the firm's own
       # Cloudflare account, with a token we do not hold, and its IT deploys a
-      # release (release.yml, `lra tenant deploy`) when it chooses. Said here
+      # release (release.yml, `second-eye tenant deploy`) when it chooses. Said here
       # so a firm missing from the list below is not a mystery.
       - name: Say which firms deploy themselves
-        run: PYTHONPATH=src python3 -m lra.tenant self-hosted
+        run: PYTHONPATH=src python3 -m secondeye.tenant self-hosted
 
   # Each firm with its own Cloudflare credentials, named after its tenant:
   # deployments/acme-llp/ deploys with CLOUDFLARE_API_TOKEN_ACME_LLP and
   # CLOUDFLARE_ACCOUNT_ID_ACME_LLP. The Worker's own secrets (DATA_KEY,
   # EDGE_SECRET, ANTHROPIC_API_KEY) are put on the Worker once by
-  # `lra tenant provision` and are never in GitHub.
+  # `second-eye tenant provision` and are never in GitHub.
   tenant:
     needs: tenants
-    if: github.repository == 'jamesbaker1/legal-review-agent' && needs.tenants.outputs.matrix != ''
+    if: github.repository == 'jamesbaker1/second-eye-private' && needs.tenants.outputs.matrix != ''
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -149,7 +149,7 @@ jobs:
             echo "CLOUDFLARE_API_TOKEN_${{ matrix.secret }} / CLOUDFLARE_ACCOUNT_ID_${{ matrix.secret }} are not set; skipping ${{ matrix.tenant }}."
             echo "ready=false" >> "$GITHUB_OUTPUT"
           elif [ "${{ matrix.provisioned }}" != "true" ]; then
-            echo "${{ matrix.tenant }} has no D1 database id yet (lra tenant provision ${{ matrix.tenant }} --apply); skipping."
+            echo "${{ matrix.tenant }} has no D1 database id yet (second-eye tenant provision ${{ matrix.tenant }} --apply); skipping."
             echo "ready=false" >> "$GITHUB_OUTPUT"
           else
             echo "ready=true" >> "$GITHUB_OUTPUT"

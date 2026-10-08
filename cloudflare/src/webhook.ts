@@ -88,7 +88,7 @@ export const RECONNECT =
 
 /**
  * `vault_credential.refresh_failed`: Anthropic could not refresh a lawyer's
- * document-system token (src/lra/dms_mcp.py). The payload
+ * document-system token (src/secondeye/dms_mcp.py). The payload
  * is thin, a credential id and its vault id; the container recorded whose
  * they are in dms_vaults. The lawyer gets one email per event, and only if
  * they are still allowlisted and the service is not paused. Reviews go on

@@ -69,7 +69,7 @@ describe("the MCP transport on Workers", () => {
     );
     expect(response.status).toBe(200);
     const body = (await response.json()) as { result: { serverInfo: { name: string }; capabilities: { tools?: unknown } } };
-    expect(body.result.serverInfo.name).toBe("lra-document-system");
+    expect(body.result.serverInfo.name).toBe("second-eye-document-system");
     expect(body.result.capabilities.tools).toBeDefined();
   });
 

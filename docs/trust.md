@@ -110,7 +110,7 @@ keeps for ever.
 | Delivery bookkeeping (ids only: no names, addresses or contents) | 31 days | none |
 | The audit trail (names, times, ids; no contents) and purge records | Until the firm deletes them; a purge blanks its scope's names and ids | none |
 
-**Deleting a client, a matter or a lawyer.** `lra purge --client 10234`,
+**Deleting a client, a matter or a lawyer.** `second-eye purge --client 10234`,
 `--matter 10234-0007` or `--lawyer jane@firm.com` deletes everything held for
 that scope, ours and Anthropic's, at once rather than after 7 days:
 
@@ -138,7 +138,7 @@ ran, on which model, where the reply went and how it ended stay. What names
 the client's work goes from each of the scope's rows: the documents' and
 returned files' names, the matter, the client, the session and file ids, and
 the triage plan. Each purge also leaves its own record, with no contents:
-who ran it, the scope, how many of each kind, and when (`lra purge --history`).
+who ran it, the scope, how many of each kind, and when (`second-eye purge --history`).
 
 What it cannot reach, said plainly:
 
@@ -149,18 +149,18 @@ What it cannot reach, said plainly:
   lawyers who sent them reaches them;
 - what Anthropic keeps after a delete, under its own retention (up to 30
   days, see above): deleting the session is the request we can make;
-- the firm's own settings: the client register (`lra clients`), the no-AI
+- the firm's own settings: the client register (`second-eye clients`), the no-AI
   list, the playbook and firm memory, and a lawyer's personal style notes on
   a client purge (they hold no client content, see below).
 
-`lra purge` with no scope runs the daily sweep by hand.
+`second-eye purge` with no scope runs the daily sweep by hand.
 Details: `docs/deploy-cloudflare.md`.
 
 ## Encryption
 
 - Documents (every stored copy: the one under review, earlier versions,
   signed pages, held mail, a review's state between steps) and DMS tokens are
-  encrypted with AES-256-GCM under a key the firm generates (`lra keygen`)
+  encrypted with AES-256-GCM under a key the firm generates (`second-eye keygen`)
   and holds. Withdrawing the key turns everything stored into noise. The
   service refuses to start on hosted storage without one.
 - Not under the firm's key, and said plainly: the rows in D1 (who sent what
@@ -243,7 +243,7 @@ document names, what ran, the model and session ids, inference geography,
 where it was stored and until when, who the reply went to, when, and how it
 ended.
 
-- `lra audit --since 2026-09-01 [--lawyer x] [--matter y] --format csv|json`
+- `second-eye audit --since 2026-09-01 [--lawyer x] [--matter y] --format csv|json`
 - A playbook admin emails "audit report for September" and gets the CSV back,
   to them alone.
 
@@ -268,4 +268,4 @@ a security team.
 
 Confirm each setting named here is as the firm wants it in the deployment
 itself (`docs/deploy-cloudflare.md` says where each is set), and register the
-firm's clients (`lra clients add`) so memory can be walled by them.
+firm's clients (`second-eye clients add`) so memory can be walled by them.

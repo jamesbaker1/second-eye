@@ -19,11 +19,11 @@ from io import BytesIO
 import pytest
 from reportlab.pdfgen import canvas
 
-from lra import handler
-from lra.mail.console import ConsoleProvider
-from lra.models import Attachment, Finding, InboundEmail, Mode, ReviewResult, Severity
-from lra.pipeline import annotate, extract, intake, redline, reflow
-from lra.pipeline.ooxml import _normalize
+from secondeye import handler
+from secondeye.mail.console import ConsoleProvider
+from secondeye.models import Attachment, Finding, InboundEmail, Mode, ReviewResult, Severity
+from secondeye.pipeline import annotate, extract, intake, redline, reflow
+from secondeye.pipeline.ooxml import _normalize
 from tests.conftest import documents
 
 DOCX = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
@@ -80,7 +80,7 @@ def captured(monkeypatch, tmp_path):
     monkeypatch.setenv("DATABASE_URL", f"sqlite:///{tmp_path}/reflow.sqlite3")
     monkeypatch.setenv("MAIL_AGENT_ADDRESS", "review@firm.com")
     monkeypatch.setenv("FIRM_DOMAINS", "firm.com")
-    from lra.config import settings
+    from secondeye.config import settings
 
     settings.cache_clear()
     provider = Captured()
@@ -189,7 +189,7 @@ def test_a_docx_passes_through_untouched():
 
 
 def test_a_legacy_doc_is_convertible_only_where_libreoffice_or_the_sandbox_is():
-    from lra import convert
+    from secondeye import convert
 
     ole = b"\xd0\xcf\x11\xe0\xa1\xb1\x1a\xe1" + b"\x00" * 400
     assert reflow.convertible(attach("old.doc", ole)) is (convert.available() or False)
@@ -199,10 +199,10 @@ def test_a_legacy_doc_is_convertible_only_where_libreoffice_or_the_sandbox_is():
         assert "Send me the .docx" in str(e.value)
 
 
-@pytest.mark.skipif(not __import__("lra.convert", fromlist=["x"]).available(),
+@pytest.mark.skipif(not __import__("secondeye.convert", fromlist=["x"]).available(),
                     reason="LibreOffice is not installed")
 def test_a_legacy_doc_is_converted_and_says_where_the_layout_may_differ():
-    from lra import convert
+    from secondeye import convert
 
     d = __import__("docx").Document()
     d.add_paragraph("The Reciever pays thirty (13) days after closing.")
@@ -218,7 +218,7 @@ def test_a_legacy_doc_is_converted_and_says_where_the_layout_may_differ():
 def test_odt_is_recognised_from_its_bytes():
     from zipfile import ZipFile
 
-    from lra.pipeline.filetype import Kind, identify
+    from secondeye.pipeline.filetype import Kind, identify
 
     buf = BytesIO()
     with ZipFile(buf, "w") as z:
@@ -335,7 +335,7 @@ def test_asking_for_a_memo_still_gives_no_attachment_for_a_pdf(captured, monkeyp
 def test_the_conversation_holds_the_word_copy_so_undo_can_rebuild_it(captured, monkeypatch):
     """The thread's document is what "undo" and "add a clause" rebuild the
     redline from, and a PDF cannot be rebuilt into."""
-    from lra import thread
+    from secondeye import thread
 
     monkeypatch.setattr(handler.review, "review", stub_review(edit()))
     handler.handle(email("Look.", attach("Motion brief.pdf", pdf_of(*BRIEF), "application/pdf")))

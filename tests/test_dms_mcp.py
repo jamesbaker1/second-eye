@@ -23,11 +23,11 @@ import httpx
 import pytest
 from fastapi.testclient import TestClient
 
-from lra import consent, dms_mcp, main, managed, oauth
-from lra.config import settings
-from lra.models import Attachment, Mode
-from lra.pipeline import extract, review
-from lra.tools import DEFINITIONS, build_tools
+from secondeye import consent, dms_mcp, main, managed, oauth
+from secondeye.config import settings
+from secondeye.models import Attachment, Mode
+from secondeye.pipeline import extract, review
+from secondeye.tools import DEFINITIONS, build_tools
 from tests import api_contract as contract
 from tests import fake_sessions as fs
 
@@ -103,7 +103,7 @@ def mcp_mode(monkeypatch, tmp_path):
     fs.configure(monkeypatch, DATABASE_URL=f"sqlite:///{tmp_path}/m.sqlite3",
                  DMS_PROVIDER="imanage", DMS_MCP_URL=MCP_URL,
                  DMS_MCP_SIGNING_KEY=KEY, DMS_MCP_BINDING="query",
-                 DMS_TOKEN_URL=TOKEN_URL, DMS_CLIENT_ID="lra-client",
+                 DMS_TOKEN_URL=TOKEN_URL, DMS_CLIENT_ID="second-eye-client",
                  DMS_CLIENT_SECRET="shh",
                  DMS_AUTHORIZE_URL="https://dms.example.com/auth/oauth2/authorize",
                  PUBLIC_BASE_URL="https://review.firm.com")
@@ -117,7 +117,7 @@ def grant(**extra) -> dict:
 
 def token_rows() -> int:
     oauth.init()
-    from lra.store import connect
+    from secondeye.store import connect
 
     with connect() as c:
         return c.execute("SELECT COUNT(*) FROM oauth_tokens").fetchone()[0]
@@ -161,7 +161,7 @@ def test_a_grant_becomes_the_lawyers_vault_credential_with_anthropic_refreshing_
     assert auth["access_token"] == "tok-1"
     assert auth["expires_at"]
     assert auth["refresh"] == {
-        "refresh_token": "ref-1", "client_id": "lra-client", "token_endpoint": TOKEN_URL,
+        "refresh_token": "ref-1", "client_id": "second-eye-client", "token_endpoint": TOKEN_URL,
         "token_endpoint_auth": {"type": "client_secret_post", "client_secret": "shh"}}
     assert dms_mcp.record_for_vault("vlt_1").user_address == JIM
     assert token_rows() == 0

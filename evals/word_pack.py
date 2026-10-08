@@ -18,9 +18,9 @@ from pathlib import Path
 from docx import Document
 from docx.shared import Pt
 
-from lra.models import Attachment, Finding, Mode, ReviewResult, Severity
-from lra.pipeline import annotate, clean, compare, redline, reflow
-from lra.pipeline.ooxml import Revision, RevisionWriter
+from secondeye.models import Attachment, Finding, Mode, ReviewResult, Severity
+from secondeye.pipeline import annotate, clean, compare, redline, reflow
+from secondeye.pipeline.ooxml import Revision, RevisionWriter
 
 CHECKLIST = """# Open each of these in Microsoft Word
 
@@ -71,7 +71,7 @@ Open in Acrobat Reader or Preview, not Word.
 
 ## Then
 Tell Claude what happened, file by file. Anything other than "fine" is a bug in
-`src/lra/pipeline/ooxml.py`, `compare.py`, `clean.py`, `reflow.py` or
+`src/secondeye/pipeline/ooxml.py`, `compare.py`, `clean.py`, `reflow.py` or
 `annotate.py`, and the file that showed it becomes a regression test.
 """
 

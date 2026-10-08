@@ -13,7 +13,7 @@ from __future__ import annotations
 import re
 from pathlib import Path
 
-from lra.config import Settings
+from secondeye.config import Settings
 
 ENV_EXAMPLE = Path(__file__).resolve().parents[1] / ".env.example"
 

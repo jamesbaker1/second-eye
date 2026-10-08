@@ -24,8 +24,8 @@ from pypdf.generic import (
 )
 from reportlab.pdfgen import canvas
 
-from lra.pipeline import clean_pdf
-from lra.pipeline.clean import CannotClean
+from secondeye.pipeline import clean_pdf
+from secondeye.pipeline.clean import CannotClean
 
 PAGES = [
     ["1. Term. This Agreement continues for twelve (12) months.",

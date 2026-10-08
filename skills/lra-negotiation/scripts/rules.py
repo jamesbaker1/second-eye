@@ -1,7 +1,7 @@
 """What a recorded negotiation.json must be, held against the evidence it was written from.
 
 Used on both sides of the sandbox: by validate_negotiation.py, before the file
-is recorded, and by the host (lra.negotiation loads this file), before a word
+is recorded, and by the host (secondeye.negotiation loads this file), before a word
 of it reaches the lawyer, because the file came out of a sandbox that runs
 model-written code. So both refuse the same things in the same words.
 

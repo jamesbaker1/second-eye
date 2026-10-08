@@ -15,8 +15,8 @@ from io import BytesIO
 import pytest
 from reportlab.pdfgen import canvas
 
-from lra.models import Attachment, Mode
-from lra.pipeline import checks, extract, intake
+from secondeye.models import Attachment, Mode
+from secondeye.pipeline import checks, extract, intake
 
 
 def pdf_of(*lines: str) -> bytes:
@@ -127,6 +127,6 @@ def test_page_boundaries_are_marked():
 
 
 def test_the_rejection_no_longer_promises_a_command_that_does_not_exist():
-    from lra.pipeline.filetype import Kind, message
+    from secondeye.pipeline.filetype import Kind, message
 
     assert "review it anyway" not in message(Kind.PDF)

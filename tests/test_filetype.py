@@ -15,9 +15,9 @@ from io import BytesIO
 import pytest
 from docx import Document
 
-from lra.models import Attachment, InboundEmail, Mode
-from lra.pipeline import extract, intake
-from lra.pipeline.filetype import Kind, identify
+from secondeye.models import Attachment, InboundEmail, Mode
+from secondeye.pipeline import extract, intake
+from secondeye.pipeline.filetype import Kind, identify
 
 DOCX = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
 OLE = b"\xd0\xcf\x11\xe0\xa1\xb1\x1a\xe1"
@@ -89,7 +89,7 @@ def test_a_legacy_doc_is_refused_only_where_nothing_can_convert_it(monkeypatch):
     reviewed; the refusal "save it as .docx" is for the machine that has
     neither. CI has LibreOffice and a developer's laptop may not, so the test
     pins both answers rather than whichever this machine happens to give."""
-    from lra.pipeline import reflow
+    from secondeye.pipeline import reflow
 
     legacy = att("old.docx", OLE + b"\x00" * 400)
     monkeypatch.setattr(reflow, "conversion_available", lambda: False)
@@ -220,7 +220,7 @@ def test_an_oversize_document_is_named_not_silently_skipped(monkeypatch):
     """Reviewing the cover note instead of the execution copy and replying
     "looks good" was the worst outcome the audit found in intake."""
     monkeypatch.setenv("MAX_ATTACHMENT_MB", "1")
-    from lra.config import settings
+    from secondeye.config import settings
 
     settings.cache_clear()
     try:
@@ -252,7 +252,7 @@ def test_a_decompression_bomb_is_identified_without_being_inflated():
 
 
 def test_check_archive_bounds_total_size_and_entry_count(monkeypatch):
-    from lra.pipeline import filetype
+    from secondeye.pipeline import filetype
 
     filetype.check_archive(docx_bytes())  # a real document passes
     monkeypatch.setattr(filetype, "MAX_UNPACKED_BYTES", 1000)

@@ -1,6 +1,6 @@
 # The comments agent: turns the comments and the other side's tracked changes
 # in a Word document, as a lawyer does in Word, in a session nobody is
-# attached to (src/lra/comments.py). It works only through the lra-comments
+# attached to (src/secondeye/comments.py). It works only through the lra-comments
 # skill's scripts, and leaves the turned document, a blackline when it
 # decided the other side's changes, and turned.json in /mnt/session/outputs.
 #
@@ -10,9 +10,9 @@
 # (turning.examine) and, when something is wrong, sends the report back as a
 # message and lets the agent decide how to fix it (DECISIONS 30).
 #
-# Applied by `lra agents apply`, printed as MANAGED_COMMENTS_AGENT_ID, with the
+# Applied by `second-eye agents apply`, printed as MANAGED_COMMENTS_AGENT_ID, with the
 # same skills and settings-driven fields as the others, plus lra-comments
-# (extra_skills), which only this agent is offered: `lra skills sync
+# (extra_skills), which only this agent is offered: `second-eye skills sync
 # lra-comments`, then apply again. Without it the agent has no way to write
 # a reply or a resolved thread, and says so.
 name: LRA comments
@@ -23,7 +23,7 @@ description: >-
   rejects the other side's changes by id and writes counter-proposals. Works
   only through the lra-comments scripts; everything it produces is a file.
 model: claude-fable-5-1
-system_file: ../src/lra/prompts/comments_system.md
+system_file: ../src/secondeye/prompts/comments_system.md
 extra_skills:
   - sandbox_comments_skill_id
 tools:

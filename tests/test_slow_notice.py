@@ -10,8 +10,8 @@ from __future__ import annotations
 
 import time
 
-from lra import handler, notice
-from lra.pipeline import identity
+from secondeye import handler, notice
+from secondeye.pipeline import identity
 from tests import test_end_to_end as e2e
 from tests.test_end_to_end import inbound, stub_agent
 

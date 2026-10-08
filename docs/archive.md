@@ -39,7 +39,7 @@ encryption keys -- are the ones to start before they are needed, not after.
 | Encryption at rest with firm-held keys | Partly done. Attachment bytes are sealed with `DATA_KEY` (AES-256-GCM, `blobs.stash`) like every stored document. Not under the key: the archived message rows (subject, body, participants) and the full-text index, which holds the extracted attachment text, because an index over ciphertext finds nothing. Those sit in D1 under Cloudflare's encryption at rest only. The key must also be held by the firm, not only by us |
 | Per-lawyer scoping, enforced in code | Done. Every read takes the owner as a required argument |
 | An audit log of every read | Done. `access_log` records actor, action and time |
-| A deletion path for when a client demands one | Done. `lra purge --client`, `--matter` or `--lawyer` (`purge.py`): messages, attachments, search entries, and the scope's read-log detail blanked |
+| A deletion path for when a client demands one | Done. `second-eye purge --client`, `--matter` or `--lawyer` (`purge.py`): messages, attachments, search entries, and the scope's read-log detail blanked |
 | Retention expiry | Implemented. The daily retention sweep (`retention.py`, from the Worker's cron) runs it, as does every archive write; `ARCHIVE_RETENTION_DAYS` defaults to 7, like everything else about a document, and a firm sets it longer, or 0 for indefinitely, by its own decision |
 | Tokens and blobs excluded from backups that leave the tenant | Not started. Deployment concern |
 

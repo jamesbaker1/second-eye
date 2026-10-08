@@ -76,8 +76,8 @@ def build_packets(files: dict[str, bytes], workdir: Path) -> dict[str, bytes]:
     a signed page this closing's, is the same either way."""
     from unittest.mock import patch
 
-    from lra import convert, managed
-    from lra.pipeline import closing_docs
+    from secondeye import convert, managed
+    from secondeye.pipeline import closing_docs
 
     ws, out = workdir / "workspace", workdir / "outputs"
     ws.mkdir(parents=True, exist_ok=True)

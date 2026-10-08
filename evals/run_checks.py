@@ -20,8 +20,8 @@ import sys
 from collections import Counter
 
 from evals.corpus import CLEAN, DEFECTIVE
-from lra.models import Attachment, Severity
-from lra.pipeline import checks, extract
+from secondeye.models import Attachment, Severity
+from secondeye.pipeline import checks, extract
 
 DOCX = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
 
@@ -140,7 +140,7 @@ def _informational(f) -> bool:
 def run_message(case):
     """Everything the review runs on a message before the model: the document
     checks on the attachment it reads, and the checks on the message."""
-    from lra.pipeline import email_checks
+    from secondeye.pipeline import email_checks
 
     email, att = case.email()
     doc = extract.extract(att)

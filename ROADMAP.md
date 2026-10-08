@@ -194,7 +194,7 @@ Everything above stops at the document. This phase is where the associate stops
 being someone who hands work back and becomes someone who gets it done.
 
 The architecture for it already exists. Per-lawyer delegated OAuth was built for
-the document system in `src/lra/oauth.py`, and the agent's tools are constructed
+the document system in `src/secondeye/oauth.py`, and the agent's tools are constructed
 per request from that lawyer's own tokens. Adding a system means adding a scope,
 an adapter, and a tool. Nothing structural changes.
 
@@ -309,7 +309,7 @@ Built for a design-partner deployment: Cloudflare end to end (`cloudflare/`,
 Service, a queue between them, the application in a container, rows in D1
 through a sqlite3-shaped adapter (`d1.py`), documents in R2 sealed with a key
 the firm holds (`blobs.py`, `crypto.py`), retention that finally reaches
-conversations and their documents, and `lra purge <address>`. The whole suite
+conversations and their documents, and `second-eye purge <address>`. The whole suite
 runs in both storage modes, and the storage layer was run against the real
 Worker under Wrangler's D1 and R2 emulators.
 
@@ -339,7 +339,7 @@ project.
 
 Run live for the first time on 2026-09-21, on Claude Haiku 4.5: a full review
 with a redline, a comparison with its risk assessment, a three-message
-conversation (review, instruction, undo), `lra skills sync`, and a formatting
+conversation (review, instruction, undo), `second-eye skills sync`, and a formatting
 repair in the container that passed the local gate. Six bugs that no offline
 test could see, because every one of them lives in the conversation with the
 real API, were found and fixed on the way:

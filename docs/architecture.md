@@ -10,7 +10,7 @@
    Postmark)                       |
        ^                     handler._route / flow.prepare
        |                           |   (handler.handle() runs every stage in
-       |                           |    one process, for lra replay)
+       |                           |    one process, for second-eye replay)
        |         ┌─────────────────┼──────────────────┐
        |         v                 v                  v
        |    intake +          store (sqlite)     router: revoke /
@@ -96,7 +96,7 @@ duplicates.
 server, called with that lawyer's own token (from their Anthropic vault) and
 bound by a signed URL to the one matter the email belongs to. The ethical wall
 is enforced by the firm's existing access control, and narrowed to the matter
-by ours. See `docs/oauth.md` and `src/lra/dms_mcp.py`.
+by ours. See `docs/oauth.md` and `src/secondeye/dms_mcp.py`.
 
 **The model returns structure, not prose.** The session records its findings
 as `findings.json`, written only by the skill's validator against a fixed

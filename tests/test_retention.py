@@ -16,9 +16,9 @@ from pathlib import Path
 import pytest
 from fastapi.testclient import TestClient
 
-from lra import audit, blackline, closing, memory, retention, store, tenant, thread
-from lra.config import Settings
-from lra.memory import Kind, MemoryEntry, Scope, Status
+from secondeye import audit, blackline, closing, memory, retention, store, tenant, thread
+from secondeye.config import Settings
+from secondeye.memory import Kind, MemoryEntry, Scope, Status
 from tests import test_cloudflare as tc
 from tests.test_cloudflare import docx_bytes
 
@@ -117,7 +117,7 @@ def test_the_day_a_reply_names_is_still_the_day_of_the_document(cloud):
 
 
 def test_zero_keeps_everything(cloud, monkeypatch):
-    from lra.config import settings
+    from secondeye.config import settings
 
     monkeypatch.setenv("THREAD_RETENTION_DAYS", "0")
     settings.cache_clear()
@@ -186,7 +186,7 @@ def test_an_unconfirmed_note_goes_and_a_confirmed_one_stays(cloud):
 
 
 def test_outcomes_recorded_while_learning_was_on_go_once_it_is_off(cloud, monkeypatch):
-    from lra.config import settings
+    from secondeye.config import settings
 
     monkeypatch.setenv("LEARN_FROM_OUTCOMES", "true")
     settings.cache_clear()
@@ -209,14 +209,14 @@ def test_outcomes_recorded_while_learning_was_on_go_once_it_is_off(cloud, monkey
 
 @pytest.fixture
 def api(cloud, monkeypatch):
-    import lra.config
-    from lra.config import settings
+    import secondeye.config
+    from secondeye.config import settings
     from tests.test_purge import FakeAnthropic
 
     monkeypatch.setenv("ANTHROPIC_API_KEY", "sk-test")
     settings.cache_clear()
     fake = FakeAnthropic()
-    monkeypatch.setattr(lra.config, "anthropic_client", lambda: fake.client)
+    monkeypatch.setattr(secondeye.config, "anthropic_client", lambda: fake.client)
     return fake
 
 
@@ -280,7 +280,7 @@ def test_one_failing_step_does_not_stop_the_others(cloud, monkeypatch):
 
 
 def test_only_the_worker_can_run_the_sweep(cloud):
-    from lra import main
+    from secondeye import main
 
     client = TestClient(main.app, raise_server_exceptions=False)
     assert client.post("/retention/sweep").status_code == 401

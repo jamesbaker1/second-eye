@@ -13,10 +13,10 @@ from io import BytesIO
 import pytest
 from docx import Document
 
-from lra import managed
-from lra.models import Attachment
-from lra.pipeline import extract
-from lra.pipeline.filetype import Kind, identify
+from secondeye import managed
+from secondeye.models import Attachment
+from secondeye.pipeline import extract
+from secondeye.pipeline.filetype import Kind, identify
 
 OLE = b"\xd0\xcf\x11\xe0\xa1\xb1\x1a\xe1"
 
@@ -51,7 +51,7 @@ def xlsx_bytes() -> bytes:
 def test_conversion_in_a_session_needs_the_agent_ids(monkeypatch):
     """A legacy .doc reaches a session only when the agents are set up;
     otherwise it is refused with the sentence that asks for a .docx."""
-    from lra.config import settings
+    from secondeye.config import settings
 
     monkeypatch.setenv("MANAGED_REVIEW_AGENT_ID", "")
     settings.cache_clear()
@@ -85,7 +85,7 @@ def test_a_deck_and_a_word_file_are_told_apart():
 # --- behaviour when it is off --------------------------------------------
 
 def test_a_legacy_doc_is_still_refused_helpfully_without_a_converter():
-    from lra.config import settings
+    from secondeye.config import settings
 
     settings.cache_clear()
     with pytest.raises(extract.Unreadable) as e:
@@ -94,7 +94,7 @@ def test_a_legacy_doc_is_still_refused_helpfully_without_a_converter():
 
 
 def test_a_deck_is_refused_with_its_own_sentence_without_a_converter():
-    from lra.config import settings
+    from secondeye.config import settings
 
     settings.cache_clear()
     with pytest.raises(extract.Unreadable) as e:
@@ -110,7 +110,7 @@ def test_the_writer_never_reaches_for_a_session():
     session too, as a skill script, and that script calls this same code."""
     import inspect
 
-    from lra.pipeline import ooxml, redline
+    from secondeye.pipeline import ooxml, redline
 
     for module in (ooxml, redline):
         source = inspect.getsource(module).lower()
@@ -122,7 +122,7 @@ def test_the_writer_never_reaches_for_a_session():
 
 def test_a_docx_is_never_converted_in_a_session():
     """It is read precisely in-process; only formats we cannot open are sent."""
-    from lra.pipeline.filetype import SANDBOX_CONVERTIBLE, SANDBOX_READABLE
+    from secondeye.pipeline.filetype import SANDBOX_CONVERTIBLE, SANDBOX_READABLE
 
     assert Kind.DOCX not in SANDBOX_CONVERTIBLE | SANDBOX_READABLE
     assert Kind.PDF not in SANDBOX_CONVERTIBLE | SANDBOX_READABLE
@@ -189,7 +189,7 @@ def test_checks_still_run_over_a_deck():
     buf = _BytesIO()
     d.save(buf)
 
-    from lra.pipeline import checks
+    from secondeye.pipeline import checks
 
     content = buf.getvalue()
     found = checks.run_all(extract.extract(att(content, "deck.pptx")), content)
@@ -197,7 +197,7 @@ def test_checks_still_run_over_a_deck():
 
 
 def test_nothing_is_read_in_a_session_any_more():
-    from lra.pipeline.filetype import SANDBOX_READABLE
+    from secondeye.pipeline.filetype import SANDBOX_READABLE
 
     assert SANDBOX_READABLE == set()
 
@@ -238,9 +238,9 @@ def test_every_import_in_src_is_a_declared_dependency():
         "pyyaml": "yaml", "pillow": "PIL",
     }
     available = {provides.get(p, p.replace("-", "_")) for p in packages}
-    # evals/ and demos/ sit beside the package in a checkout; `lra eval` and
-    # `lra live-check` put the checkout on the path and say so when it is not.
-    available |= set(sys.stdlib_module_names) | {"lra", "evals", "demos"}
+    # evals/ and demos/ sit beside the package in a checkout; `second-eye eval` and
+    # `second-eye live-check` put the checkout on the path and say so when it is not.
+    available |= set(sys.stdlib_module_names) | {"secondeye", "evals", "demos"}
 
     missing: set[str] = set()
     for path in (root / "src").rglob("*.py"):

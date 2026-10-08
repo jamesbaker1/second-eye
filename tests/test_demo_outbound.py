@@ -4,8 +4,8 @@ the review of them says what the README promises."""
 from __future__ import annotations
 
 from demos.outbound import build
-from lra.mail.console import ConsoleProvider
-from lra.pipeline import checks, email_checks, extract, intake
+from secondeye.mail.console import ConsoleProvider
+from secondeye.pipeline import checks, email_checks, extract, intake
 
 
 def test_the_committed_files_are_what_the_builder_writes():

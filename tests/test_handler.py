@@ -5,9 +5,9 @@ from pathlib import Path
 
 import pytest
 
-from lra import handler
-from lra.mail.console import ConsoleProvider
-from lra.models import Attachment, InboundEmail
+from secondeye import handler
+from secondeye.mail.console import ConsoleProvider
+from secondeye.models import Attachment, InboundEmail
 from tests.conftest import documents
 
 DOCX = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
@@ -25,7 +25,7 @@ class Captured(ConsoleProvider):
 @pytest.fixture
 def captured(monkeypatch, tmp_path):
     monkeypatch.setenv("DATABASE_URL", f"sqlite:///{tmp_path}/t.sqlite3")
-    from lra.config import settings
+    from secondeye.config import settings
 
     settings.cache_clear()
     provider = Captured()
@@ -187,7 +187,7 @@ def test_an_unauthorised_sender_cannot_revoke_a_lawyers_access(captured, monkeyp
     """A From header is forgeable. revoke used to run before any authorisation
     check, so one forged email destroyed a partner's document-system grant."""
     monkeypatch.setenv("ALLOWED_SENDERS", "firm.com")
-    from lra.config import settings
+    from secondeye.config import settings
 
     settings.cache_clear()
     try:
@@ -207,7 +207,7 @@ def test_an_unauthorised_sender_cannot_revoke_a_lawyers_access(captured, monkeyp
 
 def test_an_authorised_sender_can_still_revoke(captured, monkeypatch):
     monkeypatch.setenv("ALLOWED_SENDERS", "firm.com")
-    from lra.config import settings
+    from secondeye.config import settings
 
     settings.cache_clear()
     try:
@@ -226,7 +226,7 @@ def test_an_authorised_sender_can_still_revoke(captured, monkeypatch):
 
 
 def test_a_second_delivery_of_the_same_message_is_refused(captured, monkeypatch):
-    from lra.store import claim
+    from secondeye.store import claim
 
     assert claim("job-1", "msg-x", "jim@firm.com") is True
     assert claim("job-2", "msg-x", "jim@firm.com") is False
@@ -299,8 +299,8 @@ def test_connect_with_a_document_system_configured_still_sends_the_link(
     captured, monkeypatch
 ):
     monkeypatch.setenv("DMS_PROVIDER", "imanage")
-    from lra.config import settings
-    from lra.models import OutboundEmail
+    from secondeye.config import settings
+    from secondeye.models import OutboundEmail
 
     settings.cache_clear()
     try:
@@ -390,8 +390,8 @@ def test_a_document_from_a_domain_that_failed_dmarc_is_not_acted_on(
 def test_a_forged_pass_below_the_gateways_fail_does_not_hide_it():
     """The gateway prepends its verdict; a sender can add one underneath. Last
     copy used to win, so the forged "pass" replaced the real "fail"."""
-    from lra.mail.console import ConsoleProvider
-    from lra.pipeline import router
+    from secondeye.mail.console import ConsoleProvider
+    from secondeye.pipeline import router
 
     raw = (
         b"Authentication-Results: mx.cloudflare.net; dmarc=fail header.from=firm.com\r\n"
@@ -406,7 +406,7 @@ def test_a_forged_pass_below_the_gateways_fail_does_not_hide_it():
 # --- a review that finished but could not be delivered ---------------------
 
 def stub_review(summary="One problem worth fixing."):
-    from lra.models import Finding, ReviewResult, Severity
+    from secondeye.models import Finding, ReviewResult, Severity
 
     finding = Finding(
         severity=Severity.BLOCKER, category="indemnity",
@@ -795,7 +795,7 @@ def a_docx(*paragraphs) -> bytes:
 
 
 def review_fixing_the_term():
-    from lra.models import Finding, ReviewResult, Severity
+    from secondeye.models import Finding, ReviewResult, Severity
 
     def _review(doc, mode, instructions, **kwargs):
         return ReviewResult(mode=mode, summary="One slip.", findings=[Finding(
@@ -816,7 +816,7 @@ def draft_email(subject, content, filename="Supply Agreement v3.docx", **kw) -> 
 
 
 def test_the_sent_version_is_read_against_our_redline(captured, monkeypatch, learning):
-    from lra import memory
+    from secondeye import memory
 
     monkeypatch.setattr(handler.review, "review", review_fixing_the_term())
     original = a_docx("1. Term. The term is thirty (13) days.", "2. Law. English law.")
@@ -835,7 +835,7 @@ def test_the_sent_version_is_read_against_our_redline(captured, monkeypatch, lea
 
 
 def test_a_change_the_lawyer_dropped_is_recorded_as_a_rejection(captured, monkeypatch, learning):
-    from lra import memory
+    from secondeye import memory
 
     monkeypatch.setattr(handler.review, "review", review_fixing_the_term())
     original = a_docx("1. Term. The term is thirty (13) days.", "2. Law. English law.")
@@ -854,7 +854,7 @@ def test_by_default_the_sent_version_is_reported_and_nothing_is_learned(captured
     """LEARN_FROM_OUTCOMES off, the default: the lawyer still hears what was
     kept and dropped, the reply does not claim to learn from it, and nothing
     is recorded."""
-    from lra import memory
+    from secondeye import memory
 
     monkeypatch.setattr(handler.review, "review", review_fixing_the_term())
     original = a_docx("1. Term. The term is thirty (13) days.", "2. Law. English law.")
@@ -881,7 +881,7 @@ def test_a_sent_document_we_never_reviewed_says_nothing_about_learning(captured,
 
 
 def _typo_review(outputs):
-    from lra.models import Finding, ReviewResult, Severity
+    from secondeye.models import Finding, ReviewResult, Severity
 
     fix = Finding(severity=Severity.FORMATTING, category="typo", title="Typo",
                   explanation="", anchor="shall remain in effect for three (3) years",
@@ -897,8 +897,8 @@ def _typo_review(outputs):
 
 def _redline_of(review_fn):
     """What the local writer produces for that review's findings."""
-    from lra.models import Mode, ReviewResult
-    from lra.pipeline import redline
+    from secondeye.models import Mode, ReviewResult
+    from secondeye.pipeline import redline
 
     raw = Path("samples/simple.docx").read_bytes()
     result = review_fn(None, Mode.REDLINE, "")
@@ -909,7 +909,7 @@ def _redline_of(review_fn):
 
 
 def _words(content: bytes) -> list[str]:
-    from lra.pipeline import compare
+    from secondeye.pipeline import compare
 
     return compare._plain(content, body_only=False)
 
@@ -932,7 +932,7 @@ def test_a_session_redline_that_fails_verification_is_replaced_by_ours(captured,
     handler.handle(email_with_sample("broken output"))
     out = captured.sent[0]
     assert out.attachments, "the lawyer got no redline at all"
-    from lra.pipeline import redline
+    from secondeye.pipeline import redline
 
     ok, why = redline.verify(out.attachments[0].content, expect_revisions=True)
     assert ok, why
@@ -942,8 +942,8 @@ def test_a_session_redline_that_fails_verification_is_replaced_by_ours(captured,
 def test_a_session_redline_with_different_text_is_replaced_by_ours(captured, monkeypatch):
     """The container ran the same code on the same findings, so a file whose
     words differ from the local writer's is something else, and is not sent."""
-    from lra.models import Finding, Mode, ReviewResult, Severity
-    from lra.pipeline import redline
+    from secondeye.models import Finding, Mode, ReviewResult, Severity
+    from secondeye.pipeline import redline
 
     raw = Path("samples/simple.docx").read_bytes()
     other = redline.apply(raw, ReviewResult(mode=Mode.REDLINE, summary="", findings=[
@@ -969,7 +969,7 @@ def test_no_redline_from_the_session_means_the_local_writers(captured, monkeypat
 def test_a_proposed_note_is_offered_and_kept_only_when_the_lawyer_says_so(
     captured, monkeypatch
 ):
-    from lra import memory
+    from secondeye import memory
 
     def review_that_notes(doc, mode, instructions, **kw):
         memory.remember(memory.MemoryEntry(
@@ -995,7 +995,7 @@ def test_a_proposed_note_is_offered_and_kept_only_when_the_lawyer_says_so(
 def test_one_tap_links_can_be_switched_off(captured, monkeypatch):
     """Without plus addressing on the mail domain a tapped reply is dropped,
     so production keeps them off until it is."""
-    from lra.config import settings
+    from secondeye.config import settings
 
     monkeypatch.setenv("ONE_TAP_LINKS", "false")
     settings.cache_clear()

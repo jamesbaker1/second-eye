@@ -53,7 +53,7 @@ jobs:
       # Every test written against sqlite3 is the specification the adapter has
       # to meet, so a storage change that only works locally fails here.
       - name: Test against the Cloudflare storage path
-        run: LRA_TEST_BACKEND=d1 .venv/bin/python -m pytest -q
+        run: SECOND_EYE_TEST_BACKEND=d1 .venv/bin/python -m pytest -q
 
       # The numbers that decide whether the product is usable: catch rate, and
       # false positives on documents that are correct. Exits non-zero if either
@@ -64,7 +64,7 @@ jobs:
       - name: Confirm the independent parser actually ran
         run: |
           .venv/bin/python -c "
-          from lra import convert
+          from secondeye import convert
           assert convert.available(), 'LibreOffice missing; round-trip tests silently skipped'
           print('LibreOffice round-trip tests ran')
           "

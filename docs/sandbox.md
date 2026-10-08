@@ -41,7 +41,7 @@ Model: it requires 30-day data retention, and an Anthropic organisation on
 zero data retention gets a 400 on every request. `ZERO_RETENTION=true` is for
 a firm whose organisation is ZDR. It puts every direct model call (a scan's
 transcription, a comparison's assessment) and every agent definition, when
-`lra agents apply` next runs, on Claude Opus 5 (`config.ZDR_MODEL`), the most
+`second-eye agents apply` next runs, on Claude Opus 5 (`config.ZDR_MODEL`), the most
 capable model documented as available under ZDR. Claude Opus 5.5 is not
 assumed: its launch documentation says nothing about ZDR.
 
@@ -77,7 +77,7 @@ identified it gets nothing.
 
 What can leave the container is also decided here. The environment has
 `limited` networking with package managers allowed, no allowed hosts and no
-MCP servers (`managed.NETWORKING`); `lra agents apply` creates it that way and
+MCP servers (`managed.NETWORKING`); `second-eye agents apply` creates it that way and
 updates an existing environment whose networking differs, rather than only
 reading it. A skill can `pip install` what it needs, and a model running code
 against a privileged document cannot reach any other host. Package managers
@@ -118,9 +118,9 @@ different on every run, and with none of the refusals or the proofs that
 putting the tested code in the container and telling the model to call it.
 
 `skills/lra-document-tools` holds `SKILL.md`, four thin scripts and a stand-in
-for pydantic. `lra skills sync` copies the real modules in beside them
+for pydantic. `second-eye skills sync` copies the real modules in beside them
 (`skillsync.BUNDLED`), uploads the folder with `client.skills.create`, and
-prints the id to set as `SANDBOX_SKILL_ID`; `lra agents apply` then attaches it
+prints the id to set as `SANDBOX_SKILL_ID`; `second-eye agents apply` then attaches it
 to both agents beside Anthropic's four. Run the sync again and it uploads a new
 version; because the agents ask for `latest`, the next session uses it. What
 runs in the container is the source tree at the moment of the sync, never a

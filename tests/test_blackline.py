@@ -24,11 +24,11 @@ from unittest.mock import patch
 import pytest
 from docx import Document
 
-from lra import blackline, handler, managed, negotiation, skillsync, thread
-from lra.mail.console import ConsoleProvider
-from lra.models import Attachment, InboundEmail
-from lra.pipeline import blackline_pdf as bp
-from lra.pipeline import compare
+from secondeye import blackline, handler, managed, negotiation, skillsync, thread
+from secondeye.mail.console import ConsoleProvider
+from secondeye.models import Attachment, InboundEmail
+from secondeye.pipeline import blackline_pdf as bp
+from secondeye.pipeline import compare
 from tests import fake_sessions as fs
 from tests.conftest import documents
 
@@ -175,7 +175,7 @@ def bundle(tmp_path_factory) -> Path:
 def run(bundle: Path, script: str, *args: str, shim: bool = False, ok: bool = True) -> dict:
     env = {k: v for k, v in os.environ.items() if k != "PYTHONPATH"}
     if shim:
-        env["LRA_FORCE_SHIM"] = "1"
+        env["SECOND_EYE_FORCE_SHIM"] = "1"
     done = subprocess.run([sys.executable, str(bundle / "scripts" / script), *args],
                           capture_output=True, text=True, env=env, cwd=bundle,
                           timeout=120, check=False)
@@ -191,7 +191,7 @@ def test_the_bundle_has_the_shape_the_skills_api_requires(bundle):
     assert name.split(":", 1)[1].strip() == "lra-blackline"
     assert 0 < len(description.split(":", 1)[1].strip()) <= 1024
     for relative in skillsync.BLACKLINE_BUNDLED:
-        assert (bundle / "lib" / "lra" / relative).read_bytes() == (
+        assert (bundle / "lib" / "secondeye" / relative).read_bytes() == (
             skillsync.PACKAGE / relative).read_bytes()
     for script in ("pick_baseline.py", "summary.py", "render_blackline_pdf.py"):
         assert (bundle / "scripts" / script).exists()
@@ -305,7 +305,7 @@ def env(monkeypatch, tmp_path):
     provider = Captured()
     monkeypatch.setattr(handler, "get_provider", lambda: provider)
     yield provider
-    from lra.config import settings
+    from secondeye.config import settings
     settings.cache_clear()
 
 
@@ -329,7 +329,7 @@ def conversation() -> str:
     thread.supersede(key, "Services v3.docx", docx(V3))
     today = datetime.now(UTC)
     tuesday = today - timedelta(days=(today.weekday() - 1) % 7 or 7)
-    from lra.store import connect
+    from secondeye.store import connect
 
     with connect() as c:
         c.execute("UPDATE blackline_versions SET arrived_at = ? WHERE filename = ?",
@@ -401,7 +401,7 @@ def test_other_requests_are_not_blacklines(env, body):
 
 def test_without_the_agent_a_blackline_is_the_comparison_it_was(env, monkeypatch):
     monkeypatch.setenv("MANAGED_BLACKLINE_AGENT_ID", "")
-    from lra.config import settings
+    from secondeye.config import settings
 
     settings.cache_clear()
     assert not blackline.intent(email("Blackline against what we sent on Tuesday"))
@@ -567,6 +567,6 @@ def test_the_blackline_skill_is_attached_to_its_own_agent_only(monkeypatch):
     assert ref in own["skills"] and ref not in review["skills"]
     assert own["system"].startswith("You are a junior associate preparing a blackline")
     assert not [t for t in own["tools"] if t.get("type") == "custom"]
-    from lra.config import settings
+    from secondeye.config import settings
 
     settings.cache_clear()

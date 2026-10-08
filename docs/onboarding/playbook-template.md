@@ -11,7 +11,7 @@ this page.
 
 ## How it is read
 
-A playbook agent reads what the firm sends (`src/lra/playbook.py`,
+A playbook agent reads what the firm sends (`src/secondeye/playbook.py`,
 `docs/playbook.md`). It is a scribe, not an adviser. Four things follow, and
 they decide how to write the template:
 
@@ -191,6 +191,6 @@ Afterwards:
 
 ## Before the first one
 
-Playbook intake by email needs the playbook agent: `lra agents apply` prints
+Playbook intake by email needs the playbook agent: `second-eye agents apply` prints
 `MANAGED_PLAYBOOK_AGENT_ID`, which goes into the deployment's `vars`. Without
 it the reply says intake "isn't set up yet" and nothing changes.

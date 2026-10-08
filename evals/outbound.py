@@ -33,7 +33,7 @@ from docx import Document
 from docx.oxml import parse_xml
 from docx.oxml.ns import nsdecls
 
-from lra.models import Attachment, InboundEmail
+from secondeye.models import Attachment, InboundEmail
 
 DOCX = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
 PDF = "application/pdf"
@@ -540,7 +540,7 @@ def corpus_controls() -> list[Case]:
     """Every clean document in corpus.py, sent under an ordinary note to one of
     its own parties, as a lawyer BCCing the agent would send it."""
     from evals.corpus import CLEAN
-    from lra.pipeline import checks, extract
+    from secondeye.pipeline import checks, extract
 
     out = []
     for spec in CLEAN:

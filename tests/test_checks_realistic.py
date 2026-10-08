@@ -14,8 +14,8 @@ from docx.oxml import parse_xml
 from docx.oxml.ns import nsdecls
 
 from evals import realistic
-from lra.models import Attachment, Severity
-from lra.pipeline import checks, extract
+from secondeye.models import Attachment, Severity
+from secondeye.pipeline import checks, extract
 
 DOCX = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
 

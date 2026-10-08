@@ -17,9 +17,9 @@ from unittest.mock import patch
 import pytest
 from docx import Document
 
-from lra import managed
-from lra.models import Attachment, Mode
-from lra.pipeline import extract, review
+from secondeye import managed
+from secondeye.models import Attachment, Mode
+from secondeye.pipeline import extract, review
 from tests import fake_sessions as fs
 
 DOCX = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
@@ -30,7 +30,7 @@ def configured(monkeypatch):
     fs.configure(monkeypatch)
     monkeypatch.setattr(managed.time, "sleep", lambda s: None)
     yield
-    from lra.config import settings
+    from secondeye.config import settings
 
     settings.cache_clear()
 
@@ -64,7 +64,7 @@ BLOCKER = {"severity": "blocker", "category": "amount", "title": "Mismatch",
 
 
 def test_the_budget_is_a_setting():
-    from lra.config import settings
+    from secondeye.config import settings
 
     assert settings().agent_time_budget_seconds <= 300
     assert settings().managed_session_budget_cents > 0

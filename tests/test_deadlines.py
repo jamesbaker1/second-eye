@@ -14,8 +14,8 @@ from datetime import UTC, datetime
 import pytest
 
 from evals.corpus import CLEAN, by_name
-from lra.models import Attachment, InboundEmail, Mode, ReviewResult, Severity
-from lra.pipeline import checks, deadlines, extract, reply
+from secondeye.models import Attachment, InboundEmail, Mode, ReviewResult, Severity
+from secondeye.pipeline import checks, deadlines, extract, reply
 
 DOCX = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
 
@@ -210,7 +210,7 @@ def test_a_historic_reference_date_is_not_a_deadline():
     """The Accounts Date is the date the accounts were drawn up to, before
     signing by design. It went into the calendar as a deadline and was
     flagged as a date carried over from an earlier draft."""
-    from lra.pipeline import ics, timeline
+    from secondeye.pipeline import ics, timeline
 
     doc = text_doc(FALCON_OPENING,
                    "1.1 “Accounts Date” means 31 March 2026.",
@@ -222,7 +222,7 @@ def test_a_historic_reference_date_is_not_a_deadline():
 
 
 def test_an_accounts_date_is_a_reference_even_with_no_agreement_date():
-    from lra.pipeline import ics
+    from secondeye.pipeline import ics
 
     doc = text_doc("THIS AGREEMENT is dated [●] 2026",
                    "1.1 “Accounts Date” means 31 March 2026.",
@@ -234,7 +234,7 @@ def test_an_accounts_date_is_a_reference_even_with_no_agreement_date():
 def test_a_deadline_dated_before_signing_is_still_flagged():
     """Only reference dates are let off. A Completion Date before the
     agreement is the stale date the flag exists for."""
-    from lra.pipeline import timeline
+    from secondeye.pipeline import timeline
 
     doc = text_doc(FALCON_OPENING, "1.1 “Completion Date” means 30 September 2026.")
     assert [f["kind"] for f in timeline.build(doc)["flags"]] == ["date-before-signing"]
@@ -243,7 +243,7 @@ def test_a_deadline_dated_before_signing_is_still_flagged():
 def test_the_claims_window_is_checked_against_an_escrow_held_by_solicitors():
     """With the escrow clause read as a non-solicit (it names the Seller's
     Solicitors), the claims-window-versus-release check never saw it."""
-    from lra.pipeline import timeline
+    from secondeye.pipeline import timeline
 
     doc = text_doc(FALCON_OPENING,
                    "7.3 The Escrow Amount shall be held by the Seller's Solicitors and "
@@ -419,9 +419,9 @@ def test_it_sits_above_the_footer():
 
 
 def test_the_whole_path_carries_the_table(monkeypatch, tmp_path):
-    from lra import handler
-    from lra.config import settings
-    from lra.mail.console import ConsoleProvider
+    from secondeye import handler
+    from secondeye.config import settings
+    from secondeye.mail.console import ConsoleProvider
 
     class Captured(ConsoleProvider):
         def __init__(self):

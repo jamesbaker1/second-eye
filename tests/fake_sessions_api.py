@@ -8,8 +8,8 @@ around the session, not the session.
 
 from __future__ import annotations
 
-from lra import sessions_api
-from lra.models import ReviewResult
+from secondeye import sessions_api
+from secondeye.models import ReviewResult
 
 
 class FakeSessionsApi:

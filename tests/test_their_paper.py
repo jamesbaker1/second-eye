@@ -18,11 +18,11 @@ from pathlib import Path
 import pytest
 from docx import Document
 
-from lra import handler
-from lra.mail.console import ConsoleProvider
-from lra.models import Attachment, Finding, InboundEmail, Mode, ReviewResult, Severity
-from lra.pipeline import issues_list, redline, reply, review, their_paper
-from lra.pipeline.identity import EntryMode
+from secondeye import handler
+from secondeye.mail.console import ConsoleProvider
+from secondeye.models import Attachment, Finding, InboundEmail, Mode, ReviewResult, Severity
+from secondeye.pipeline import issues_list, redline, reply, review, their_paper
+from secondeye.pipeline.identity import EntryMode
 from tests.conftest import documents
 
 DOCX = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
@@ -32,7 +32,7 @@ SAMPLE = Path("samples/simple.docx")
 @pytest.fixture(autouse=True)
 def firm(monkeypatch, tmp_path):
     """jim@firm.com is inside the firm; everyone else is not."""
-    from lra.config import settings
+    from secondeye.config import settings
 
     monkeypatch.setenv("DATABASE_URL", f"sqlite:///{tmp_path}/t.sqlite3")
     monkeypatch.setenv("FIRM_DOMAINS", "firm.com")
@@ -156,7 +156,7 @@ def test_a_forward_of_the_lawyers_own_mail_is_ours(monkeypatch):
     body = GMAIL_FORWARD.replace("dana@otherside.com", "jim@firm.com")
     assert not detect(an_email(body, subject="Fwd: MSA")).theirs
     monkeypatch.setenv("ALLOWED_SENDERS", "fictional.lawyer@gmail.com")
-    from lra.config import settings
+    from secondeye.config import settings
 
     settings.cache_clear()
     body = GMAIL_FORWARD.replace("dana@otherside.com", "fictional.lawyer@gmail.com")
@@ -337,7 +337,7 @@ def test_settle_does_nothing_on_our_paper():
 # --- the model is told ----------------------------------------------------------
 
 def test_the_first_message_carries_the_rule_only_on_their_paper():
-    from lra.pipeline import extract
+    from secondeye.pipeline import extract
 
     doc = extract.extract(Attachment(filename="a.docx", content_type=DOCX,
                                      size_bytes=0, content=SAMPLE.read_bytes()))

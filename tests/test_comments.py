@@ -1,4 +1,4 @@
-"""Turning comments and markup (skills/lra-comments, src/lra/comments.py).
+"""Turning comments and markup (skills/lra-comments, src/secondeye/comments.py).
 
 Three layers, each tested offline. The Word mechanics: a reply Word shows in
 the comment's thread and a "Resolved" it shows as resolved, which means every
@@ -27,11 +27,11 @@ import pytest
 from docx import Document
 from lxml import etree
 
-from lra import comments, handler, managed, skillsync
-from lra.mail.console import ConsoleProvider
-from lra.models import Attachment, Finding, InboundEmail, Mode, ReviewResult, Severity
-from lra.pipeline import ooxml, redline, turning, validate, wordcomments
-from lra.pipeline.ooxml import Revision, RevisionWriter
+from secondeye import comments, handler, managed, skillsync
+from secondeye.mail.console import ConsoleProvider
+from secondeye.models import Attachment, Finding, InboundEmail, Mode, ReviewResult, Severity
+from secondeye.pipeline import ooxml, redline, turning, validate, wordcomments
+from secondeye.pipeline.ooxml import Revision, RevisionWriter
 from tests import fake_sessions as fs
 from tests.conftest import documents
 
@@ -446,9 +446,9 @@ def bundle(tmp_path_factory) -> Path:
 
 
 def run(bundle: Path, script: str, *args: str, shim: bool = False, ok: bool = True) -> dict:
-    env = {k: v for k, v in os.environ.items() if k not in ("PYTHONPATH", "LRA_AUTHOR")}
+    env = {k: v for k, v in os.environ.items() if k not in ("PYTHONPATH", "SECOND_EYE_AUTHOR")}
     if shim:
-        env["LRA_FORCE_SHIM"] = "1"
+        env["SECOND_EYE_FORCE_SHIM"] = "1"
     done = subprocess.run([sys.executable, str(bundle / "scripts" / script), *args],
                           capture_output=True, text=True, env=env, cwd=bundle,
                           timeout=120, check=False)
@@ -465,7 +465,7 @@ def test_the_bundle_has_the_shape_the_skills_api_requires(bundle):
     assert 0 < len(description.split(":", 1)[1].strip()) <= 1024
     assert (bundle / "shims" / "pydantic" / "__init__.py").exists()
     for relative in skillsync.BUNDLED:
-        assert (bundle / "lib" / "lra" / relative).read_bytes() == (
+        assert (bundle / "lib" / "secondeye" / relative).read_bytes() == (
             skillsync.PACKAGE / relative).read_bytes()
     for script in ("list_comments.py", "reply_comment.py", "resolve_comment.py",
                    "accept_reject.py", "edit.py", "finish.py"):
@@ -565,7 +565,7 @@ def test_turning_markup_runs_from_the_bundle_with_a_blackline(bundle, tmp_path, 
     assert authors == {"Opposing Counsel", ME}, "their undecided changes are still theirs"
     blackline = line.read_bytes()
     assert redline.verify(blackline, expect_revisions=True)[0]
-    from lra.pipeline.extract import visible_text
+    from secondeye.pipeline.extract import visible_text
     text = " ".join(visible_text(p._p) for p in Document(BytesIO(blackline)).paragraphs)
     assert "1.5x the Fees" in text
 
@@ -635,7 +635,7 @@ def env(monkeypatch, tmp_path):
     provider = Captured()
     monkeypatch.setattr(handler, "get_provider", lambda: provider)
     yield provider
-    from lra.config import settings
+    from secondeye.config import settings
     settings.cache_clear()
 
 
@@ -801,7 +801,7 @@ def test_not_set_up_says_so_and_touches_nothing(env, monkeypatch, missing):
 def test_the_comments_agent_has_its_skill_and_no_custom_tools(monkeypatch):
     """Detached, so a custom tool would wait for ever; and lra-comments is
     offered to this agent only."""
-    from lra.config import settings
+    from secondeye.config import settings
 
     monkeypatch.setenv("SANDBOX_COMMENTS_SKILL_ID", "skill_comments")
     settings.cache_clear()

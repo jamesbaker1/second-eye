@@ -920,7 +920,7 @@ def our_response() -> bytes:
     """Our response to their v1, the associate's draft: their text with our
     seven points written in, and the partner's five comments on it. What
     "turn these" is sent."""
-    from lra.pipeline.ooxml import RevisionWriter
+    from secondeye.pipeline.ooxml import RevisionWriter
 
     d = _new(cast.ASSOCIATE, "Share purchase agreement: " + cast.DEAL, spaced=True)
     section = d.sections[0]
@@ -959,7 +959,7 @@ LEFTOVER_ANCHOR = "exceeds £125,000"
 def v2_with_partner_comment() -> bytes:
     """Harrowgate's v2 as the partner annotated it for the team: the file that
     goes to Harrowgate by mistake at 23:47 instead of our v3."""
-    from lra.pipeline.ooxml import RevisionWriter
+    from secondeye.pipeline.ooxml import RevisionWriter
 
     d = Document(BytesIO(spa("v2")))
     props = d.core_properties

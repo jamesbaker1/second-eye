@@ -11,8 +11,8 @@ from io import BytesIO
 
 from docx import Document
 
-from lra.models import Attachment
-from lra.pipeline import checks, extract
+from secondeye.models import Attachment
+from secondeye.pipeline import checks, extract
 
 W = "http://schemas.openxmlformats.org/wordprocessingml/2006/main"
 

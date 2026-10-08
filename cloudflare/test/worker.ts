@@ -1,7 +1,7 @@
 /**
  * The Worker under test, plus two stand-ins the tests bind in its place:
  *
- *   FakeContainer  answers the container's step routes (src/lra/main.py) from
+ *   FakeContainer  answers the container's step routes (src/secondeye/main.py) from
  *                  a plan the test writes to D1, and records every call.
  *   FakeEmail      the Email Service binding: records what is sent, and fails
  *                  on request (a size error, an outage).

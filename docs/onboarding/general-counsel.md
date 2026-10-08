@@ -125,7 +125,7 @@ do not offer a view on it.
   once. Mail is held, not bounced, and released when switched back.
 - **The key**: withdrawing it makes everything stored unreadable.
 - **Deletion**: everything held for one lawyer, client or matter is deleted
-  on request, ours and Anthropic's (`lra purge`).
+  on request, ours and Anthropic's (`second-eye purge`).
 - **Retention periods**: each of the periods above is a setting.
 
 ## What is not finished

@@ -18,8 +18,8 @@ import io
 import pytest
 from docx import Document
 
-from lra.models import Attachment
-from lra.pipeline import deadlines, extract, ics
+from secondeye.models import Attachment
+from secondeye.pipeline import deadlines, extract, ics
 
 DOCX = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
 

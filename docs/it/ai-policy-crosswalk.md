@@ -14,15 +14,15 @@ read on 2026-10-04 unless marked otherwise.
 
 | Control | What it does | Where |
 | --- | --- | --- |
-| `REPLY_POLICY=sender_only` | Every reply goes to the lawyer who sent the message and nobody else, enforced in the container and again in the Worker | `src/lra/policy.py`, `cloudflare/src/outbox.ts`; DECISIONS 31 |
-| `NO_AI_MATTERS` and "no AI for X" | A listed matter, client name or client domain gets no model call at all, only the deterministic checks; fails closed | `src/lra/policy.py`, `tests/test_no_ai.py` |
+| `REPLY_POLICY=sender_only` | Every reply goes to the lawyer who sent the message and nobody else, enforced in the container and again in the Worker | `src/secondeye/policy.py`, `cloudflare/src/outbox.ts`; DECISIONS 31 |
+| `NO_AI_MATTERS` and "no AI for X" | A listed matter, client name or client domain gets no model call at all, only the deterministic checks; fails closed | `src/secondeye/policy.py`, `tests/test_no_ai.py` |
 | Memory walls | Learned notes are kept per client or matter and read only on that client's matters; personal notes may hold no party, client, sum or proper name; the firm layer comes only from the approved playbook; an unidentified client gets no cross-matter memory; nothing proposed is used until the lawyer confirms it | `docs/memory.md`, `tests/test_memory_walls.py` |
-| Audit trail and export | One content-free row per message: sender, matter, file names, what ran, model, session ids, inference geography, where stored and until when, reply recipients, outcome; `lra audit` or an admin's email | `src/lra/audit.py` |
-| `lra purge` | Everything held for a client, matter or lawyer, Anthropic's sessions, files and memory stores included; dry run first; recorded | `src/lra/purge.py` |
-| Retention | Raw message deleted once answered; job rows 24 h; conversations, closings and unconfirmed notes 7 days after last activity (`THREAD_RETENTION_DAYS`); Anthropic sessions deleted when the review ends; no record of kept or undone changes (`LEARN_FROM_OUTCOMES` off); archive off; a daily sweep | `docs/trust.md`, `src/lra/retention.py` |
+| Audit trail and export | One content-free row per message: sender, matter, file names, what ran, model, session ids, inference geography, where stored and until when, reply recipients, outcome; `second-eye audit` or an admin's email | `src/secondeye/audit.py` |
+| `second-eye purge` | Everything held for a client, matter or lawyer, Anthropic's sessions, files and memory stores included; dry run first; recorded | `src/secondeye/purge.py` |
+| Retention | Raw message deleted once answered; job rows 24 h; conversations, closings and unconfirmed notes 7 days after last activity (`THREAD_RETENTION_DAYS`); Anthropic sessions deleted when the review ends; no record of kept or undone changes (`LEARN_FROM_OUTCOMES` off); archive off; a daily sweep | `docs/trust.md`, `src/secondeye/retention.py` |
 | Human review | Output is tracked changes and comments in Word for the lawyer; nothing is accepted, filed or sent to anyone else | `docs/trust.md` |
-| Firm-held key | Documents sealed with the firm's `DATA_KEY` before storage | `src/lra/crypto.py` |
-| Privilege legend | `PRIVILEGE_NOTICE` on every reply and an `X-Privileged` header | `src/lra/policy.py` |
+| Firm-held key | Documents sealed with the firm's `DATA_KEY` before storage | `src/secondeye/crypto.py` |
+| Privilege legend | `PRIVILEGE_NOTICE` on every reply and an `X-Privileged` header | `src/secondeye/policy.py` |
 | Web search off | `WEB_SEARCH_ENABLED=false`; the sandbox reaches no host but package registries | `docs/sandbox.md` |
 | No training | Anthropic: "Anthropic may not train models on Customer Content from Services" ([Commercial Terms, B](https://www.anthropic.com/legal/commercial-terms)) | `subprocessors.md` |
 
@@ -38,7 +38,7 @@ read on 2026-10-04 unless marked otherwise.
 | Understand the vendor's terms, retention and security | 5.1, 5.3 | `subprocessors.md`, `architecture.md` (retention at Anthropic stated exactly: deleted when the review ends, under Anthropic's own up-to-30-day backend retention), `questionnaire.md` | Reading them and recording the assessment |
 | Verify output before relying on it | 1.1, 3.1, 3.3 | Every change is a tracked change for a lawyer to accept or reject; every returned file is re-verified by code; the deterministic findings are evidence, not the model's word | The lawyer's review |
 | Supervise: firm policies, training, and oversight of lawyers and non-lawyers using the tool | 5.1, 5.3 | The audit trail answers "who used it, on what, what ran, where the answer went" for any period | A written AI-use policy |
-| Communicate with the client about use of the tool where relevant | 1.4 | The no-AI list; the audit export per matter (`lra audit --matter`) | The client conversation |
+| Communicate with the client about use of the tool where relevant | 1.4 | The no-AI list; the audit export per matter (`second-eye audit --matter`) | The client conversation |
 | Fees reflect time actually spent; no charge for learning the tool | 1.5 | — | Billing practice |
 
 ## The SRA and the Law Society (England and Wales)
@@ -62,7 +62,7 @@ summary.
 | Protect confidential information and client data in AI use | Sender-only replies; no-AI list; memory walls; firm-held key for documents; no training | D1 rows are not under the firm's key; the model runs in the US with no UK option, so a transfer assessment under UK GDPR (Anthropic's DPA includes the UK Addendum) |
 | Accountability stays with the firm, not the vendor or IT | Every setting is the firm's, in a committed file; the audit trail is the firm's record | Naming the accountable partner |
 | Tell clients when AI is used on their case and how | `docs/trust.md` is written to be shown to a client; the no-AI list for those who decline | The client communication |
-| Supervise the system and check its results | Tracked changes for a lawyer to decide; output re-verified by code; audit trail; `lra selftest` for configuration | Spot-checks of output |
+| Supervise the system and check its results | Tracked changes for a lawyer to decide; output re-verified by code; audit trail; `second-eye selftest` for configuration | Spot-checks of output |
 | Data protection (UK GDPR): DPIA, processor terms, transfers | `architecture.md` and `subprocessors.md` as DPIA inputs; Anthropic's DPA with SCCs and UK Addendum; D1 and R2 in the EU with `--jurisdiction eu` | The DPIA itself; **our DPA is not drafted** (`questionnaire.md`) |
 
 ## Bank and insurer outside-counsel guidelines
@@ -87,10 +87,10 @@ or destruction at matter end (summary of the ACC model controls:
 | **No client data in public or consumer AI tools; no training** | Commercial API under Anthropic's Commercial Terms (no training); no consumer product; web search off | — |
 | **Lawyer review of AI output** | Tracked changes and comments only; nothing reaches a client without the lawyer sending it | — |
 | **Confidentiality walls / need to know** | Memory walled by client; sender-only replies; per-lawyer conversations; DMS read with the lawyer's own permissions if connected | Per-matter screens between lawyers: **not built** |
-| **Retention limits; return or destroy at matter end** | `lra purge --client` or `--matter`, Anthropic's copies included, with a dry run and a record; retention settings | No deletion certificate yet |
+| **Retention limits; return or destroy at matter end** | `second-eye purge --client` or `--matter`, Anthropic's copies included, with a dry run and a record; retention settings | No deletion certificate yet |
 | **Data location** | D1 and R2 can be EU; `INFERENCE_GEO=us` pins one country | No EU or UK model processing |
 | **Subcontractor approval** | `subprocessors.md` with a notice clause to agree | The clause is a template **[Founder decision]** |
 | **Breach notice in 24-72 h** | `incident-response.md` template | Not yet in a signed agreement **[Founder decision]** |
 | **Encryption in transit and at rest** | HTTPS between components; documents sealed with the firm's key | SMTP TLS is as negotiated unless the firm forces it (`mail-flow.md`); D1 rows not under the firm's key |
-| **Audit rights / evidence of testing** | Audit trail; `lra selftest` report; this pack | No third-party pen test or certification yet |
+| **Audit rights / evidence of testing** | Audit trail; `second-eye selftest` report; this pack | No third-party pen test or certification yet |
 | **Zero data retention** at the model provider | `ZERO_RETENTION` for the model calls only; Managed Agents is not ZDR-eligible | A client that requires ZDR goes on the no-AI list |

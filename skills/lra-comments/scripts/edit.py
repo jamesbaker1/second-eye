@@ -24,8 +24,8 @@ def main() -> None:
     parser.add_argument("--out", help="where to write the result (default: in place)")
     args = parser.parse_args()
 
-    from lra.models import Finding, Mode, ReviewResult, Severity
-    from lra.pipeline import redline
+    from secondeye.models import Finding, Mode, ReviewResult, Severity
+    from secondeye.pipeline import redline
 
     try:
         raw = json.loads(Path(args.changes).read_text())

@@ -16,7 +16,7 @@ def main() -> None:
     parser.add_argument("--out", required=True)
     args = parser.parse_args()
 
-    from lra.pipeline import closing_docs
+    from secondeye.pipeline import closing_docs
 
     try:
         pdf, info = closing_docs.receive(read(args.input), Path(args.input).name, args.page)

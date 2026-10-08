@@ -18,8 +18,8 @@ from pathlib import Path
 import pytest
 from docx import Document
 
-from lra import archive, crypto, d1, edge, memory, oauth, store, thread
-from lra.models import Attachment, InboundEmail, OutboundEmail
+from secondeye import archive, crypto, d1, edge, memory, oauth, store, thread
+from secondeye.models import Attachment, InboundEmail, OutboundEmail
 from tests.fake_edge import FakeEdge
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -30,7 +30,7 @@ OTHER_KEY = "ZmVkY2JhOTg3NjU0MzIxMGZlZGNiYTk4NzY1NDMyMTA="
 @pytest.fixture
 def cloud(monkeypatch, tmp_path):
     """D1 and R2, played by the fake Worker, with a data key set."""
-    from lra.config import settings
+    from secondeye.config import settings
 
     monkeypatch.setenv("DATA_KEY", KEY)
     monkeypatch.setenv("EDGE_URL", "https://edge.test")
@@ -62,7 +62,7 @@ def docx_bytes(text="1. The term is thirty days.") -> bytes:
 
 
 def test_what_is_sealed_opens_and_is_not_readable_without_the_key(cloud, monkeypatch):
-    from lra.config import settings
+    from secondeye.config import settings
 
     sealed = crypto.seal(b"privileged and confidential")
     assert sealed.startswith(b"enc:v1:") and b"privileged" not in sealed
@@ -77,7 +77,7 @@ def test_what_is_sealed_opens_and_is_not_readable_without_the_key(cloud, monkeyp
 
 
 def test_a_rotated_key_still_reads_what_the_old_one_sealed(cloud, monkeypatch):
-    from lra.config import settings
+    from secondeye.config import settings
 
     old = crypto.seal(b"sealed last quarter")
     monkeypatch.setenv("DATA_KEY", OTHER_KEY)
@@ -100,7 +100,7 @@ def test_with_a_key_set_plaintext_is_refused_not_read(cloud):
 
 
 def test_without_a_key_plaintext_is_read_as_it_is(monkeypatch):
-    from lra.config import settings
+    from secondeye.config import settings
 
     monkeypatch.setenv("DATA_KEY", "")
     monkeypatch.setenv("DATA_KEY_PREVIOUS", "")
@@ -113,7 +113,7 @@ def test_without_a_key_plaintext_is_read_as_it_is(monkeypatch):
 
 
 def test_a_malformed_key_is_refused_loudly(monkeypatch):
-    from lra.config import settings
+    from secondeye.config import settings
 
     monkeypatch.setenv("DATA_KEY", "dG9vLXNob3J0")  # valid base64, nine bytes
     settings.cache_clear()
@@ -125,8 +125,8 @@ def test_a_malformed_key_is_refused_loudly(monkeypatch):
 
 
 def test_the_service_will_not_start_on_d1_without_a_key(cloud, monkeypatch):
-    from lra import main
-    from lra.config import settings
+    from secondeye import main
+    from secondeye.config import settings
 
     monkeypatch.setenv("DATA_KEY", "")
     settings.cache_clear()
@@ -161,7 +161,7 @@ def test_a_newer_version_replaces_the_stored_document_rather_than_orphaning_it(c
 
 
 def test_retention_deletes_the_document_not_just_the_row(cloud, monkeypatch):
-    from lra.config import settings
+    from secondeye.config import settings
 
     thread.start("old", "jim@firm.com", "Old.docx", docx_bytes(), None)
     thread.start("new", "jim@firm.com", "New.docx", docx_bytes(), None)
@@ -185,7 +185,7 @@ def test_a_lawyers_conversations_can_all_be_deleted_on_request(cloud):
 
 
 def test_archived_attachments_follow_the_same_rules(cloud, monkeypatch):
-    from lra.config import settings
+    from secondeye.config import settings
 
     monkeypatch.setenv("ARCHIVE_ENABLED", "true")
     settings.cache_clear()
@@ -267,7 +267,7 @@ def test_a_reply_finds_its_thread_through_the_references_chain(cloud):
 
 
 def test_the_provider_only_accepts_our_own_worker(cloud):
-    from lra.mail import get_provider
+    from secondeye.mail import get_provider
 
     provider = get_provider()
     assert provider.name == "cloudflare"
@@ -277,7 +277,7 @@ def test_the_provider_only_accepts_our_own_worker(cloud):
 
 
 def test_a_reply_is_sent_in_the_shape_the_email_service_takes(cloud):
-    from lra.mail import get_provider
+    from secondeye.mail import get_provider
 
     sent_id = get_provider().send(OutboundEmail(
         to=["jim@firm.com"], subject="Re: NDA - Looks good", text_body="Fine.",
@@ -294,8 +294,8 @@ def test_a_reply_is_sent_in_the_shape_the_email_service_takes(cloud):
 
 
 def test_a_reply_too_big_for_cloudflare_fails_before_it_is_sent(cloud):
-    from lra.mail import get_provider
-    from lra.mail.cloudflare import MessageTooLarge
+    from secondeye.mail import get_provider
+    from secondeye.mail.cloudflare import MessageTooLarge
 
     big = Attachment(filename="big.docx", content_type="x", size_bytes=1,
                      content=b"0" * (5 * 1024 * 1024))
@@ -309,8 +309,8 @@ def test_a_reply_too_big_for_cloudflare_fails_before_it_is_sent(cloud):
 
 
 def test_a_body_too_big_on_its_own_says_so(cloud):
-    from lra.mail import get_provider
-    from lra.mail.cloudflare import MessageTooLarge
+    from secondeye.mail import get_provider
+    from secondeye.mail.cloudflare import MessageTooLarge
 
     with pytest.raises(MessageTooLarge) as refused:
         get_provider().send(OutboundEmail(to=["jim@firm.com"], subject="s",
@@ -347,7 +347,7 @@ def prepare(client, sealed: bytes, job: str = "rf-cloudflare-1", **headers):
 def test_a_sealed_message_from_the_worker_becomes_a_sent_reply(cloud):
     from fastapi.testclient import TestClient
 
-    from lra import main
+    from secondeye import main
 
     client = TestClient(main.app)
     sealed = crypto.seal(raw_message())          # what the Worker leaves in R2
@@ -371,7 +371,7 @@ def test_a_sealed_message_from_the_worker_becomes_a_sent_reply(cloud):
 def test_a_message_that_cannot_be_parsed_is_acknowledged_not_retried(cloud):
     from fastapi.testclient import TestClient
 
-    from lra import main
+    from secondeye import main
 
     response = prepare(TestClient(main.app), crypto.seal(b"Subject: no sender\r\n\r\nhello"),
                        authorization="Bearer s3cret")
@@ -385,8 +385,8 @@ def test_a_message_no_key_opens_is_refused_loudly_so_the_step_retries(cloud, mon
     take its failure path, where the sender is told."""
     from fastapi.testclient import TestClient
 
-    from lra import main
-    from lra.config import settings
+    from secondeye import main
+    from secondeye.config import settings
 
     sealed = crypto.seal(raw_message())
     monkeypatch.setenv("DATA_KEY", OTHER_KEY)

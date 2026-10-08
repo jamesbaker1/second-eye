@@ -1,9 +1,9 @@
 # The associate: carries out a lawyer's plain-English instruction on a
 # document already under review, and does the one-shot jobs that need code
 # against a file (convert a legacy format, repair formatting, build a derived
-# spreadsheet). Applied by `lra agents apply`, which adds the custom tools
+# spreadsheet). Applied by `second-eye agents apply`, which adds the custom tools
 # (make_changes, read_document, note_for_next_time), the skills and the
-# settings-driven model fields. See src/lra/pipeline/instruct.py.
+# settings-driven model fields. See src/secondeye/pipeline/instruct.py.
 name: LRA associate
 description: >-
   Carries out one instruction on a mounted document: proposes tracked changes
@@ -11,11 +11,11 @@ description: >-
   runs conversion and formatting-repair jobs whose results are verified
   locally before anyone sees them.
 model: claude-fable-5-1
-system_file: ../src/lra/prompts/associate_system.md
+system_file: ../src/secondeye/prompts/associate_system.md
 # Reads the firm's document system (the matter's other documents): with
-# DMS_PROVIDER set, `lra agents apply` gives it the MCP server in
+# DMS_PROVIDER set, `second-eye agents apply` gives it the MCP server in
 # cloudflare/dms-mcp with an always_allow toolset, and each session binds it
-# to its matter (src/lra/dms_mcp.py).
+# to its matter (src/secondeye/dms_mcp.py).
 document_system: true
 tools:
   - type: agent_toolset_20260401

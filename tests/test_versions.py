@@ -12,11 +12,11 @@ from io import BytesIO
 import pytest
 from docx import Document
 
-from lra import handler
-from lra.mail.console import ConsoleProvider
-from lra.models import Attachment, InboundEmail
-from lra.pipeline import checks, compare, intake
-from lra.pipeline.ooxml import Revision, RevisionWriter
+from secondeye import handler
+from secondeye.mail.console import ConsoleProvider
+from secondeye.models import Attachment, InboundEmail
+from secondeye.pipeline import checks, compare, intake
+from secondeye.pipeline.ooxml import Revision, RevisionWriter
 
 DOCX = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
 
@@ -47,7 +47,7 @@ def captured(monkeypatch, tmp_path):
     monkeypatch.setenv("DATABASE_URL", f"sqlite:///{tmp_path}/versions.sqlite3")
     monkeypatch.setenv("MAIL_AGENT_ADDRESS", "review@legal.firm.com")
     monkeypatch.setenv("FIRM_DOMAINS", "firm.com")
-    from lra.config import settings
+    from secondeye.config import settings
 
     settings.cache_clear()
     provider = Captured()
@@ -396,7 +396,7 @@ def test_a_reply_to_a_comparison_reviews_the_later_version_with_it(captured, mon
     def fake_review(doc, mode, instructions, **kwargs):
         seen["filename"] = doc.filename
         seen["instructions"] = instructions
-        from lra.models import ReviewResult
+        from secondeye.models import ReviewResult
         return ReviewResult(mode=mode, summary="Clause 4 locks you in.", findings=[])
 
     monkeypatch.setattr(handler.review, "review", fake_review)

@@ -31,16 +31,16 @@ round, and what happens after it is sent.** Every beat is one of those.
    `demos/falcon/out/<step>/`. Open a few attachments in Word.
 
 2. **Configure production** (the vars in the deployment's
-   `deployments/<name>/tenant.jsonc`, then `lra tenant render <name>`; or
+   `deployments/<name>/tenant.jsonc`, then `second-eye tenant render <name>`; or
    `.env` for a laptop run), then push:
 
    | Setting | Value | Why |
    | --- | --- | --- |
    | `PLAYBOOK_ADMINS` | the address in `DEMO_LAWYER` | Otherwise a Gmail sender is not a playbook admin and beat 1 is refused |
-   | `MANAGED_PLAYBOOK_AGENT_ID`, `MANAGED_COMMENTS_AGENT_ID`, `MANAGED_CLOSING_AGENT_ID` and the review ids | from `lra agents apply` | Beats 1, 3 and 7e to 7g need their own agents |
-   | `SANDBOX_SKILL_ID`, `SANDBOX_PLAYBOOK_SKILL_ID`, `SANDBOX_COMMENTS_SKILL_ID`, `SANDBOX_CLOSING_SKILL_ID`, `SANDBOX_NEGOTIATION_SKILL_ID` | from `lra skills sync <name>` | Without the negotiation skill, beat 4 is an ordinary review and the lie detector never runs |
+   | `MANAGED_PLAYBOOK_AGENT_ID`, `MANAGED_COMMENTS_AGENT_ID`, `MANAGED_CLOSING_AGENT_ID` and the review ids | from `second-eye agents apply` | Beats 1, 3 and 7e to 7g need their own agents |
+   | `SANDBOX_SKILL_ID`, `SANDBOX_PLAYBOOK_SKILL_ID`, `SANDBOX_COMMENTS_SKILL_ID`, `SANDBOX_CLOSING_SKILL_ID`, `SANDBOX_NEGOTIATION_SKILL_ID` | from `second-eye skills sync <name>` | Without the negotiation skill, beat 4 is an ordinary review and the lie detector never runs |
 
-   Register the client once: `lra clients add 1042 "Northwind Holdings Limited"
+   Register the client once: `second-eye clients add 1042 "Northwind Holdings Limited"
    --alias Northwind --domain northwind.example`. Put credit on the Anthropic
    account.
 

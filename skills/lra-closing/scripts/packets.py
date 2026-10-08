@@ -19,7 +19,7 @@ def main() -> None:
     parser.add_argument("--draft", required=True, help="where to write the draft state")
     args = parser.parse_args()
 
-    from lra.pipeline import closing_docs, closing_state
+    from secondeye.pipeline import closing_docs, closing_state
 
     plan = load_json(args.plan)
     try:

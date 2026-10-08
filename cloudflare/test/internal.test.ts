@@ -25,7 +25,7 @@ async function signed(path: string, opts: {
   const signature = await sign(opts.secret ?? OPERATOR, method, path, time, nonce, bytes);
   return new Request(`https://edge.test${path}`, {
     method,
-    headers: { "x-lra-time": time, "x-lra-nonce": nonce, "x-lra-signature": signature },
+    headers: { "x-second-eye-time": time, "x-second-eye-nonce": nonce, "x-second-eye-signature": signature },
     body: method === "GET" ? undefined : body,
   });
 }

@@ -9,8 +9,8 @@ from __future__ import annotations
 
 import pytest
 
-from lra.models import Attachment
-from lra.pipeline import checks, extract, reflow
+from secondeye.models import Attachment
+from secondeye.pipeline import checks, extract, reflow
 from tests.test_reflow import blank_pdf, pdf_of
 
 SCAN_TEXT = "1. Term. The term is thirty (13) days.\n\n2. Law. English law applies."

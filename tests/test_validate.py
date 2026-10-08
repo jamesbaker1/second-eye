@@ -13,9 +13,9 @@ from io import BytesIO
 import pytest
 from docx import Document
 
-from lra.pipeline import redline
-from lra.pipeline.ooxml import Revision, RevisionWriter
-from lra.pipeline.validate import validate
+from secondeye.pipeline import redline
+from secondeye.pipeline.ooxml import Revision, RevisionWriter
+from secondeye.pipeline.validate import validate
 
 
 def save(doc) -> bytes:

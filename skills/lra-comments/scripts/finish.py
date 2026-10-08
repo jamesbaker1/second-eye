@@ -21,7 +21,7 @@ def main() -> None:
     parser.add_argument("--author", help="who our replies and changes are from")
     args = parser.parse_args()
 
-    from lra.pipeline import turning
+    from secondeye.pipeline import turning
 
     original, work = read(args.original), read(args.work)
     decided = journal(args.work)

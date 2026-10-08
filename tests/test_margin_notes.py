@@ -15,10 +15,10 @@ from io import BytesIO
 import pytest
 from docx import Document
 
-from lra import convert
-from lra.models import Finding, Mode, ReviewResult, Severity
-from lra.pipeline import redline
-from lra.pipeline.ooxml import RevisionWriter, author_initials
+from secondeye import convert
+from secondeye.models import Finding, Mode, ReviewResult, Severity
+from secondeye.pipeline import redline
+from secondeye.pipeline.ooxml import RevisionWriter, author_initials
 
 WHY = ("A cap of fees paid in the last month leaves the client with almost no "
        "recourse for a serious breach. Twelve months is the market position. "

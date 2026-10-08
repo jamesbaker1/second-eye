@@ -15,9 +15,9 @@ from io import BytesIO
 import pytest
 from docx import Document
 
-from lra import handler
-from lra.models import Attachment, Finding, InboundEmail, Mode, ReviewResult, Severity
-from lra.pipeline import checks, extract, intake, redline, renumber, reply
+from secondeye import handler
+from secondeye.models import Attachment, Finding, InboundEmail, Mode, ReviewResult, Severity
+from secondeye.pipeline import checks, extract, intake, redline, renumber, reply
 from tests.test_versions import V1, attach, captured, docx, email  # noqa: F401
 
 
@@ -227,7 +227,7 @@ def test_a_refused_renumber_is_one_sentence_and_no_file(captured):  # noqa: F811
 
 def test_renumber_as_a_reply_uses_the_document_the_conversation_holds(
         captured, monkeypatch):  # noqa: F811
-    from lra.pipeline import compare
+    from secondeye.pipeline import compare
 
     monkeypatch.setattr(compare, "_assess", lambda *a, **k: None)
     later = ["1. Term. Twelve months.", "3. Law. Clause 1 governs."]

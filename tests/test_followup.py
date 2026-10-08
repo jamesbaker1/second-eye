@@ -14,9 +14,9 @@ from io import BytesIO
 import pytest
 from docx import Document
 
-from lra import followup, handler, thread
-from lra.mail.console import ConsoleProvider
-from lra.models import Attachment, Finding, InboundEmail, ReviewResult, Severity
+from secondeye import followup, handler, thread
+from secondeye.mail.console import ConsoleProvider
+from secondeye.models import Attachment, Finding, InboundEmail, ReviewResult, Severity
 
 DOCX = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
 
@@ -35,7 +35,7 @@ def captured(monkeypatch, tmp_path):
     monkeypatch.setenv("DATABASE_URL", f"sqlite:///{tmp_path}/f.sqlite3")
     monkeypatch.setenv("MAIL_AGENT_ADDRESS", "review@legal.firm.com")
     monkeypatch.setenv("FIRM_DOMAINS", "firm.com")
-    from lra.config import settings
+    from secondeye.config import settings
 
     settings.cache_clear()
     provider = Captured()
@@ -115,7 +115,7 @@ def test_a_one_word_answer_produces_a_tracked_change(captured, monkeypatch):
     assert "Noted: 30" in out.text_body
     assert out.attachments, "no updated document came back"
 
-    from lra.pipeline import redline
+    from secondeye.pipeline import redline
 
     ok, why = redline.verify(out.attachments[0].content, expect_revisions=True)
     assert ok, why
@@ -391,7 +391,7 @@ def test_the_answers_to_every_question_in_one_reply(captured, monkeypatch, no_mo
     assert out.text_body.startswith("Noted: 30 and 2. I have made those changes.")
     assert "Still waiting on" not in out.text_body
 
-    from lra.pipeline import redline
+    from secondeye.pipeline import redline
 
     ok, why = redline.verify(out.attachments[0].content, expect_revisions=True)
     assert ok, why
@@ -548,7 +548,7 @@ def test_only_the_answers_that_reached_the_document_are_claimed():
 def test_an_instruction_beside_clean_copy_is_made_not_dropped(captured, monkeypatch):
     """ "clean copy" on its own line used to win outright: the change asked
     for above it was dropped without a word, and the clean copy lacked it."""
-    from lra.pipeline import instruct
+    from secondeye.pipeline import instruct
 
     heard: list[str] = []
 

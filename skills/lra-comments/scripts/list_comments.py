@@ -17,7 +17,7 @@ def main() -> None:
 
     from docx import Document
 
-    from lra.pipeline import ooxml, wordcomments
+    from secondeye.pipeline import ooxml, wordcomments
 
     content = read(args.input)
     try:

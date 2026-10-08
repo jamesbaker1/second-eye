@@ -15,10 +15,10 @@ from io import BytesIO
 import pytest
 from docx import Document
 
-from lra import handler
-from lra.mail.console import ConsoleProvider
-from lra.models import Attachment, InboundEmail, ReviewResult
-from lra.pipeline import instruct
+from secondeye import handler
+from secondeye.mail.console import ConsoleProvider
+from secondeye.models import Attachment, InboundEmail, ReviewResult
+from secondeye.pipeline import instruct
 
 DOCX = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
 
@@ -37,7 +37,7 @@ def captured(monkeypatch, tmp_path):
     monkeypatch.setenv("DATABASE_URL", f"sqlite:///{tmp_path}/i.sqlite3")
     monkeypatch.setenv("MAIL_AGENT_ADDRESS", "review@legal.firm.com")
     monkeypatch.setenv("FIRM_DOMAINS", "firm.com")
-    from lra.config import settings
+    from secondeye.config import settings
 
     settings.cache_clear()
     provider = Captured()
@@ -117,7 +117,7 @@ def test_an_instruction_produces_a_tracked_change(captured, monkeypatch):
 
     out = captured.sent[1]
     assert out.attachments, "no updated document came back"
-    from lra.pipeline import redline
+    from secondeye.pipeline import redline
 
     ok, why = redline.verify(out.attachments[0].content, expect_revisions=True)
     assert ok, why
@@ -382,7 +382,7 @@ def test_the_reply_opens_by_saying_a_file_came_back_when_nothing_changed(capture
 def test_a_redline_the_associate_wrote_itself_is_never_attached(captured, monkeypatch):
     """Edits go through make_changes and the local writer, so an "(redline)"
     file left in the session outputs is not a deliverable, whatever it holds."""
-    from lra import managed
+    from secondeye import managed
 
     start(captured, monkeypatch)
     from io import BytesIO
@@ -408,7 +408,7 @@ def test_the_writer_is_still_unreachable_from_the_session():
     produces new files only, and the associate's prompt says so in terms."""
     import inspect
 
-    from lra.pipeline import instruct, ooxml, redline
+    from secondeye.pipeline import instruct, ooxml, redline
 
     for module in (ooxml, redline):
         assert "managed" not in inspect.getsource(module).lower()

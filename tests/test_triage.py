@@ -15,10 +15,10 @@ from types import SimpleNamespace
 
 import pytest
 
-from lra import config, handler, triage
-from lra.config import settings
-from lra.models import Attachment, InboundEmail
-from lra.store import connect
+from secondeye import config, handler, triage
+from secondeye.config import settings
+from secondeye.models import Attachment, InboundEmail
+from secondeye.store import connect
 from tests.test_followup import (
     DOCX,
     TYPO,

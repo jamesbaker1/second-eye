@@ -27,7 +27,7 @@ def main() -> None:
                         help="where the recorded findings go (default: the session outputs)")
     args = parser.parse_args()
 
-    from lra.report import check_report, nothing_recorded
+    from secondeye.report import check_report, nothing_recorded
 
     schema = json.loads((ROOT / "findings.schema.json").read_text())
     try:

@@ -100,7 +100,7 @@ def exhibit() -> bytes:
 
 
 def message() -> bytes:
-    """The email, as a .eml that `lra replay` reads and a mail client opens."""
+    """The email, as a .eml that `second-eye replay` reads and a mail client opens."""
     msg = EmailMessage()
     msg["From"] = FROM
     msg["To"] = TO

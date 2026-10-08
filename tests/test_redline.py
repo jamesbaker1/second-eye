@@ -7,8 +7,8 @@ happens when an edit cannot be made safely.
 
 from pathlib import Path
 
-from lra.models import Finding, Mode, ReviewResult, Severity
-from lra.pipeline import redline
+from secondeye.models import Finding, Mode, ReviewResult, Severity
+from secondeye.pipeline import redline
 
 
 def result(*findings) -> ReviewResult:

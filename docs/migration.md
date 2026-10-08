@@ -48,8 +48,8 @@ Cron (daily): sweep sessions a lost webhook left waiting; retention purge
 
 ## Phase 0: one live baseline (blocked on credit)
 
-`lra skills sync`, `lra agents apply`, then `lra eval --live --budget-usd 40`
-and one real email. `lra live-check` runs all of it but the email, in order,
+`second-eye skills sync`, `second-eye agents apply`, then `second-eye eval --live --budget-usd 40`
+and one real email. `second-eye live-check` runs all of it but the email, in order,
 within one budget. Every unknown below that says "needs a live run" is
 settled here, and the scorecard gives a before number for each later phase.
 
@@ -59,9 +59,9 @@ Built 2026-09-28 and tested only against the fake in `tests/fake_sessions.py`
 (`tests/test_detached.py`). `review.start` and `review.finish` are the two halves the Workflow's start
 and finish steps call; `review.review` runs both in one process and polls.
 Since phase 5 it is the only reviewer. First live
-run: `lra agents apply` (it now creates the detached reviewer and prints
-`MANAGED_REVIEW_DETACHED_AGENT_ID`), then `lra review --live --detached
-<file.docx>` beside `lra review --live` on the same file.
+run: `second-eye agents apply` (it now creates the detached reviewer and prints
+`MANAGED_REVIEW_DETACHED_AGENT_ID`), then `second-eye review --live --detached
+<file.docx>` beside `second-eye review --live` on the same file.
 
 - The agent writes `/mnt/session/outputs/findings.json`, the redline and
   `notes.json`. The schema moves out of `review.REPORT_TOOL` into
@@ -80,8 +80,8 @@ run: `lra agents apply` (it now creates the detached reviewer and prints
   review) and `retries_exhausted` (a mechanical-only reply). Fetch outputs by
   session scope, retrying for the indexing lag. If the file is missing or
   invalid, send one correction message, then degrade as today.
-- `lra review --live --detached` polls, so it runs locally with no webhook.
-- Skills stay on `lra skills sync`, pinned to the versions it returns, rather
+- `second-eye review --live --detached` polls, so it runs locally with no webhook.
+- Skills stay on `second-eye skills sync`, pinned to the versions it returns, rather
   than loaded from GitHub. Discovery wants `.claude/skills/`, the document
   tools depend on bundled modules, and a repository mount puts a token and the
   whole repo beside a client's document.
@@ -97,8 +97,8 @@ otherwise today's streaming review on a thread in the container.
   a `workflows` binding, a cron trigger, and the secret
   `ANTHROPIC_WEBHOOK_SIGNING_KEY` in `wrangler.jsonc`.
 - Container endpoints `/prepare`, `/session/start`, `/session/status`, `/finish`, `/finished` and
-  `/fail`, over a sealed job state in R2 (`src/lra/jobstate.py`). `/jobs`
-  stays for the queue path and `lra replay`.
+  `/fail`, over a sealed job state in R2 (`src/secondeye/jobstate.py`). `/jobs`
+  stays for the queue path and `second-eye replay`.
 - The webhook is only a way to wake up sooner. Anthropic tries it three times
   and then drops it without telling anyone, so every wait has a 60-second
   timeout followed by a poll, and the daily sweep catches the rest.
@@ -120,14 +120,14 @@ otherwise today's streaming review on a thread in the container.
 ## Phase 3: the model decides (DECISIONS 30)
 
 Triage built 2026-09-28 behind `TRIAGE=rules|shadow|model` (default `shadow`),
-tested only with the call stubbed (`tests/test_triage.py`). `src/lra/triage.py`
+tested only with the call stubbed (`tests/test_triage.py`). `src/secondeye/triage.py`
 makes the call and holds `rules_plan`, the rules' decision as the same plan;
 shadow writes both, content-free, to the audit row's `triage` column; model
 carries the plan out through `handler._dispatch`, which calls the handlers the
 rules path calls. Never triaged: a no-AI client (matter, recipients, the
 conversation's document, an attached Word file's parties). Recipients from a
-plan take effect only under `REPLY_POLICY=model`. Scored with `lra eval
---triage --stub` (the rules' baseline) and `lra eval --triage --live`.
+plan take effect only under `REPLY_POLICY=model`. Scored with `second-eye eval
+--triage --stub` (the rules' baseline) and `second-eye eval --triage --live`.
 The other rows of the table below are not started.
 
 Every decision now made by a regex or a rule is made by the model, from the
@@ -178,7 +178,7 @@ James approved Anthropic holding each lawyer's iManage tokens.
   matter parameter; a URL whose matter or lawyer was changed is refused with a
   403; no matter, an expired binding or no credential gets a sentence the
   model can pass on.
-- Consent (`src/lra/dms_mcp.py`): the callback exchanges the code as before
+- Consent (`src/secondeye/dms_mcp.py`): the callback exchanges the code as before
   and writes an `mcp_oauth` credential into the lawyer's own vault (one per
   lawyer, recorded in `dms_vaults`), with iManage's token endpoint as the
   refresh endpoint. "revoke" archives it. Sessions attach it with `vault_ids`
@@ -227,18 +227,18 @@ Removed:
   `busyFor` are gone; the Workflow's failure path answers the sender from the
   headers when nothing was prepared, as the dead-letter consumer did. Held
   mail is released into a Workflow. The container's `/jobs` route is gone:
-  `lra replay` and the tests call `handler.handle()` directly.
+  `second-eye replay` and the tests call `handler.handle()` directly.
 - **The streaming review.** `REVIEW_TRANSPORT` and the stream half of
   `review.review` (report_findings answered over the stream, `OUT_OF_TIME`,
   `REPORT_TOOL`, `CUSTOM_TOOLS`), `sessions_api.InProcessSessions` and its
   heartbeat, and the Workflow's 5-second poll for sessions no webhook could
   wake. `agents/review.agent.yaml` is now the clientless reviewer (it was
-  `review-detached.agent.yaml`), with its prompt and rubric. `lra agents
+  `review-detached.agent.yaml`), with its prompt and rubric. `second-eye agents
   apply` updates the agent at `MANAGED_REVIEW_AGENT_ID` in place to it, or
   adopts the agent at `MANAGED_REVIEW_DETACHED_AGENT_ID` when that is still
-  set. `lra review --live` polls; `--detached` is gone.
+  set. `second-eye review --live` polls; `--detached` is gone.
 - **The custom DMS tools.** `DMS_TRANSPORT`, `DMS_BASE_URL`, the three lookups
-  as custom tools and `src/lra/dms/`. The document system is the MCP server.
+  as custom tools and `src/secondeye/dms/`. The document system is the MCP server.
 - **The timer and the lease.** `notice.SlowReviewNotice`, `notice.start`,
   `notice.Guarded`, the lease takeover in `store.claim`, `store.touch` and
   `LEASE_MINUTES`. The Workflow sends the notice (`notice.compose`), and
@@ -249,7 +249,7 @@ Kept, on purpose:
 - **The rule-based routing** (`intake`, `router`, `followup`,
   `triage.rules_plan`). It is triage's fallback when the model's plan is
   missing or refused, and the baseline the live model has to beat on the
-  scorecard (`lra eval --triage`: 85%, 40% on the hard cases). Removing it
+  scorecard (`second-eye eval --triage`: 85%, 40% on the hard cases). Removing it
   waits on a live triage run that beats it, per DECISIONS 30.
 - **The stream driver in `managed.run_session`** (reconnect, dedupe, the
   hard-deadline watchdog, custom-tool answering). The associate
@@ -259,7 +259,7 @@ Kept, on purpose:
 - **`oauth.py` and its token table.** The consent link is still ours, and
   `DMS_MCP_BINDING=capability`, the fallback if a vault drops the session
   URL's query string, embeds the lawyer's token from that table.
-- **`handler.handle()`**, the whole message in one process, for `lra replay`
+- **`handler.handle()`**, the whole message in one process, for `second-eye replay`
   and a mail vendor's webhook (`/webhooks/inbound`). It no longer sends a
   slow-review notice.
 
@@ -271,7 +271,7 @@ Deploy-time steps:
   deleted by hand once the deploy is green: `npx wrangler queues delete
   legal-review-inbound` and `legal-review-inbound-dead`. They were already
   empty: every allowlisted sender was on the canary.
-- Before the first live model run, `lra agents apply` against production, so
+- Before the first live model run, `second-eye agents apply` against production, so
   `MANAGED_REVIEW_AGENT_ID` is the clientless reviewer. Until then a review
   starts on the old streaming agent, stops on `requires_action`, and degrades
   to the mechanical-only reply.

@@ -1,6 +1,6 @@
-"""Make the bundled `lra` package importable, wherever this skill is unpacked.
+"""Make the bundled `secondeye` package importable, wherever this skill is unpacked.
 
-`lib/` and `shims/` are filled in by `lra skills sync lra-closing` from the
+`lib/` and `shims/` are filled in by `second-eye skills sync lra-closing` from the
 product's own source (the stand-in pydantic is the document tools' one), so
 the code here is never a fork of it. Every script prints one JSON object and
 exits non-zero with {"error": ...} when it could not do the job.
@@ -17,7 +17,7 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "lib"))
 
 try:
-    if os.environ.get("LRA_FORCE_SHIM"):
+    if os.environ.get("SECOND_EYE_FORCE_SHIM"):
         raise ImportError("shim forced")
     import pydantic  # noqa: F401
 except ImportError:

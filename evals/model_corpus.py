@@ -566,7 +566,7 @@ INSTRUCTIONS = {
 
 
 # --------------------------------------------------------------------------
-# Triage: what an email asks for (src/lra/triage.py, docs/migration.md phase 3)
+# Triage: what an email asks for (src/secondeye/triage.py, docs/migration.md phase 3)
 # --------------------------------------------------------------------------
 #
 # Emails with known plans. The phrasings come from the router, follow-up and
@@ -575,7 +575,7 @@ INSTRUCTIONS = {
 # reply-all with the other side on CC, a contact card beside the contract, two
 # drafts and a blackline, "their draft", an undo that names nothing, and sig
 # pages for one agreement against sig packets for a closing. Scored by
-# evals/score_model.py (`lra eval --triage`), for the rules' plan
+# evals/score_model.py (`second-eye eval --triage`), for the rules' plan
 # (triage.rules_plan) and for the model's, on the same cases.
 #
 # Each case's `expect` names only what it is about. `intents` is the set that
@@ -602,7 +602,7 @@ _DOCX_TYPE = "application/vnd.openxmlformats-officedocument.wordprocessingml.doc
 @dataclass
 class TriageCase:
     name: str
-    email: Callable[[], object]          # -> lra.models.InboundEmail
+    email: Callable[[], object]          # -> secondeye.models.InboundEmail
     expect: dict
     thread: bool = False                 # on the standard conversation (conversation())
     closing: str | None = None           # the sender has this closing open
@@ -612,7 +612,7 @@ class TriageCase:
 
 def _doc_bytes(*paragraphs: str, author: str = "", comments: tuple[str, ...] = (),
                markup_by: str = "") -> bytes:
-    from lra.pipeline.ooxml import Revision, RevisionWriter
+    from secondeye.pipeline.ooxml import Revision, RevisionWriter
 
     d = Document()
     paras = [d.add_paragraph(p) for p in paragraphs]
@@ -639,7 +639,7 @@ _AGREEMENT = (
 
 
 def _att(name: str, content: bytes | None = None, ctype: str = _DOCX_TYPE):
-    from lra.models import Attachment
+    from secondeye.models import Attachment
 
     data = _doc_bytes(*_AGREEMENT) if content is None else content
     return Attachment(filename=name, content_type=ctype, size_bytes=len(data), content=data)
@@ -656,7 +656,7 @@ def _mail(body: str, *attachments, subject: str = "Falcon SPA", sender: str = TR
           in_reply_to: str | None = None, mid: str = "triage-1"):
     from datetime import UTC, datetime
 
-    from lra.models import InboundEmail
+    from secondeye.models import InboundEmail
 
     return InboundEmail(
         message_id=mid, thread_id=None, in_reply_to=in_reply_to, from_address=sender,
@@ -673,7 +673,7 @@ def conversation():
     """The conversation every thread case is on: five changes made (numbers
     1 to 5), two questions open (11: 30 or 13 months; 12: 10 or 20 business
     days), and four findings shown as A to D."""
-    from lra import thread
+    from secondeye import thread
 
     changes = [
         thread.Change(id=100 + n, anchor=a, replacement=r, title=t, category="drafting",

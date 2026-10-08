@@ -14,8 +14,8 @@ def main() -> None:
     parser.add_argument("input")
     args = parser.parse_args()
 
-    from lra.models import Attachment
-    from lra.pipeline import extract, timeline
+    from secondeye.models import Attachment
+    from secondeye.pipeline import extract, timeline
 
     content = read(args.input)
     try:

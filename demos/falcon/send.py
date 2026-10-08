@@ -14,7 +14,7 @@ Second Eye (or, for step 6, to Harrowgate with Second Eye on Bcc). Then:
   the subject, body and attachments (all under build/) into a new message.
   For a step that replies to an earlier one, press Reply on the agent's
   reply in Gmail and paste the body: that threads it properly.
-- Locally: `lra replay <file>.eml` runs it through the handler, sending
+- Locally: `second-eye replay <file>.eml` runs it through the handler, sending
   nothing. The rehearsal (`python -m demos.falcon.rehearse`) does every step
   in order with the threading done for you.
 """

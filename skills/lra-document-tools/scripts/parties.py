@@ -12,8 +12,8 @@ from _bootstrap import fail, finish, read
 
 
 def _doc(path: str):
-    from lra.models import Attachment
-    from lra.pipeline import extract
+    from secondeye.models import Attachment
+    from secondeye.pipeline import extract
 
     content = read(path)
     return extract.extract(Attachment(
@@ -29,7 +29,7 @@ def main() -> None:
                         help="the earlier version, to see what the parties clause renamed")
     args = parser.parse_args()
 
-    from lra.pipeline import checks, dealmath
+    from secondeye.pipeline import checks, dealmath
 
     try:
         doc = _doc(args.input)

@@ -13,7 +13,7 @@ def main() -> None:
     parser.add_argument("--out", required=True)
     args = parser.parse_args()
 
-    from lra.pipeline import clean
+    from secondeye.pipeline import clean
 
     try:
         result = clean.clean(read(args.input))

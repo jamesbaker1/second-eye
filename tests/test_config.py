@@ -11,7 +11,7 @@ from __future__ import annotations
 import pytest
 from pydantic import ValidationError
 
-from lra.config import Settings, settings
+from secondeye.config import Settings, settings
 
 
 @pytest.fixture(autouse=True)

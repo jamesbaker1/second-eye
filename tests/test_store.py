@@ -14,8 +14,8 @@ from datetime import UTC, datetime, timedelta
 
 import pytest
 
-from lra import store
-from lra.config import settings
+from secondeye import store
+from secondeye.config import settings
 
 
 @pytest.fixture
@@ -73,7 +73,7 @@ def _age(message_id: str, hours: int) -> None:
 def test_an_expired_job_row_is_deleted_by_the_next_inbound_message(db, monkeypatch):
     """Retention has to happen on a path that runs.
 
-    purge() had exactly one caller, the `lra purge` command, and nothing
+    purge() had exactly one caller, the `second-eye purge` command, and nothing
     scheduled it. Sender addresses and message ids accumulated forever while
     the module docstring promised they would not.
     """

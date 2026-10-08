@@ -1,7 +1,7 @@
 # The closing agent: runs a deal's closing by email with the lra-closing
 # skill. Signature packets per signatory across several documents, signed
 # pages read and filed as they come back, the executed set with a closing
-# index, and the closing checklist. The host (src/lra/closing.py) keeps the
+# index, and the closing checklist. The host (src/secondeye/closing.py) keeps the
 # state, mounts it as /workspace/closing-state.json, and stores only an update
 # that passes the same validator the skill runs.
 #
@@ -17,7 +17,7 @@
 # to the agent definition: lra-closing lives here (extra_skills) instead of
 # being offered to every review and instruction session.
 #
-# Applied by `lra agents apply`, which fills in the model's settings-driven
+# Applied by `second-eye agents apply`, which fills in the model's settings-driven
 # fields and the skills: Anthropic's four document skills, this product's,
 # and SANDBOX_CLOSING_SKILL_ID.
 name: LRA closing
@@ -27,7 +27,7 @@ description: >-
   closing index, and the closing checklist. Writes the closing's new state
   and its files to the session outputs; edits no document.
 model: claude-fable-5-1
-system_file: ../src/lra/prompts/closing_system.md
+system_file: ../src/secondeye/prompts/closing_system.md
 extra_skills:
   - sandbox_closing_skill_id
 tools:

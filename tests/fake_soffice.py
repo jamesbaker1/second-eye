@@ -10,8 +10,8 @@ It lays a Word file out as a real multi-page PDF, deterministically: the
 page header on every page, one paragraph after another, and a new page
 before the "IN WITNESS" line, so a document's signature blocks sit alone on
 its last page as they do in a real agreement. With
-LRA_FAKE_SOFFICE_LAYOUT=one everything shares one page, as a short document
-does under the real LibreOffice. With LRA_FAKE_SOFFICE_LAYOUT=fail it fails
+SECOND_EYE_FAKE_SOFFICE_LAYOUT=one everything shares one page, as a short document
+does under the real LibreOffice. With SECOND_EYE_FAKE_SOFFICE_LAYOUT=fail it fails
 the way an absent or broken LibreOffice does: no output file.
 """
 
@@ -33,7 +33,7 @@ def _paragraphs(document) -> list[str]:
 
 def main() -> int:
     args = sys.argv[1:]
-    layout = os.environ.get("LRA_FAKE_SOFFICE_LAYOUT", "split")
+    layout = os.environ.get("SECOND_EYE_FAKE_SOFFICE_LAYOUT", "split")
     target = args[args.index("--convert-to") + 1]
     outdir = Path(args[args.index("--outdir") + 1])
     source = Path(args[-1])

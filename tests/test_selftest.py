@@ -1,4 +1,4 @@
-"""`lra selftest` (src/lra/selftest.py): a firm's IT checks the deployment.
+"""`second-eye selftest` (src/secondeye/selftest.py): a firm's IT checks the deployment.
 
 What it must never do is as tested as what it reports: no model call (the
 fake Anthropic client has nothing but `retrieve`), no email, no write, and
@@ -14,8 +14,8 @@ from types import SimpleNamespace as NS
 
 import pytest
 
-from lra import audit, crypto, selftest, tenant
-from lra.selftest import FAIL, INFO, PASS, SKIP, WARN
+from secondeye import audit, crypto, selftest, tenant
+from secondeye.selftest import FAIL, INFO, PASS, SKIP, WARN
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -31,7 +31,7 @@ SAFE = {
     "INFERENCE_GEO": "us",
     "PLAYBOOK_ADMINS": "gc@acme-law.com",
     "MAX_EMAILS_PER_DAY": "200",
-    "EDGE_URL": "https://legal-review-agent-acme.example.workers.dev",
+    "EDGE_URL": "https://second-eye-acme.example.workers.dev",
     "MANAGED_REVIEW_AGENT_ID": "agent_review",
     "MANAGED_ASSOCIATE_AGENT_ID": "agent_assoc",
     "MANAGED_ENVIRONMENT_ID": "env_1",
@@ -120,7 +120,7 @@ def test_retention_defaults_are_the_products_seven_days():
     """Unset, THREAD_RETENTION_DAYS and ARCHIVE_RETENTION_DAYS are 7
     (config.py), which passes; the archive on with no retention set is the
     default 7 days, a WARN for being on, not a FAIL for keeping for ever."""
-    from lra.config import Settings
+    from secondeye.config import Settings
 
     assert Settings.model_fields["thread_retention_days"].default == 7
     assert Settings.model_fields["archive_retention_days"].default == 7
@@ -314,8 +314,8 @@ def test_a_missing_worker_secret_fails():
 
 @pytest.fixture
 def database(monkeypatch, tmp_path):
-    monkeypatch.setenv("DATABASE_URL", f"sqlite:///{tmp_path}/lra.sqlite3")
-    from lra.config import settings
+    monkeypatch.setenv("DATABASE_URL", f"sqlite:///{tmp_path}/second-eye.sqlite3")
+    from secondeye.config import settings
 
     settings.cache_clear()
     yield
@@ -335,10 +335,10 @@ def test_the_audit_export_writes_nothing(database, tmp_path):
     and the self-test does not create one."""
     check = selftest.audit_check()
     assert check.status == WARN
-    from lra.store import is_d1
+    from secondeye.store import is_d1
 
     if not is_d1():
-        assert not (tmp_path / "lra.sqlite3").exists()
+        assert not (tmp_path / "second-eye.sqlite3").exists()
 
 
 # --- end to end -----------------------------------------------------------------
@@ -399,11 +399,11 @@ def test_an_unknown_tenant_is_refused(repo, capsys):
 
 
 def test_the_cli_dispatches(monkeypatch):
-    from lra import cli
+    from secondeye import cli
 
     seen = []
     monkeypatch.setattr(selftest, "main", lambda args: seen.append(args) or 0)
-    monkeypatch.setattr("sys.argv", ["lra", "selftest", "--offline"])
+    monkeypatch.setattr("sys.argv", ["second-eye", "selftest", "--offline"])
     assert cli.main() == 0
     assert seen == [["--offline"]]
-    assert "lra selftest" in cli.USAGE
+    assert "second-eye selftest" in cli.USAGE

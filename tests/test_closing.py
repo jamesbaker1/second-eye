@@ -4,7 +4,7 @@ checklist.
 The platform is faked (tests/fake_sessions.py), but the sandbox is not: the
 "agent" in these tests is a script of the model's decisions (who signs,
 which page a scan is, whether it is signed), and every tool it uses is the
-real lra-closing skill, built as `lra skills sync` builds it and run from its
+real lra-closing skill, built as `second-eye skills sync` builds it and run from its
 own folder by a fresh interpreter, exactly as the container would. So what
 the host receives is what the skill really writes, and what is exercised is
 everything around the model: the state the session is given, the validator
@@ -27,11 +27,11 @@ import pytest
 from docx import Document
 from pypdf import PdfReader
 
-import lra.config
-from lra import closing, handler, managed, skillsync
-from lra.mail.console import ConsoleProvider
-from lra.models import Attachment, InboundEmail
-from lra.pipeline import closing_docs, closing_state
+import secondeye.config
+from secondeye import closing, handler, managed, skillsync
+from secondeye.mail.console import ConsoleProvider
+from secondeye.models import Attachment, InboundEmail
+from secondeye.pipeline import closing_docs, closing_state
 from tests import fake_sessions as fs
 
 DOCX = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
@@ -97,11 +97,11 @@ def office(request, monkeypatch, soffice_dir) -> bool:
     multi-page PDFs. Either way the stand-in is first on PATH, so the
     scripts in their subprocesses never reach a real LibreOffice this machine
     may have, and the results are the same on a laptop and in CI."""
-    from lra import convert
+    from secondeye import convert
 
     present = request.param == "office"
     monkeypatch.setenv("PATH", f"{soffice_dir}{os.pathsep}{os.environ.get('PATH', '')}")
-    monkeypatch.setenv("LRA_FAKE_SOFFICE_LAYOUT", "split" if present else "fail")
+    monkeypatch.setenv("SECOND_EYE_FAKE_SOFFICE_LAYOUT", "split" if present else "fail")
     monkeypatch.setattr(convert, "binary", lambda: str(soffice_dir / "soffice"))
     return present
 
@@ -123,7 +123,7 @@ def bundle(tmp_path_factory) -> Path:
 def run_script(bundle: Path, script: str, *args: str, shim: bool = False) -> dict:
     env = {k: v for k, v in os.environ.items() if k != "PYTHONPATH"}
     if shim:
-        env["LRA_FORCE_SHIM"] = "1"
+        env["SECOND_EYE_FORCE_SHIM"] = "1"
     done = subprocess.run([sys.executable, str(bundle / "scripts" / script), *args],
                           capture_output=True, text=True, env=env, cwd=bundle, timeout=120,
                           check=False)
@@ -183,7 +183,7 @@ def env(monkeypatch, tmp_path, bundle):
         return fake
 
     yield NS(provider=provider, send=send, sessions=sessions, tmp=tmp_path)
-    lra.config.settings.cache_clear()
+    secondeye.config.settings.cache_clear()
 
 
 _n = iter(range(1, 10_000))
@@ -685,7 +685,7 @@ def test_a_signature_block_sharing_a_page_with_the_agreement_keeps_every_word(
     replacing it and losing the agreement's words."""
     if not office:
         pytest.skip("a layout question; without a word processor there is no page")
-    monkeypatch.setenv("LRA_FAKE_SOFFICE_LAYOUT", "one")
+    monkeypatch.setenv("SECOND_EYE_FAKE_SOFFICE_LAYOUT", "one")
     (tmp_path / "Falcon SPA.docx").write_bytes(agreement())
     (tmp_path / "Disclosure Letter.docx").write_bytes(agreement(LETTER_FRONT))
     out = tmp_path / "out"
@@ -713,7 +713,7 @@ def test_a_signature_block_sharing_a_page_with_the_agreement_keeps_every_word(
 
 def test_a_document_that_cannot_be_converted_gets_no_page_number(tmp_path, monkeypatch,
                                                                 office):
-    monkeypatch.setenv("LRA_FAKE_SOFFICE_LAYOUT", "fail")
+    monkeypatch.setenv("SECOND_EYE_FAKE_SOFFICE_LAYOUT", "fail")
     (tmp_path / "Falcon SPA.docx").write_bytes(agreement())
     (tmp_path / "Disclosure Letter.docx").write_bytes(agreement(LETTER_FRONT))
     built = closing_docs.packets(PLAN, tmp_path, tmp_path / "out")
@@ -799,7 +799,7 @@ def test_off_the_thread_a_word_file_is_a_review_even_with_a_closing_open(env):
 
 def test_without_the_closing_agent_nothing_changes_and_it_says_why(env, monkeypatch):
     monkeypatch.setenv("MANAGED_CLOSING_AGENT_ID", "")
-    lra.config.settings.cache_clear()
+    secondeye.config.settings.cache_clear()
     env.send(email("Sig packets for the closing please.", [attach("SPA.docx", agreement())]))
     assert last(env).text_body.startswith("Closings by email aren't set up yet")
     assert env.sessions[-1].created == []
@@ -836,15 +836,15 @@ def test_the_closing_skill_bundle_carries_the_real_modules_and_a_valid_frontmatt
     assert fields["name"].strip() == "lra-closing"
     assert 0 < len(fields["description"].strip()) <= 1024
     for relative in skillsync.CLOSING_BUNDLED:
-        assert (bundle / "lib" / "lra" / relative).read_bytes() == (
+        assert (bundle / "lib" / "secondeye" / relative).read_bytes() == (
             skillsync.PACKAGE / relative).read_bytes()
     assert (bundle / "shims" / "pydantic" / "__init__.py").exists()
     assert (bundle / "reference" / "state.md").exists()
     for relative in skillsync.CLOSING_BUNDLED:
-        top = [line for line in (bundle / "lib" / "lra" / relative).read_text().splitlines()
+        top = [line for line in (bundle / "lib" / "secondeye" / relative).read_text().splitlines()
                if line.startswith(("import ", "from "))]
-        assert not [line for line in top if "lra.config" in line or "anthropic" in line
-                    or "lra.pipeline import intake" in line], relative
+        assert not [line for line in top if "secondeye.config" in line or "anthropic" in line
+                    or "secondeye.pipeline import intake" in line], relative
 
 
 @pytest.mark.parametrize("shim", [False, True], ids=["pydantic", "stand-in"])
@@ -869,7 +869,7 @@ def test_the_scripts_run_from_the_bundle(bundle, tmp_path, shim):
 
 def test_the_closing_agent_has_no_custom_tools_and_its_own_skill(env, monkeypatch):
     monkeypatch.setenv("SANDBOX_CLOSING_SKILL_ID", "skill_closing")
-    lra.config.settings.cache_clear()
+    secondeye.config.settings.cache_clear()
     body = managed.agent_body(managed.load_manifest(managed.AGENTS / "closing.agent.yaml"),
                               closing.CUSTOM_TOOLS)
     assert body["system"] == closing.SYSTEM

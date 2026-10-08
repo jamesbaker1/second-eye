@@ -11,9 +11,9 @@ from dataclasses import dataclass
 
 import pytest
 
-from lra import d1, followup, handler, memory, thread
-from lra.models import Finding, Mode, ReviewResult, Severity
-from lra.pipeline import reply
+from secondeye import d1, followup, handler, memory, thread
+from secondeye.models import Finding, Mode, ReviewResult, Severity
+from secondeye.pipeline import reply
 from tests import test_followup as tf
 from tests.test_followup import TYPO, _plan, first_email, reply_email, run_first
 

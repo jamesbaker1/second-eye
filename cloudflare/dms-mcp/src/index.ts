@@ -75,7 +75,7 @@ function text(value: string, isError = false): Text {
 
 function build(binding: Binding | Refusal, env: Env, fetcher: typeof fetch): McpServer {
   const server = new McpServer(
-    { name: "lra-document-system", version: "1.0.0" },
+    { name: "second-eye-document-system", version: "1.0.0" },
     { jsonSchemaValidator: new CfWorkerJsonSchemaValidator() },
   );
 

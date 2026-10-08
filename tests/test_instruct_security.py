@@ -18,10 +18,10 @@ from unittest.mock import patch
 import pytest
 from docx import Document
 
-from lra import handler, thread
-from lra.mail.console import ConsoleProvider
-from lra.models import Attachment, InboundEmail, ReviewResult
-from lra.pipeline import extract, instruct
+from secondeye import handler, thread
+from secondeye.mail.console import ConsoleProvider
+from secondeye.models import Attachment, InboundEmail, ReviewResult
+from secondeye.pipeline import extract, instruct
 
 DOCX = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
 
@@ -41,7 +41,7 @@ def captured(monkeypatch, tmp_path):
     monkeypatch.setenv("MAIL_AGENT_ADDRESS", "review@legal.firm.com")
     monkeypatch.setenv("FIRM_DOMAINS", "firm.com")
     monkeypatch.setenv("ALLOWED_SENDERS", "firm.com")
-    from lra.config import settings
+    from secondeye.config import settings
 
     settings.cache_clear()
     provider = Captured()
@@ -181,7 +181,7 @@ def test_resolve_will_not_match_an_alias_for_the_wrong_owner(captured, monkeypat
 
 def _capture_prompt(doc, instruction="make the term 24 months"):
     """The session's first message, as the associate would receive it."""
-    from lra import managed
+    from secondeye import managed
 
     captured_call = {}
 
@@ -395,7 +395,7 @@ def test_an_inserted_clause_is_quoted_in_full(captured, monkeypatch):
 
 
 def test_the_quoted_diff_does_not_cut_mid_token():
-    from lra.handler import _differing_span
+    from secondeye.handler import _differing_span
 
     assert _differing_span("twelve (12) months", "twenty-four (24) months") == (
         "twelve (12)", "twenty-four (24)")
@@ -422,8 +422,8 @@ def test_several_clauses_inserted_after_one_anchor_keep_their_order():
     """addnext puts each new paragraph immediately after its target, so
     inserting 7A, 7B, 7C without chaining wrote them as 7C, 7B, 7A -- with
     every gate passing and the email listing them the right way round."""
-    from lra.models import Finding, Mode, ReviewResult, Severity
-    from lra.pipeline import redline
+    from secondeye.models import Finding, Mode, ReviewResult, Severity
+    from secondeye.pipeline import redline
 
     d = Document()
     d.add_paragraph("7. Notices. Any notice must be in writing.")
@@ -493,7 +493,7 @@ def test_superseding_stands_down_the_earlier_changes(captured):
     key then finds a row left by an earlier test."""
     key = thread.key("t-sup", "m", "jim@firm.com")
     state = thread.start(key, "jim@firm.com", "a.docx", contract())
-    from lra.models import Finding, Severity
+    from secondeye.models import Finding, Severity
 
     thread.record_changes(state.id, 0, [Finding(
         severity=Severity.FORMATTING, category="x", title="t", explanation="",
@@ -510,7 +510,7 @@ def test_superseding_stands_down_the_earlier_changes(captured):
 def test_an_answer_that_cannot_be_placed_does_not_claim_it_was(captured, monkeypatch):
     """Saying "I have made that change" over an unchanged file is the most
     damaging sentence in the product: the lawyer stops looking."""
-    from lra.models import Finding, Severity
+    from secondeye.models import Finding, Severity
 
     raw = contract(
         "1. Term. This Agreement continues for twelve (12) months.",
@@ -567,7 +567,7 @@ def test_the_agent_and_the_writer_see_the_same_text():
     read text boxes the writer could not find, so an anchor there was
     unplaceable. Worse than either: the ambiguity guard counts occurrences, and
     it was counting them in a different document than the one being edited."""
-    from lra.pipeline.ooxml import _all_paragraphs, _paragraph_text
+    from secondeye.pipeline.ooxml import _all_paragraphs, _paragraph_text
 
     raw = _doc_with_stories_and_a_textbox()
     doc = extract.extract(Attachment(filename="a.docx", content_type=DOCX,
@@ -648,7 +648,7 @@ def _xlsx(macro: bool = False) -> bytes:
 
 
 def test_only_real_documents_whose_bytes_match_their_names_are_attached(caplog):
-    from lra.pipeline.instruct import vet_artefacts
+    from secondeye.pipeline.instruct import vet_artefacts
 
     good = [("Dates.docx", _docx()), ("Caps.xlsx", _xlsx()), ("Notes.md", b"# Notes\n"),
             ("Table.csv", b"a,b\n1,2\n"), ("Scan.pdf", b"%PDF-1.7\n%%EOF")]
@@ -670,7 +670,7 @@ def test_only_real_documents_whose_bytes_match_their_names_are_attached(caplog):
 
 
 def test_attachments_are_capped_in_count_and_size(monkeypatch):
-    from lra.pipeline import instruct
+    from secondeye.pipeline import instruct
 
     many = [(f"Part {i}.txt", b"text") for i in range(9)]
     assert len(instruct.vet_artefacts(many)) == instruct.MAX_ARTEFACTS
@@ -679,6 +679,6 @@ def test_attachments_are_capped_in_count_and_size(monkeypatch):
 
 
 def test_a_path_in_an_output_name_is_reduced_to_the_file_name():
-    from lra.pipeline.instruct import vet_artefacts
+    from secondeye.pipeline.instruct import vet_artefacts
 
     assert [n for n, _ in vet_artefacts([("../../etc/Notes.txt", b"hi")])] == ["Notes.txt"]

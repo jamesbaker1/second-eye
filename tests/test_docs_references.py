@@ -29,8 +29,8 @@ DOCS = [
 ]
 
 # Where a bare filename in prose is allowed to live. `checks.py` means
-# `src/lra/pipeline/checks.py`, and nobody writing a sentence wants to type that.
-SEARCH_PATHS = ["", "src/lra/", "src/lra/pipeline/", "src/lra/prompts/", "docs/",
+# `src/secondeye/pipeline/checks.py`, and nobody writing a sentence wants to type that.
+SEARCH_PATHS = ["", "src/secondeye/", "src/secondeye/pipeline/", "src/secondeye/prompts/", "docs/",
                 "agents/", "skills/lra-document-tools/", "skills/lra-document-tools/scripts/",
                 "skills/lra-closing/scripts/"]
 

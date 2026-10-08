@@ -17,9 +17,9 @@ from pathlib import Path
 import pytest
 from docx import Document
 
-from lra import handler
-from lra.mail.console import ConsoleProvider
-from lra.models import Attachment, Finding, InboundEmail, ReviewResult, Severity
+from secondeye import handler
+from secondeye.mail.console import ConsoleProvider
+from secondeye.models import Attachment, Finding, InboundEmail, ReviewResult, Severity
 from tests.conftest import documents
 
 DOCX = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
@@ -39,7 +39,7 @@ def captured(monkeypatch, tmp_path):
     monkeypatch.setenv("DATABASE_URL", f"sqlite:///{tmp_path}/e2e.sqlite3")
     monkeypatch.setenv("MAIL_AGENT_ADDRESS", "review@legal.firm.com")
     monkeypatch.setenv("FIRM_DOMAINS", "firm.com")
-    from lra.config import settings
+    from secondeye.config import settings
 
     settings.cache_clear()
     provider = Captured()

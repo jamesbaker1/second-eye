@@ -7,7 +7,7 @@ from types import SimpleNamespace as NS
 
 import pytest
 
-from lra import memory
+from secondeye import memory
 
 # What undos, dismissals and the sent version teach: LEARN_FROM_OUTCOMES on.
 pytestmark = pytest.mark.usefixtures("learning")
@@ -16,7 +16,7 @@ pytestmark = pytest.mark.usefixtures("learning")
 @pytest.fixture(autouse=True)
 def database(monkeypatch, tmp_path):
     monkeypatch.setenv("DATABASE_URL", f"sqlite:///{tmp_path}/learning.sqlite3")
-    from lra.config import settings
+    from secondeye.config import settings
 
     settings.cache_clear()
     yield
@@ -135,7 +135,7 @@ class FakeMemoryStores:
 
 @pytest.fixture
 def stores(monkeypatch):
-    import lra.config
+    import secondeye.config
     from tests import api_contract as contract
     from tests import fake_sessions as fs
 
@@ -145,9 +145,9 @@ def stores(monkeypatch):
     memories = NS(create=fake.create_memory, list=fake.list_memories, update=fake.update_memory)
     client = contract.strict(NS(beta=NS(memory_stores=NS(create=fake.create_store,
                                                          memories=memories))))
-    monkeypatch.setattr(lra.config, "anthropic_client", lambda: client)
+    monkeypatch.setattr(secondeye.config, "anthropic_client", lambda: client)
     yield fake
-    from lra.config import settings
+    from secondeye.config import settings
 
     settings.cache_clear()
 
@@ -159,7 +159,7 @@ def test_a_lawyers_store_is_created_once_and_mounted_read_only(stores):
     assert set(mounts) == {"firm", "personal", "matter"}
     assert mounts["firm"] == "memstore_firm"
     assert len(stores.created) == 2, "one store per lawyer and one per matter, made once"
-    from lra import managed
+    from secondeye import managed
 
     resources = managed.memory_resources(mounts)
     assert all(r["access"] == "read_only" for r in resources)
@@ -195,12 +195,12 @@ def test_the_store_holds_the_sentence_and_the_table_holds_the_provenance(stores)
 
 
 def test_the_stores_being_unreachable_never_fails_a_write(stores, monkeypatch):
-    import lra.config
+    import secondeye.config
 
     def down():
         raise RuntimeError("api down")
 
-    monkeypatch.setattr(lra.config, "anthropic_client", down)
+    monkeypatch.setattr(secondeye.config, "anthropic_client", down)
     asked = memory.suppression_request("stop flagging passive voice")
     assert memory.remember_suppression("jim@firm.com", asked)
     assert "passive voice" in memory.as_prompt_block(memory.recall("jim@firm.com"))
@@ -208,7 +208,7 @@ def test_the_stores_being_unreachable_never_fails_a_write(stores, monkeypatch):
 
 
 def test_without_the_agents_configured_memory_stays_in_the_table(monkeypatch):
-    from lra.config import settings
+    from secondeye.config import settings
 
     monkeypatch.setenv("MANAGED_REVIEW_AGENT_ID", "")
     settings.cache_clear()

@@ -14,9 +14,9 @@ from io import BytesIO
 import pytest
 from docx import Document
 
-from lra.models import Finding, Mode, ReviewResult, Severity
-from lra.pipeline import redline
-from lra.pipeline.ooxml import (
+from secondeye.models import Finding, Mode, ReviewResult, Severity
+from secondeye.pipeline import redline
+from secondeye.pipeline.ooxml import (
     AnchorAmbiguous,
     AnchorNotFound,
     AnchorSpansParagraphs,
@@ -339,7 +339,7 @@ def test_text_inside_a_hyperlink_is_visible_to_the_writer():
     from docx.oxml.ns import qn as _qn
     from lxml import etree as _etree
 
-    from lra.pipeline.ooxml import _paragraph_text
+    from secondeye.pipeline.ooxml import _paragraph_text
 
     d = Document()
     p = d.add_paragraph()
@@ -498,7 +498,7 @@ def test_the_quick_normalisation_is_the_mapped_one():
     Unicode space and dash included, or an anchor could be missed."""
     import sys
 
-    from lra.pipeline import ooxml
+    from secondeye.pipeline import ooxml
 
     spaces = "".join(chr(c) for c in range(sys.maxunicode + 1) if chr(c).isspace())
     samples = [
@@ -534,19 +534,19 @@ def _theirs() -> bytes:
 
 
 def _texts(content: bytes) -> list[str]:
-    from lra.pipeline.extract import visible_text
+    from secondeye.pipeline.extract import visible_text
 
     return [visible_text(p._p) for p in Document(BytesIO(content)).paragraphs]
 
 
 def _changes(content: bytes):
-    from lra.pipeline import ooxml
+    from secondeye.pipeline import ooxml
 
     return ooxml.tracked_changes(Document(BytesIO(content)))
 
 
 def _decide(content: bytes, accept=(), reject=()) -> bytes:
-    from lra.pipeline import ooxml
+    from secondeye.pipeline import ooxml
 
     d = Document(BytesIO(content))
     ooxml.decide(d, accept=accept, reject=reject)
@@ -580,7 +580,7 @@ def test_their_changes_are_listed_as_the_decisions_word_offers():
 
 
 def test_accepting_and_rejecting_by_id_touches_nothing_else():
-    from lra.pipeline import validate
+    from secondeye.pipeline import validate
 
     original = _theirs()
     changes = {(c.kind, c.text): c for c in _changes(original)}
@@ -610,7 +610,7 @@ def test_rejecting_a_new_paragraph_takes_the_whole_paragraph_out():
 
 
 def test_an_unknown_id_refuses_and_changes_nothing():
-    from lra.pipeline import ooxml
+    from secondeye.pipeline import ooxml
 
     d = Document(BytesIO(_theirs()))
     before = [c.as_dict() for c in ooxml.tracked_changes(d)]
@@ -626,7 +626,7 @@ def test_rejecting_their_insertion_keeps_the_comment_on_it():
     """Taking out someone's words must never take out the comment on them."""
     from docx.text.run import Run
 
-    from lra.pipeline import validate, wordcomments
+    from secondeye.pipeline import validate, wordcomments
 
     d = Document(BytesIO(_theirs()))
     inserted = next(ins for ins in d.element.body.iter(_W + "ins")
@@ -680,7 +680,7 @@ def test_a_table_cell_change_is_left_for_word():
     from docx.oxml import parse_xml
     from docx.oxml.ns import nsdecls
 
-    from lra.pipeline import ooxml
+    from secondeye.pipeline import ooxml
 
     d = Document()
     table = d.add_table(rows=1, cols=1)

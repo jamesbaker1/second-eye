@@ -9,8 +9,8 @@ from datetime import UTC, date, datetime
 
 import pytest
 
-from lra import audit, handler
-from lra.models import InboundEmail
+from secondeye import audit, handler
+from secondeye.models import InboundEmail
 from tests.test_handler import Captured, email_with_sample, stub_review
 
 
@@ -19,7 +19,7 @@ def captured(monkeypatch, tmp_path):
     monkeypatch.setenv("DATABASE_URL", f"sqlite:///{tmp_path}/audit.sqlite3")
     monkeypatch.setenv("PLAYBOOK_ADMINS", "gc@firm.com")
     monkeypatch.setenv("INFERENCE_GEO", "us")
-    from lra.config import settings
+    from secondeye.config import settings
 
     settings.cache_clear()
     provider = Captured()
@@ -53,7 +53,7 @@ def test_a_review_leaves_a_row_that_answers_the_committee(captured, monkeypatch)
     assert row["documents"] == ["Acme NDA.docx"]
     assert {"checks", "model review"} <= set(row["ran"])
     assert row["session_ids"] == ["sesn_0123"]
-    from lra.config import settings
+    from secondeye.config import settings
 
     assert row["model"] == settings().review_model
     assert row["inference_geo"] == "us"
@@ -82,16 +82,16 @@ def test_rows_filter_by_period_lawyer_and_matter(captured, monkeypatch):
 
 
 def test_the_command_line_prints_csv_and_json(captured, monkeypatch, capsys):
-    from lra import cli
+    from secondeye import cli
 
     reviewed(monkeypatch)
-    monkeypatch.setattr("sys.argv", ["lra", "audit", "--since", "2026-09-01"])
+    monkeypatch.setattr("sys.argv", ["second-eye", "audit", "--since", "2026-09-01"])
     assert cli.main() == 0
     table = list(csv.DictReader(io.StringIO(capsys.readouterr().out)))
     assert table[0]["documents"] == "Acme NDA.docx"
     assert list(table[0]) == list(audit.COLUMNS)
 
-    monkeypatch.setattr("sys.argv", ["lra", "audit", "--since", "2026-09-01",
+    monkeypatch.setattr("sys.argv", ["second-eye", "audit", "--since", "2026-09-01",
                                      "--lawyer", "jim@firm.com", "--format", "json"])
     assert cli.main() == 0
     assert json.loads(capsys.readouterr().out)[0]["session_ids"] == ["sesn_0123"]

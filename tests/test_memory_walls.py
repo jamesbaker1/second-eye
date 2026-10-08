@@ -14,10 +14,10 @@ from types import SimpleNamespace as NS
 
 import pytest
 
-from lra import clients, memory
-from lra.memory import Kind, MemoryEntry, Scope, Status
-from lra.models import InboundEmail
-from lra.pipeline import identity
+from secondeye import clients, memory
+from secondeye.memory import Kind, MemoryEntry, Scope, Status
+from secondeye.models import InboundEmail
+from secondeye.pipeline import identity
 from tests.test_learning import FakeMemoryStores
 
 # What undos, dismissals and the sent version teach: LEARN_FROM_OUTCOMES on.
@@ -30,7 +30,7 @@ JIM = "jim@firm.com"
 def database(monkeypatch, tmp_path):
     monkeypatch.setenv("DATABASE_URL", f"sqlite:///{tmp_path}/walls.sqlite3")
     monkeypatch.setenv("INTERNAL_DOMAINS", "firm.com")
-    from lra.config import settings
+    from secondeye.config import settings
 
     settings.cache_clear()
     clients.register("100", "Acme Corporation", aliases=["Acme"], domains=["acme.com"])
@@ -41,7 +41,7 @@ def database(monkeypatch, tmp_path):
 
 @pytest.fixture
 def stores(monkeypatch):
-    import lra.config
+    import secondeye.config
     from tests import api_contract as contract
     from tests import fake_sessions as fs
 
@@ -51,7 +51,7 @@ def stores(monkeypatch):
     memories = NS(create=fake.create_memory, list=fake.list_memories, update=fake.update_memory)
     client = contract.strict(NS(beta=NS(memory_stores=NS(create=fake.create_store,
                                                          memories=memories))))
-    monkeypatch.setattr(lra.config, "anthropic_client", lambda: client)
+    monkeypatch.setattr(secondeye.config, "anthropic_client", lambda: client)
     yield fake
 
 
@@ -92,7 +92,7 @@ def test_a_note_learned_on_client_a_never_reaches_a_client_b_review(stores):
 
 
 def test_a_note_the_agent_writes_on_client_a_stays_there(stores, monkeypatch):
-    from lra import tools as tools_mod
+    from secondeye import tools as tools_mod
 
     doc = NS(filename="acme-spa.docx", blocks=[])
     on_a = tools_mod.build_tools(JIM, doc, "100-0001",
@@ -263,8 +263,8 @@ CREATE TABLE suggestion_outcomes (
 
 
 def test_rows_that_would_cross_the_wall_are_moved_or_dropped(monkeypatch, tmp_path):
-    from lra.config import settings
-    from lra.store import connect
+    from secondeye.config import settings
+    from secondeye.store import connect
 
     monkeypatch.setenv("DATABASE_URL", f"sqlite:///{tmp_path}/legacy.sqlite3")
     settings.cache_clear()
@@ -308,7 +308,7 @@ def test_registering_a_client_walls_a_note_that_names_it():
 
 
 def test_a_review_mounts_the_client_its_parties_name(stores):
-    from lra import handler
+    from secondeye import handler
 
     job = NS(email=email(cc=["gc@globex.com"]), matter=None,
              doc=NS(blocks=[NS(text="Globex Limited and Initech LLC")]))

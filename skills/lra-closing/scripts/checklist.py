@@ -13,7 +13,7 @@ def main() -> None:
     parser.add_argument("--out", required=True)
     args = parser.parse_args()
 
-    from lra.pipeline import closing_docs
+    from secondeye.pipeline import closing_docs
 
     state = load_json(args.state)
     if not state.get("checklist"):

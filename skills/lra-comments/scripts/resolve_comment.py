@@ -15,7 +15,7 @@ def main() -> None:
     parser.add_argument("--out", help="where to write the result (default: in place)")
     args = parser.parse_args()
 
-    from lra.pipeline import wordcomments
+    from secondeye.pipeline import wordcomments
 
     out = args.out or args.input
     try:

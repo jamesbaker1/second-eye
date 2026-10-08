@@ -19,13 +19,13 @@ import httpx
 import pytest
 import respx
 
-from lra.config import settings
-from lra.mail import get_provider
-from lra.mail.agentmail import AgentMailProvider
-from lra.mail.console import ConsoleProvider, UnparseableMessage
-from lra.mail.postmark import PostmarkProvider
-from lra.models import Attachment, OutboundEmail
-from lra.pipeline.identity import EntryMode, entry_mode
+from secondeye.config import settings
+from secondeye.mail import get_provider
+from secondeye.mail.agentmail import AgentMailProvider
+from secondeye.mail.console import ConsoleProvider, UnparseableMessage
+from secondeye.mail.postmark import PostmarkProvider
+from secondeye.models import Attachment, OutboundEmail
+from secondeye.pipeline.identity import EntryMode, entry_mode
 
 DOCX = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
 
@@ -362,7 +362,7 @@ def test_a_signature_header_we_cannot_compare_is_a_rejection_not_a_crash(env):
 def test_the_agent_goes_by_the_name_on_the_landing_page():
     """One name. The landing page says Second Eye; the inbox said "Legal
     Review", so a lawyer met two products."""
-    from lra.config import Settings
+    from secondeye.config import Settings
 
     assert Settings.model_fields["mail_agent_name"].default == "Second Eye"
 

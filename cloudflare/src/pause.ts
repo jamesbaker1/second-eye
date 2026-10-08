@@ -7,7 +7,7 @@
  *
  *   edge_settings(key = 'service_paused', value = 'true' | 'false')
  *
- * written by `lra pause <firm>` / `lra resume <firm>` (src/lra/killswitch.py,
+ * written by `second-eye pause <firm>` / `second-eye resume <firm>` (src/secondeye/killswitch.py,
  * through `wrangler d1 execute` with the firm's own token), or by hand in the
  * D1 console of the firm's Cloudflare dashboard. It is read on every message,
  * every send and every cron run, so it takes effect on the next one.
@@ -74,7 +74,7 @@ export async function loadPause(env: { DB?: D1Database; SERVICE_PAUSED?: unknown
   return varPaused(env) || on;
 }
 
-/** Set the row: what `lra pause` / `lra resume` do through wrangler. */
+/** Set the row: what `second-eye pause` / `second-eye resume` do through wrangler. */
 export async function setPause(db: D1Database, on: boolean, by: string): Promise<void> {
   await db.prepare(SETTINGS_SCHEMA).run();
   await db.prepare(

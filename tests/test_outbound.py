@@ -12,8 +12,8 @@ from datetime import UTC, datetime
 
 from evals import outbound as build
 from evals.outbound import NDA, SPA
-from lra.models import Attachment, InboundEmail, Severity
-from lra.pipeline import checks, email_checks, extract, outbound
+from secondeye.models import Attachment, InboundEmail, Severity
+from secondeye.pipeline import checks, email_checks, extract, outbound
 
 
 def message(body: str, *files: tuple[str, bytes], to=("legal@acme.com",), cc=()):

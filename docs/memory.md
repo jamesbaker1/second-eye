@@ -20,10 +20,10 @@ read only on that client's matters.
 | matter | what happened on one deal | that matter only | reviews and replies on that matter |
 
 **Whose client is it** (`clients.py`, `identity.resolve_client`). The firm
-registers its clients with `lra clients add <number> <name> --alias ...
+registers its clients with `second-eye clients add <number> <name> --alias ...
 --domain ...`. A matter resolves to a client from its number first
 ("10234-0007" is client 10234's, when 10234 is registered) or from an explicit
-`lra clients link`. Failing that, from the parties: the registered clients
+`second-eye clients link`. Failing that, from the parties: the registered clients
 whose email domains are on the message (or in a forwarded header in its body)
 or whose names appear in the document, and only when exactly one does. Two
 candidates is no client; an unregistered client is no client. **An unknown
@@ -186,14 +186,14 @@ the habit.
 
 ## Implementation
 
-`src/lra/memory.py` defines the interface. The storage is deliberately boring:
+`src/secondeye/memory.py` defines the interface. The storage is deliberately boring:
 structured records with scope, confidence, and provenance in our database,
 which is the source of truth. No vector database until there is evidence one
 is needed. Most of the value here is in the accept/reject loop, not in
 retrieval sophistication.
 
 **How the agent reads it** (DECISIONS 29): each scope is an Anthropic memory
-store, one for the firm (`MANAGED_FIRM_MEMORY_STORE_ID`, made by `lra agents
+store, one for the firm (`MANAGED_FIRM_MEMORY_STORE_ID`, made by `second-eye agents
 apply`), one per lawyer, one per client and one per matter, made on first use and recorded in
 the `memory_stores` table. They are mounted read-only into the review and
 instruction sessions under `/mnt/memory`, and the agent reads them with its

@@ -1,6 +1,6 @@
 /**
  * iManage Work, as the lawyer whose token this is. A port of the container's
- * iManage client (src/lra/dms/imanage.py, removed in docs/migration.md,
+ * iManage client (src/secondeye/dms/imanage.py, removed in docs/migration.md,
  * phase 5): the same paths, the same fields, the same refusal on 401/403. Written from iManage's documentation; no real instance has
  * answered it yet, and the REST paths vary by deployment version.
  */

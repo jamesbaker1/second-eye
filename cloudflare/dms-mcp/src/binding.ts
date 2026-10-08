@@ -18,7 +18,7 @@
  *               iManage access token the host held when it started the session.
  *
  * The MAC is HMAC-SHA256 under DMS_MCP_SIGNING_KEY, a secret shared with the
- * container (src/lra/dms_mcp.py builds both forms). It is checked with
+ * container (src/secondeye/dms_mcp.py builds both forms). It is checked with
  * crypto.subtle.verify, which compares in constant time.
  */
 

@@ -15,10 +15,10 @@ from io import BytesIO
 import pytest
 from docx import Document
 
-from lra import convert
-from lra.models import Finding, Mode, ReviewResult, Severity
-from lra.pipeline import redline
-from lra.pipeline.ooxml import Revision, RevisionWriter
+from secondeye import convert
+from secondeye.models import Finding, Mode, ReviewResult, Severity
+from secondeye.pipeline import redline
+from secondeye.pipeline.ooxml import Revision, RevisionWriter
 
 needs_soffice = pytest.mark.skipif(
     not convert.available(), reason="LibreOffice is not installed"
@@ -130,7 +130,7 @@ def test_deliberately_broken_markup_is_caught_by_the_round_trip():
 def test_an_rtf_is_converted_locally():
     rtf = rb"{\rtf1\ansi This Agreement is made on 3 March 2026.\par}"
     converted = convert.to_docx(rtf, "old.rtf")
-    from lra.pipeline.filetype import Kind, identify
+    from secondeye.pipeline.filetype import Kind, identify
 
     assert identify(converted, "old.docx") is Kind.DOCX
     assert "Agreement" in "\n".join(

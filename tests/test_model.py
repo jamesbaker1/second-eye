@@ -18,10 +18,10 @@ from types import SimpleNamespace as NS
 
 import pytest
 
-import lra.config
-from lra.config import FALLBACK_BETA, FALLBACK_MODEL, refusal_fallback, settings
-from lra.pipeline import compare, extract
-from lra.pipeline.extract import Block, ExtractedDoc
+import secondeye.config
+from secondeye.config import FALLBACK_BETA, FALLBACK_MODEL, refusal_fallback, settings
+from secondeye.pipeline import compare, extract
+from secondeye.pipeline.extract import Block, ExtractedDoc
 from tests import api_contract as contract
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -42,7 +42,7 @@ def fable(monkeypatch):
 def test_every_place_that_names_the_model_names_fable():
     import yaml
 
-    assert lra.config.Settings.model_fields["review_model"].default == MODEL
+    assert secondeye.config.Settings.model_fields["review_model"].default == MODEL
     for manifest in sorted((ROOT / "agents").glob("*.agent.yaml")):
         assert yaml.safe_load(manifest.read_text())["model"] == MODEL, manifest.name
     raw = (ROOT / "cloudflare" / "wrangler.jsonc").read_text()
@@ -90,7 +90,7 @@ def _parsing_client(calls: list, stop_reason: str = "end_turn"):
 
 def test_the_assessment_asks_for_the_fallback_and_sends_no_thinking(monkeypatch):
     calls: list = []
-    monkeypatch.setattr(lra.config, "anthropic_client", lambda: _parsing_client(calls))
+    monkeypatch.setattr(secondeye.config, "anthropic_client", lambda: _parsing_client(calls))
     comparison, later = _comparison()
     compare._assess(comparison, later, "", "")
     [call] = calls
@@ -103,7 +103,7 @@ def test_the_assessment_asks_for_the_fallback_and_sends_no_thinking(monkeypatch)
 
 def test_a_refused_assessment_leaves_the_changes_unassessed(monkeypatch):
     calls: list = []
-    monkeypatch.setattr(lra.config, "anthropic_client",
+    monkeypatch.setattr(secondeye.config, "anthropic_client",
                         lambda: _parsing_client(calls, "refusal"))
     comparison, later = _comparison()
     compare.explain(comparison, later)
@@ -140,7 +140,7 @@ def test_the_transcription_asks_for_the_fallback_and_sends_no_thinking(monkeypat
         NS(type="fallback", **{"from": NS(model=MODEL)}, to=NS(model=FALLBACK_MODEL)),
         _text("=== PAGE 1 ===\nThe term is thirty days."),
     ])
-    monkeypatch.setattr(lra.config, "anthropic_client",
+    monkeypatch.setattr(secondeye.config, "anthropic_client",
                         lambda: _streaming_client(calls, message))
     pages = extract._transcribe(b"%PDF-", 1)
     assert pages == ["The term is thirty days."], "a fallback block is not text"
@@ -154,7 +154,7 @@ def test_a_transcription_refused_part_way_is_not_used_as_the_whole_scan(monkeypa
     """A classifier can stop the stream after some pages. That text is not
     the document, and a review built on it would miss the rest."""
     message = NS(stop_reason="refusal", content=[_text("=== PAGE 1 ===\nThe term")])
-    monkeypatch.setattr(lra.config, "anthropic_client",
+    monkeypatch.setattr(secondeye.config, "anthropic_client",
                         lambda: _streaming_client([], message))
     with pytest.raises(RuntimeError, match="declined"):
         extract._transcribe(b"%PDF-", 2)
@@ -167,11 +167,11 @@ def test_zero_retention_is_off_and_names_the_model_available_under_zdr():
     Claude Opus 5 is the most capable model documented as available under ZDR."""
     assert settings().zero_retention is False
     assert settings().effective_model == MODEL
-    assert lra.config.ZDR_MODEL == "claude-opus-5"
+    assert secondeye.config.ZDR_MODEL == "claude-opus-5"
 
 
 def test_zero_retention_puts_every_agent_and_every_call_on_the_zdr_model(monkeypatch):
-    from lra import managed
+    from secondeye import managed
 
     monkeypatch.setenv("ZERO_RETENTION", "true")
     settings.cache_clear()
@@ -179,7 +179,7 @@ def test_zero_retention_puts_every_agent_and_every_call_on_the_zdr_model(monkeyp
         body = managed.agent_body(managed.load_manifest(manifest), [])
         assert body["model"]["id"] == "claude-opus-5", manifest.name
 
-    # `lra agents apply` sends exactly that body.
+    # `second-eye agents apply` sends exactly that body.
     created: list = []
     client = contract.strict(NS(beta=NS(agents=NS(
         create=lambda **body: created.append(body) or NS(id="a")))))
@@ -187,7 +187,7 @@ def test_zero_retention_puts_every_agent_and_every_call_on_the_zdr_model(monkeyp
     assert created[0]["model"]["id"] == "claude-opus-5"
 
     calls: list = []
-    monkeypatch.setattr(lra.config, "anthropic_client", lambda: _parsing_client(calls))
+    monkeypatch.setattr(secondeye.config, "anthropic_client", lambda: _parsing_client(calls))
     comparison, later = _comparison()
     compare._assess(comparison, later, "", "")
     [call] = calls

@@ -27,8 +27,8 @@ def main() -> None:
     parser.add_argument("--out", required=True, help="where to write the redline")
     args = parser.parse_args()
 
-    from lra.models import Finding, Mode, ReviewResult
-    from lra.pipeline import redline
+    from secondeye.models import Finding, Mode, ReviewResult
+    from secondeye.pipeline import redline
 
     try:
         raw = json.loads(Path(args.findings).read_text())

@@ -11,7 +11,7 @@ from unittest.mock import patch
 
 import pytest
 
-from lra import managed
+from secondeye import managed
 from tests import fake_sessions as fs
 
 
@@ -21,7 +21,7 @@ def configured(monkeypatch):
     # No real waiting: the reconnect backoff and the outputs indexing lag.
     monkeypatch.setattr(managed.time, "sleep", lambda s: None)
     yield
-    from lra.config import settings
+    from secondeye.config import settings
 
     settings.cache_clear()
 
@@ -43,7 +43,7 @@ def test_nothing_runs_without_the_agent_ids(monkeypatch):
         with pytest.raises(managed.NotConfigured, match="MANAGED_REVIEW_AGENT_ID"):
             managed.run_session(agent_id="x", title="t", initial_events=[], tools={})
     finally:
-        from lra.config import settings
+        from secondeye.config import settings
 
         settings.cache_clear()
 
@@ -306,7 +306,7 @@ def test_the_console_url_names_the_workspace(monkeypatch):
         assert managed.console_url("sesn_1") == \
             "https://platform.claude.com/workspaces/wrkspc_01X/sessions/sesn_1"
     finally:
-        from lra.config import settings
+        from secondeye.config import settings
 
         settings.cache_clear()
 
@@ -330,7 +330,7 @@ def test_the_agent_body_carries_effort_skills_and_the_custom_tools(monkeypatch):
             [{"type": "custom", "name": "make_changes", "input_schema": {}}],
         )
     finally:
-        from lra.config import settings
+        from secondeye.config import settings
 
         settings.cache_clear()
     assert body["model"]["effort"] == "xhigh"
@@ -348,7 +348,7 @@ def test_web_search_is_a_decision_made_in_settings(monkeypatch):
         body = managed.agent_body(
             managed.load_manifest(managed.AGENTS / "review.agent.yaml"), [])
     finally:
-        from lra.config import settings
+        from secondeye.config import settings
 
         settings.cache_clear()
     assert all(c["enabled"] for c in body["tools"][0]["configs"]
@@ -371,7 +371,7 @@ def test_the_reviewer_is_applied_with_no_custom_tools(monkeypatch):
         manifest = managed.load_manifest(managed.AGENTS / "review.agent.yaml")
         body = managed.agent_body(manifest, [])
     finally:
-        from lra.config import settings
+        from secondeye.config import settings
 
         settings.cache_clear()
     assert not [t for t in body["tools"] if t.get("type") != "agent_toolset_20260401"]
@@ -468,7 +468,7 @@ def at(*times):
 def test_a_failing_heartbeat_does_not_end_the_review(configured):
     """On Cloudflare the heartbeat writes through the edge; one refused write
     used to propagate out of the event loop and abort a review going fine."""
-    from lra.edge import EdgeError
+    from secondeye.edge import EdgeError
 
     def beat():
         raise EdgeError("edge said 503")
@@ -571,7 +571,7 @@ def test_the_app_starts_without_loading_the_sdk():
     import subprocess
     import sys
 
-    probe = "import sys, lra.handler; print('anthropic' in sys.modules)"
+    probe = "import sys, secondeye.handler; print('anthropic' in sys.modules)"
     out = subprocess.run([sys.executable, "-c", probe], capture_output=True, text=True,
                          check=True, env=dict(os.environ))
     assert out.stdout.strip() == "False"

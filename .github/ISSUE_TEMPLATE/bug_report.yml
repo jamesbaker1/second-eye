@@ -31,7 +31,7 @@ body:
     attributes:
       label: Where it ran
       options:
-        - Locally (lra replay, compare, clean, or the tests)
+        - Locally (second-eye replay, compare, clean, or the tests)
         - Self-hosted on Cloudflare
         - The hosted service
         - Other

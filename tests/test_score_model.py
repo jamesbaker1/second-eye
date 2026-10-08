@@ -19,8 +19,8 @@ import pytest
 from evals import model_corpus, score_model
 from evals.model_corpus import ALL, OFF, PLAYBOOK, SILENCE, THEIR_PAPER
 from evals.score_model import Produced, stub
-from lra.models import Attachment, Finding, Mode, ReviewResult, Severity
-from lra.pipeline import checks, extract
+from secondeye.models import Attachment, Finding, Mode, ReviewResult, Severity
+from secondeye.pipeline import checks, extract
 
 DOCX = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
 
@@ -242,7 +242,7 @@ def test_key_terms_read_from_a_table_in_the_reply_text():
 
 
 def test_the_live_run_without_credentials_says_so_and_points_at_the_stub(monkeypatch, capsys):
-    from lra.config import settings
+    from secondeye.config import settings
 
     monkeypatch.setenv("ANTHROPIC_API_KEY", "")
     settings.cache_clear()
@@ -312,8 +312,8 @@ def test_the_live_run_goes_through_the_real_review_session(monkeypatch, tmp_path
     """One document through pipeline/review.py on the scripted platform: the
     session is capped at the per-document budget, and what the agent reported
     is what is scored."""
-    from lra import managed
-    from lra.config import settings
+    from secondeye import managed
+    from secondeye.config import settings
     from tests import fake_sessions as fs
 
     fs.configure(monkeypatch, DATABASE_URL=f"sqlite:///{tmp_path}/live.sqlite3")
@@ -336,19 +336,19 @@ def test_the_live_run_goes_through_the_real_review_session(monkeypatch, tmp_path
     assert produced[spec.name].session_id
 
 
-def test_lra_eval_runs_the_scorer(monkeypatch, tmp_path, capsys):
-    from lra import cli
+def test_second_eye_eval_runs_the_scorer(monkeypatch, tmp_path, capsys):
+    from secondeye import cli
 
-    monkeypatch.setattr(sys, "argv", ["lra", "eval", "--stub", "perfect", "--only",
+    monkeypatch.setattr(sys, "argv", ["second-eye", "eval", "--stub", "perfect", "--only",
                                       "playbook", "--out", str(tmp_path)])
     assert cli.main() == 0
     assert "meets every target" in capsys.readouterr().out
     assert (tmp_path / "scorecard.md").exists()
-    monkeypatch.setattr(sys, "argv", ["lra", "eval"])
+    monkeypatch.setattr(sys, "argv", ["second-eye", "eval"])
     assert cli.main() == 2
 
 
-# --- triage (lra eval --triage) -----------------------------------------------
+# --- triage (second-eye eval --triage) -----------------------------------------------
 
 
 @pytest.fixture(scope="module")
@@ -357,7 +357,7 @@ def triage_rules(tmp_path_factory):
 
 
 def test_the_triage_set_covers_the_command_set_and_the_hard_cases():
-    from lra import triage
+    from secondeye import triage
 
     cases = model_corpus.TRIAGE
     assert len(cases) >= 40
@@ -411,7 +411,7 @@ def test_the_live_triage_without_credentials_says_so(tmp_path, capsys):
 
 def test_the_live_triage_calls_the_model_with_the_evidence_and_saves_each_plan(
         tmp_path, monkeypatch):
-    from lra import triage
+    from secondeye import triage
 
     seen = []
 

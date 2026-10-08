@@ -1,6 +1,6 @@
 """Run the whole suite against Cloudflare D1's shape as well as local SQLite.
 
-    LRA_TEST_BACKEND=d1 pytest
+    SECOND_EYE_TEST_BACKEND=d1 pytest
 
 With that set, every test's storage goes through `d1.Connection`, the JSON wire
 protocol and object storage, via the fake Worker in fake_edge.py. Nothing in
@@ -17,7 +17,7 @@ import pytest
 
 from tests.fake_edge import FakeEdge
 
-BACKEND = os.environ.get("LRA_TEST_BACKEND", "sqlite")
+BACKEND = os.environ.get("SECOND_EYE_TEST_BACKEND", "sqlite")
 
 # The demos' invented addresses, whatever an operator's demo.env says
 # (demos/identity.py): the suite is the same on every machine.
@@ -36,7 +36,7 @@ def _no_model_transcription(monkeypatch):
     developer's .env may hold a real key, so no test reaches the API by
     accident: a test that wants a transcription stubs `extract._transcribe` and
     turns availability back on itself (tests/test_transcribe.py)."""
-    from lra.pipeline import extract
+    from secondeye.pipeline import extract
 
     monkeypatch.setattr(extract, "transcription_available", lambda: False)
 
@@ -47,7 +47,7 @@ def _no_model_triage(monkeypatch):
     suite runs offline and some tests set a dummy key, so none reaches the
     API: a test that wants triage stubs `triage.call_model` and turns
     availability back on itself (tests/test_triage.py)."""
-    from lra import triage
+    from secondeye import triage
 
     monkeypatch.setattr(triage, "available", lambda: False)
 
@@ -57,7 +57,7 @@ def learning(monkeypatch):
     """LEARN_FROM_OUTCOMES on. Off by default, nothing is learned unless a
     lawyer asks; the tests of what undos, dismissals and the sent version
     teach turn it on with this."""
-    from lra.config import settings
+    from secondeye.config import settings
 
     monkeypatch.setenv("LEARN_FROM_OUTCOMES", "true")
     settings.cache_clear()
@@ -71,7 +71,7 @@ def _storage_backend(monkeypatch, tmp_path_factory):
         yield None
         return
 
-    from lra import d1, edge, store, thread
+    from secondeye import d1, edge, store, thread
 
     fake = FakeEdge(str(tmp_path_factory.mktemp("d1") / "d1.sqlite3"))
     monkeypatch.setattr(store, "is_d1", lambda: True)

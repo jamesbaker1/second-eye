@@ -3,13 +3,13 @@
 // resources in. Nothing here is any deployment's own: every name, id and var
 // below that belongs to one is a placeholder (example.com, a zero database
 // id). Each deployment, the operator's own included, is
-// deployments/<name>/tenant.jsonc (`lra tenant`): its own names, ids and
+// deployments/<name>/tenant.jsonc (`second-eye tenant`): its own names, ids and
 // vars, with everything else (code, compatibility date, container class,
 // cron) read from this file, rendered to deployments/<name>/wrangler.jsonc
 // and deployed with `wrangler deploy --config`. So a change here to anything
 // but the placeholders reaches every deployment on the next one. The vars'
 // comments are the reference for what each does; the values a new firm
-// starts from are `lra tenant new`'s (src/lra/tenant.py, KNOBS).
+// starts from are `second-eye tenant new`'s (src/secondeye/tenant.py, KNOBS).
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "legal-review-agent",
@@ -74,7 +74,7 @@
   //   DMS_MCP_SIGNING_KEY  DMS_CLIENT_SECRET  only with a document system
   //     (docs/deploy-cloudflare.md, "The document-system MCP server").
   //   OPERATOR_SECRET  never left set: put for one operator job from a laptop
-  //     (lra purge, audit, a release) and deleted after. Unset, /internal/*
+  //     (second-eye purge, audit, a release) and deleted after. Unset, /internal/*
   //     does not exist on the public hostname (src/operator.ts).
   "vars": {
     // The Worker's public URL: the webhook's address, and an operator's.
@@ -122,7 +122,7 @@
     // 2026-09-28). Haiku proved the plumbing and its judgment was visibly
     // weaker (STATUS.md). This line governs the direct Messages API calls in
     // the container (transcribing a scan, assessing a comparison); the agents'
-    // model is in agents/*.yaml and is applied by `lra agents apply`.
+    // model is in agents/*.yaml and is applied by `second-eye agents apply`.
     "REVIEW_MODEL": "claude-fable-5-1",
     // "true" for a zero-data-retention Anthropic organisation, which Fable 5.1
     // refuses: every call and agent moves to Claude Opus 5 (docs/sandbox.md).
@@ -132,7 +132,7 @@
     // the document is mounted in Anthropic's container, which keeps files for
     // up to thirty days and is not ZDR-eligible. Production security is a
     // decision still to be made before a firm's documents go through it.
-    // These four are printed by `lra agents apply` (docs/deploy-cloudflare.md)
+    // These four are printed by `second-eye agents apply` (docs/deploy-cloudflare.md)
     // and are empty until it has been run; until then the review path answers
     // "Managed Agents is not set up" and clean copies and comparisons still work.
     "MANAGED_REVIEW_AGENT_ID": "",
@@ -143,7 +143,7 @@
     "SANDBOX_PLAYBOOK_SKILL_ID": "",
     "SANDBOX_KEY_TERMS_SKILL_ID": "",
     // The optional agents and their skills. Empty, each feature answers that
-    // it is not set up. `lra live-check` fills every id here from its run.
+    // it is not set up. `second-eye live-check` fills every id here from its run.
     "MANAGED_PLAYBOOK_AGENT_ID": "",
     "MANAGED_COMMENTS_AGENT_ID": "",
     "MANAGED_CLOSING_AGENT_ID": "",
@@ -155,7 +155,7 @@
     // Nothing kept after 7 days (Jim's call, 2026-10-04): a conversation, its
     // document and versions, a closing and its signed pages, unconfirmed
     // notes, and each job's Anthropic sessions go 7 days after the last
-    // activity. Swept by the daily cron (src/lra/retention.py). A firm may
+    // activity. Swept by the daily cron (src/secondeye/retention.py). A firm may
     // shorten it; "0" keeps everything.
     "THREAD_RETENTION_DAYS": "7",
     "RETENTION_HOURS": "24",

@@ -31,7 +31,7 @@ jobs:
     # Not in the private development repository: only the owner and bots
     # open pull requests there, and it has no signatures branch.
     if: >-
-      github.repository != 'jamesbaker1/legal-review-agent' &&
+      github.repository != 'jamesbaker1/second-eye-private' &&
       (github.event_name == 'pull_request_target' ||
        (github.event.issue.pull_request &&
         (github.event.comment.body == 'recheck' ||

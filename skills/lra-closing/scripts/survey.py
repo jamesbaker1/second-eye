@@ -14,7 +14,7 @@ def main() -> None:
     parser.add_argument("documents", nargs="+")
     args = parser.parse_args()
 
-    from lra.pipeline import closing_docs
+    from secondeye.pipeline import closing_docs
 
     out = []
     for path in args.documents:

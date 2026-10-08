@@ -1,6 +1,6 @@
 /**
  * The kill switch without a deploy (src/pause.ts): one row in D1, written by
- * `lra pause` / `lra resume` through `wrangler d1 execute`, read on every
+ * `second-eye pause` / `second-eye resume` through `wrangler d1 execute`, read on every
  * message, send, cron run and Workflow step that could wake or send. The
  * SERVICE_PAUSED var still works and wins.
  */
@@ -16,7 +16,7 @@ import { outbound } from "./worker";
 
 const heldKeys = async () => (await testEnv.DOCS.list({ prefix: "held/" })).objects.map((o) => o.key);
 
-/** Exactly what `lra pause` runs (src/lra/killswitch.py): the SQL is the contract. */
+/** Exactly what `second-eye pause` runs (src/secondeye/killswitch.py): the SQL is the contract. */
 async function lraPause(on: boolean): Promise<void> {
   await setPause(testEnv.DB, on, "it@firm.com");
 }
@@ -69,7 +69,7 @@ describe("the runtime kill switch", () => {
     expect(await (await internal("/internal/release")).json()).toEqual({ released: 0, paused: true });
     expect((await sentSince(before)).length).toBe(0);
 
-    // `lra resume`: the next release lets it go, reviewed once.
+    // `second-eye resume`: the next release lets it go, reviewed once.
     await lraPause(false);
     const id = await instanceId(messageId, "ann@firm.com");
     await using instance = await introspectWorkflowInstance(testEnv.REVIEW_FLOW, id);

@@ -6,8 +6,8 @@ findings, these are ours to control exactly.
 
 from pathlib import Path
 
-from lra.models import Attachment, Severity
-from lra.pipeline import checks, extract
+from secondeye.models import Attachment, Severity
+from secondeye.pipeline import checks, extract
 
 
 def doc(*paragraphs):
@@ -271,7 +271,7 @@ def test_a_word_the_drafter_uses_repeatedly_is_not_a_typo():
 def test_the_document_title_is_not_a_use_of_a_defined_term():
     """Almost every agreement's title contains the word "Agreement", and its
     preamble defines it. Reporting that is wrong on every document ever drafted."""
-    from lra.pipeline.extract import Block, ExtractedDoc
+    from secondeye.pipeline.extract import Block, ExtractedDoc
 
     d = ExtractedDoc(
         blocks=[

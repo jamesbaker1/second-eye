@@ -26,9 +26,9 @@ from pathlib import Path
 
 import pytest
 
-from lra import crypto, thread, triage
-from lra.mail.console import ConsoleProvider
-from lra.pipeline import router
+from secondeye import crypto, thread, triage
+from secondeye.mail.console import ConsoleProvider
+from secondeye.pipeline import router
 from tests.test_cloudflare import cloud  # noqa: F401  (the fixture)
 from tests.test_workflow_steps import answered, flow, raw_review, step  # noqa: F401
 
@@ -116,7 +116,7 @@ def conversation() -> thread.ThreadState:
 
 @pytest.fixture
 def db(monkeypatch, tmp_path):
-    from lra.config import settings
+    from secondeye.config import settings
 
     monkeypatch.setenv("DATABASE_URL", f"sqlite:///{tmp_path}/r.sqlite3")
     monkeypatch.setenv("MAIL_AGENT_ADDRESS", "review@legal.firm.com")

@@ -16,8 +16,8 @@ import pytest
 from pypdf import PdfReader
 
 from demos.falcon import build, cast, documents, mail, rehearse, signing
-from lra.models import Attachment
-from lra.pipeline import checks, closing_docs, extract, timeline, wordcomments
+from secondeye.models import Attachment
+from secondeye.pipeline import checks, closing_docs, extract, timeline, wordcomments
 
 DOCX = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
 
@@ -175,7 +175,7 @@ def test_the_signed_pages_are_the_packets_pages_signed(files):
 def rehearsal(tmp_path_factory):
     import os
 
-    from lra.config import settings
+    from secondeye.config import settings
 
     # The module-scoped run cannot use the per-test storage fixture, so it
     # keeps its own database file under its own folder either way.

@@ -307,7 +307,7 @@ async function startFlow(env: Env, pointer: Pointer, messageId: string | null, s
 // cleaned up (it was terminated, say). Both hold a document, so they get the
 // window everything about a document gets (THREAD_RETENTION_DAYS, 7 by
 // default), and the bucket's lifecycle rules say 7 days as well
-// (`lra tenant provision`). Mail held by the kill switch (held/) is not
+// (`second-eye tenant provision`). Mail held by the kill switch (held/) is not
 // here: it waits, sealed, until it is released.
 const STORED_AFTER_DAYS = 7;
 // How long the rows that hold only ids are kept: an outbox key, a webhook
@@ -335,7 +335,7 @@ async function purge(env: Env): Promise<void> {
 }
 
 /**
- * The application's retention sweep (src/lra/retention.py): conversations,
+ * The application's retention sweep (src/secondeye/retention.py): conversations,
  * closings, unconfirmed notes and Anthropic's sessions past their window.
  * It used to ride the write path alone, so a quiet week deleted nothing.
  * A failure is logged and the rest of the cron carries on; tomorrow's runs

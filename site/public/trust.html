@@ -215,7 +215,7 @@ blockquote { margin: .6rem 0 .8rem; padding: .5rem 1rem; border-left: 3px solid 
       <tr><td>The audit trail (names, times, ids; no contents) and purge records</td><td>Until the firm deletes them; a purge blanks its scope&rsquo;s names and ids</td><td>none</td></tr>
     </tbody>
   </table></div>
-  <p><strong>Deleting a client, a matter or a lawyer.</strong> <code>lra purge --client 10234</code>, <code>--matter 10234-0007</code> or <code>--lawyer jane@firm.com</code> deletes everything held for that scope, ours and Anthropic&rsquo;s, at once rather than after 7 days:</p>
+  <p><strong>Deleting a client, a matter or a lawyer.</strong> <code>second-eye purge --client 10234</code>, <code>--matter 10234-0007</code> or <code>--lawyer jane@firm.com</code> deletes everything held for that scope, ours and Anthropic&rsquo;s, at once rather than after 7 days:</p>
   <ul>
     <li>conversations and their documents (the rows, and the objects in R2), every earlier version kept for a blackline, and the negotiation ledger;</li>
     <li>closings and their signed pages;</li>
@@ -258,7 +258,7 @@ blockquote { margin: .6rem 0 .8rem; padding: .5rem 1rem; border-left: 3px solid 
   <h2>Supervision: the audit trail</h2>
   <p>Every job leaves one row with no contents: when it arrived, who sent it, the matter, the document names, what ran, the model and session ids, the inference geography, where it was stored and until when, who the reply went to and when, and how it ended.</p>
   <ul>
-    <li><code>lra audit --since 2026-09-01 --format csv</code>, filtered by lawyer or matter.</li>
+    <li><code>second-eye audit --since 2026-09-01 --format csv</code>, filtered by lawyer or matter.</li>
     <li>A playbook admin emails &ldquo;audit report for September&rdquo; and gets the CSV back, to them alone.</li>
     <li>A session can be read turn by turn in the Anthropic Console while it runs. It is deleted when the review ends, so this audit row is the lasting record.</li>
   </ul>
@@ -274,7 +274,7 @@ blockquote { margin: .6rem 0 .8rem; padding: .5rem 1rem; border-left: 3px solid 
   <p>No SOC&nbsp;2 or ISO&nbsp;27001 certification and no independent penetration test. The D1 rows are not under the firm&rsquo;s key. This is a pilot run by one person, not a security team.</p>
 
   <h2>Before the pilot starts</h2>
-  <p>Confirm each setting named here is as the firm wants it in the deployment itself, and register the firm&rsquo;s clients (<code>lra clients add</code>) so memory can be walled by them.</p>
+  <p>Confirm each setting named here is as the firm wants it in the deployment itself, and register the firm&rsquo;s clients (<code>second-eye clients add</code>) so memory can be walled by them.</p>
   <p class="src" style="margin-top:2.4rem">The same content, for circulation, is kept as <code>docs/trust.md</code> in the product&rsquo;s repository.</p>
   <div class="folio">Trust</div>
 </article>

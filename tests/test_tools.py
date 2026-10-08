@@ -9,11 +9,11 @@ import json
 
 import pytest
 
-from lra import tools as tools_mod
-from lra.config import settings
-from lra.memory import Scope, Status, confirm_notes, discard_notes, pending_notes, recall
-from lra.pipeline.extract import Block, ExtractedDoc
-from lra.store import connect
+from secondeye import tools as tools_mod
+from secondeye.config import settings
+from secondeye.memory import Scope, Status, confirm_notes, discard_notes, pending_notes, recall
+from secondeye.pipeline.extract import Block, ExtractedDoc
+from secondeye.store import connect
 
 
 @pytest.fixture
@@ -167,7 +167,7 @@ def test_an_instruction_that_does_not_ask_to_remember_leaves_notes_pending(db, m
 def test_memory_written_before_the_gate_stays_readable(db, tmp_path):
     """A database from before notes could be pending gains the column, and
     every row already in it keeps being read."""
-    from lra import memory
+    from secondeye import memory
 
     # Through the app's own connection, so this is the table D1 serves too.
     memory.init()
@@ -186,7 +186,7 @@ def test_memory_written_before_the_gate_stays_readable(db, tmp_path):
 # --- notes.json from a detached review: the tool's rules, no tool -------------
 
 def test_notes_from_a_detached_review_are_kept_pending(db):
-    from lra.memory import accept_agent_notes
+    from secondeye.memory import accept_agent_notes
 
     lines = accept_agent_notes(json.dumps({"notes": [
         {"statement": "Jim writes 'will', not 'shall'.", "scope": "personal",
@@ -204,7 +204,7 @@ def test_notes_from_a_detached_review_are_kept_pending(db):
 
 
 def test_notes_from_a_detached_review_obey_every_rule_the_tool_does(db):
-    from lra.memory import MAX_NOTES_PER_REVIEW, accept_agent_notes
+    from secondeye.memory import MAX_NOTES_PER_REVIEW, accept_agent_notes
 
     lines = accept_agent_notes([
         {"statement": "Uncapped liability is standard here.", "scope": "firm"},
@@ -227,7 +227,7 @@ def test_notes_from_a_detached_review_obey_every_rule_the_tool_does(db):
 
 
 def test_a_notes_file_that_is_not_json_keeps_nothing(db):
-    from lra.memory import accept_agent_notes
+    from secondeye.memory import accept_agent_notes
 
     assert "could not be read" in accept_agent_notes(b"{nope", "jim@firm.com", None)[0]
     assert pending_notes("jim@firm.com") == []

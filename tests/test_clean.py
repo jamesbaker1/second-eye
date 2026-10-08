@@ -10,8 +10,8 @@ from docx import Document
 from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
 
-from lra.pipeline import checks, clean, compare, redline
-from lra.pipeline.ooxml import Revision, RevisionWriter
+from secondeye.pipeline import checks, clean, compare, redline
+from secondeye.pipeline.ooxml import Revision, RevisionWriter
 
 
 def save(document) -> bytes:

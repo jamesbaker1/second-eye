@@ -16,8 +16,8 @@ from pathlib import Path
 import pytest
 from fastapi.testclient import TestClient
 
-from lra import crypto, d1, edge, handler, jobstate, memory, sessions_api, store, thread
-from lra.models import Mode, ReviewResult
+from secondeye import crypto, d1, edge, handler, jobstate, memory, sessions_api, store, thread
+from secondeye.models import Mode, ReviewResult
 from tests.fake_edge import FakeEdge
 from tests.fake_sessions import configure
 from tests.fake_sessions_api import FakeSessionsApi
@@ -64,7 +64,7 @@ def flow(cloud, monkeypatch):  # noqa: F811
 
 
 def main_app():
-    from lra import main
+    from secondeye import main
 
     return main.app
 
@@ -144,7 +144,7 @@ def test_the_workflow_reply_is_the_one_the_in_process_path_sends(flow, monkeypat
     keys = step(client, "/finish").json()
     via_workflow = stored(worker, keys["outbound"])
 
-    # The same message on a fresh deployment, in one process (lra replay's
+    # The same message on a fresh deployment, in one process (second-eye replay's
     # path, and a mail vendor's webhook).
     fresh = FakeEdge(worker.path + ".in-process")
     monkeypatch.setattr(edge, "call", fresh.call)
@@ -152,7 +152,7 @@ def test_the_workflow_reply_is_the_one_the_in_process_path_sends(flow, monkeypat
     thread._migrated.clear()
     monkeypatch.setattr(handler.review, "review", stub_agent(TYPO, JUDGMENT))
     monkeypatch.setattr(handler, "SLOW_NOTICE_AFTER", 60.0)
-    from lra.mail import get_provider
+    from secondeye.mail import get_provider
 
     handler.handle(get_provider().parse_raw(raw_review()))
     [in_process] = fresh.sent
@@ -225,7 +225,7 @@ def test_a_failure_before_anything_was_prepared_is_left_to_the_worker(flow):
 
 def test_a_message_no_key_opens_fails_the_step_so_it_is_retried(flow, monkeypatch):
     client, _, worker = flow
-    from lra.config import settings
+    from secondeye.config import settings
     from tests.test_cloudflare import OTHER_KEY
 
     sealed = crypto.seal(raw_review())
@@ -238,7 +238,7 @@ def test_a_message_no_key_opens_fails_the_step_so_it_is_retried(flow, monkeypatc
 def test_the_prepared_review_survives_being_stored(flow):
     """What one step leaves, the next reads in another process. Every field
     the later stages use comes back as it went in."""
-    from lra import flow as steps
+    from secondeye import flow as steps
 
     client, _, _ = flow
     step(client, "/prepare", raw=crypto.seal(raw_review()))
@@ -279,7 +279,7 @@ def test_the_runner_is_anthropics_unless_one_is_given():
 def test_a_detached_session_runs_through_the_steps_with_nobody_attached(worker, monkeypatch):
     """Phase 1's clientless session behind the same three calls: started,
     polled by id as the Workflow does, then read from the files it left."""
-    from lra import managed
+    from secondeye import managed
     from tests import fake_sessions as fs
 
     configure(monkeypatch)
@@ -308,7 +308,7 @@ def test_a_detached_session_runs_through_the_steps_with_nobody_attached(worker, 
 
 
 def test_a_detached_review_that_failed_is_not_retried(worker, monkeypatch):
-    from lra import managed
+    from secondeye import managed
     from tests import fake_sessions as fs
 
     configure(monkeypatch)
@@ -462,7 +462,7 @@ def test_a_reply_to_the_notice_or_the_verdict_of_a_review_is_an_answer(flow):
 def test_a_session_that_cannot_start_for_want_of_setup_is_permanent(monkeypatch):
     """No Managed Agents ids: retrying /session/start three times changed
     nothing and delayed the mechanical-only reply."""
-    from lra import flow, managed, sessions_api
+    from secondeye import flow, managed, sessions_api
 
     class Unset:
         def start(self, job):

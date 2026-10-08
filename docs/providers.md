@@ -1,7 +1,7 @@
 # Email infrastructure options
 
 Researched September 2026. The decision here is mostly reversible: everything
-above `src/lra/mail/base.py` is vendor-agnostic, so this is a one-file swap.
+above `src/secondeye/mail/base.py` is vendor-agnostic, so this is a one-file swap.
 
 ## The actual distinction
 

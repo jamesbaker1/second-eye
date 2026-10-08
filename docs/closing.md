@@ -27,7 +27,7 @@ signed pages and renders the index, `checklist.py` renders the checklist.
 
 ## What the host keeps and checks
 
-`src/lra/closing.py` keeps one `closings` row per thread, its state as JSON,
+`src/secondeye/closing.py` keeps one `closings` row per thread, its state as JSON,
 and the files a closing holds (execution copies, signed pages, the executed
 set) sealed in object storage. Each email is one session given the state as
 `/workspace/closing-state.json` and the held files beside the new
@@ -57,8 +57,8 @@ closings and neither named, the agent asks which.
 ## Setting it up
 
 ```
-lra skills sync lra-closing      # prints SANDBOX_CLOSING_SKILL_ID
-lra agents apply                 # prints MANAGED_CLOSING_AGENT_ID
+second-eye skills sync lra-closing      # prints SANDBOX_CLOSING_SKILL_ID
+second-eye agents apply                 # prints MANAGED_CLOSING_AGENT_ID
 ```
 
 The closing skill is attached to the closing agent only (`extra_skills` in

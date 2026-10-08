@@ -26,12 +26,12 @@ from unittest.mock import patch
 import pytest
 from docx import Document
 
-from lra import handler, managed, memory, negotiation, skillsync
-from lra.config import settings
-from lra.mail.console import ConsoleProvider
-from lra.models import Attachment, Finding, InboundEmail, Mode, ReviewResult, Severity
-from lra.pipeline import compare, redline
-from lra.pipeline.identity import EntryMode
+from secondeye import handler, managed, memory, negotiation, skillsync
+from secondeye.config import settings
+from secondeye.mail.console import ConsoleProvider
+from secondeye.models import Attachment, Finding, InboundEmail, Mode, ReviewResult, Severity
+from secondeye.pipeline import compare, redline
+from secondeye.pipeline.identity import EntryMode
 from tests import fake_sessions as fs
 from tests.conftest import documents
 
@@ -389,7 +389,7 @@ def question(message_id: str, in_reply_to: str) -> InboundEmail:
 
 
 def _ledger_threads() -> list[str]:
-    from lra.store import connect
+    from secondeye.store import connect
 
     with connect() as c:
         return [r[0] for r in c.execute(
@@ -704,7 +704,7 @@ def test_the_copy_we_were_bccd_on_is_the_version_we_sent(monkeypatch, captured):
         attachments=[Attachment(filename="Project Falcon SPA v1.docx", content_type=DOCX,
                                 size_bytes=len(sent), content=sent)],
         received_at=datetime.now(UTC))
-    from lra.pipeline import identity
+    from secondeye.pipeline import identity
 
     assert identity.entry_mode(email) is EntryMode.BCC_SENT
     handler.handle(email)
@@ -744,7 +744,7 @@ def test_the_version_label_comes_from_the_filename():
 
 
 def test_the_first_message_fences_the_evidence():
-    from lra.pipeline import extract, review
+    from secondeye.pipeline import extract, review
 
     raw = docx(["1. A."])
     doc = extract.extract(Attachment(filename="a.docx", content_type=DOCX,

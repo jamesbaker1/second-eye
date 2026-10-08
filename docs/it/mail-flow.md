@@ -238,7 +238,7 @@ your tenant.**
 - **Do not add the agent's address to a distribution list**, and do not
   give it a mailbox in the tenant.
 - **Do not put a public mail domain** (gmail.com and the like) on
-  `ALLOWED_SENDERS`; `lra selftest` fails that.
+  `ALLOWED_SENDERS`; `second-eye selftest` fails that.
 - **Do not turn the rule to Enforce** before the daily cap is sized from the
   audit-mode message trace.
 

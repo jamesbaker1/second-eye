@@ -18,7 +18,7 @@ Last checked against the code: 2026-10-04.
 | [mail-flow.md](mail-flow.md) | Exact setup for Exchange Online (BCC rule scoped to a pilot group), Purview, Mimecast, Proofpoint and Google Workspace, and what not to do |
 | [incident-response.md](incident-response.md) | Detection, the kill switch, key withdrawal, purge, breach notice, and offboarding |
 | [ai-policy-crosswalk.md](ai-policy-crosswalk.md) | ABA Formal Opinion 512, the SRA's AI guidance, and bank and insurer outside-counsel guidelines, mapped to the controls that meet them |
-| `lra selftest` | A command IT runs against the deployment for a dated PASS/FAIL report: see "Check it yourself" below |
+| `second-eye selftest` | A command IT runs against the deployment for a dated PASS/FAIL report: see "Check it yourself" below |
 
 The general counsel's note is `docs/onboarding/general-counsel.md`; the
 lawyer-facing trust page is `docs/trust.md`. This pack is the technical
@@ -51,7 +51,7 @@ serves one firm.
 **Where data lives, and for how long.** The windows are the ones in
 `docs/trust.md` ("What we keep, and for how long"), the product's defaults
 since 2026-10-04; the firm can shorten any of them, and a daily sweep
-(`src/lra/retention.py`, run by the Worker's cron) deletes each item within a
+(`src/secondeye/retention.py`, run by the Worker's cron) deletes each item within a
 day of its window ending.
 
 | Data | Where | Under the firm's key? | Kept |
@@ -71,7 +71,7 @@ day of its window ending.
 **Retention at Anthropic.** Deleted when the review ends; see `docs/trust.md`.
 The files we upload and the files a session writes are deleted when the
 session ends, and the session itself, with its turn-by-turn record, is
-deleted when the review ends (`src/lra/managed.py`); a delete that failed is
+deleted when the review ends (`src/secondeye/managed.py`); a delete that failed is
 retried by the daily sweep once the job is 7 days old. Anthropic's own
 backend retention for inputs and outputs is up to 30 days, and its
 documentation does not say whether anything of a deleted session stays
@@ -93,7 +93,7 @@ sandbox.
   organisation, the GitHub repository (a push to `main` deploys every
   firm), and the firm's `DATA_KEY`. Today that is the founder, unless the
   firm runs it in its own Cloudflare account and Anthropic organisation
-  (`lra tenant new --account-id`). There is no web admin surface to put SSO
+  (`second-eye tenant new --account-id`). There is no web admin surface to put SSO
   in front of.
 - *Read stored documents:* only someone holding `DATA_KEY` and the storage.
 - *Machine-to-machine:* the container reaches the Worker's `/internal/*`
@@ -107,8 +107,8 @@ the allowlist; reply policy; the no-AI client list (`NO_AI_MATTERS`, plus
 "no AI for Acme" by an admin's email); retention; the archive (off);
 web search (off); inference geography (`us` or global); the privilege
 legend; the daily message cap; the kill switch (`SERVICE_PAUSED`); who the
-admins are; client memory walls (`lra clients`); the audit export
-(`lra audit`); deletion by client, matter or lawyer (`lra purge`); and the
+admins are; client memory walls (`second-eye clients`); the audit export
+(`second-eye audit`); deletion by client, matter or lawyer (`second-eye purge`); and the
 key itself. In the firm's own accounts, the firm can also cut it off with no
 help from us: disable the transport rule, delete the Email Routing rule, or
 revoke the Anthropic key.
@@ -142,7 +142,7 @@ code.
 ## Check it yourself
 
 ```bash
-lra selftest --tenant <firm> --env-file <the firm's secrets file>
+second-eye selftest --tenant <firm> --env-file <the firm's secrets file>
 ```
 
 It reads the firm's settings and prints a dated report, one line per check

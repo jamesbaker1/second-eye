@@ -14,14 +14,14 @@ from io import BytesIO
 import pytest
 from docx import Document
 
-from lra import thread
-from lra.models import Finding, Severity
+from secondeye import thread
+from secondeye.models import Finding, Severity
 
 
 @pytest.fixture
 def db(monkeypatch, tmp_path):
     monkeypatch.setenv("DATABASE_URL", f"sqlite:///{tmp_path}/t.sqlite3")
-    from lra.config import settings
+    from secondeye.config import settings
 
     settings.cache_clear()
     yield
@@ -112,7 +112,7 @@ def test_the_redline_is_built_from_the_original_every_time(db):
     thread.record_changes(state.id, 0, [fix("thirty", "sixty")])
     content, landed, _ = thread.rebuild(thread.load(state.id))
 
-    from lra.pipeline import redline
+    from secondeye.pipeline import redline
 
     ok, why = redline.verify(content, expect_revisions=True)
     assert ok, why

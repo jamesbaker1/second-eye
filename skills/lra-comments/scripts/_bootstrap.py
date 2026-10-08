@@ -1,7 +1,7 @@
-"""Make the bundled `lra` package importable, wherever this skill is unpacked.
+"""Make the bundled `secondeye` package importable, wherever this skill is unpacked.
 
 The same arrangement as lra-document-tools: `lib/` and `shims/` are filled in
-by `lra skills sync` from the product's own source, so nothing here is a fork
+by `second-eye skills sync` from the product's own source, so nothing here is a fork
 of it. Also the helpers every script shares: JSON out, the working file in
 and out, the author, and the decisions journal.
 
@@ -22,7 +22,7 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "lib"))
 
 try:
-    if os.environ.get("LRA_FORCE_SHIM"):
+    if os.environ.get("SECOND_EYE_FORCE_SHIM"):
         raise ImportError("shim forced")
     import pydantic  # noqa: F401
 except ImportError:
@@ -57,7 +57,7 @@ def write(path: str, content: bytes) -> str:
 
 
 def author(value: str | None) -> str:
-    return (value or os.environ.get("LRA_AUTHOR") or DEFAULT_AUTHOR).strip()
+    return (value or os.environ.get("SECOND_EYE_AUTHOR") or DEFAULT_AUTHOR).strip()
 
 
 def journal_path(docx: str) -> Path:

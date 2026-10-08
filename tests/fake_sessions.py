@@ -491,7 +491,7 @@ def configure(monkeypatch, **env) -> None:
         "MANAGED_ASSOCIATE_AGENT_ID": "agent_associate",
         "MANAGED_ENVIRONMENT_ID": "env_test",
         # The pre-phase-5 setting, empty so a developer's .env cannot make
-        # `lra agents apply` adopt a real agent in a test.
+        # `second-eye agents apply` adopt a real agent in a test.
         "MANAGED_REVIEW_DETACHED_AGENT_ID": "",
         # A developer's .env may name a real workspace; the Console URL the
         # tests assert on must not depend on it.
@@ -500,10 +500,10 @@ def configure(monkeypatch, **env) -> None:
     defaults.update(env)
     for key, value in defaults.items():
         monkeypatch.setenv(key, value)
-    from lra import managed
+    from secondeye import managed
 
     # The fakes settle on the next retrieve; nothing to wait for between polls.
     monkeypatch.setattr(managed, "SETTLE_POLL_SECONDS", 0.0)
-    from lra.config import settings
+    from secondeye.config import settings
 
     settings.cache_clear()

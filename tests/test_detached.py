@@ -16,11 +16,11 @@ from unittest.mock import patch
 import pytest
 from docx import Document
 
-from lra import managed
-from lra.config import settings
-from lra.memory import pending_notes, recall
-from lra.models import Attachment, Mode
-from lra.pipeline import extract, review
+from secondeye import managed
+from secondeye.config import settings
+from secondeye.memory import pending_notes, recall
+from secondeye.models import Attachment, Mode
+from secondeye.pipeline import extract, review
 from tests import fake_sessions as fs
 
 DOCX = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
@@ -126,7 +126,7 @@ def test_a_finished_review_brings_back_the_findings_the_redline_and_the_notes():
 
 
 def test_it_waits_while_the_session_runs_and_beats_the_heartbeat_on_every_poll():
-    """The heartbeat is `lra review --live`'s progress, one dot a poll."""
+    """The heartbeat is `second-eye review --live`'s progress, one dot a poll."""
     beats = []
     fake = fs.DetachedSessions([done({"findings.json": recorded()}, polls=4)])
     doc, raw = a_document()

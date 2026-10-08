@@ -85,7 +85,7 @@ def main() -> None:
     parser.add_argument("--engine", default="auto", choices=("auto", "typeset", "libreoffice"))
     args = parser.parse_args()
 
-    from lra.pipeline import blackline_pdf, compare
+    from secondeye.pipeline import blackline_pdf, compare
 
     try:
         listing = json.loads(read(args.versions))

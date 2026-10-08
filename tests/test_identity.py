@@ -2,9 +2,9 @@ from datetime import UTC, datetime
 
 import pytest
 
-from lra.config import settings
-from lra.models import InboundEmail
-from lra.pipeline.identity import (
+from secondeye.config import settings
+from secondeye.models import InboundEmail
+from secondeye.pipeline.identity import (
     EntryMode,
     bcc_only,
     entry_mode,
@@ -130,7 +130,7 @@ def test_replying_on_a_client_thread_with_the_document_is_already_sent(monkeypat
     """Hitting Reply on the client's own thread, attaching the revised draft and
     BCC'ing the agent is how client mail is actually sent. It used to be
     classified as an ordinary follow-up, so the warning never fired."""
-    from lra.models import Attachment
+    from secondeye.models import Attachment
 
     monkeypatch.setenv("MAIL_AGENT_ADDRESS", "review@legal.firm.com")
     monkeypatch.setenv("FIRM_DOMAINS", "firm.com")
@@ -162,7 +162,7 @@ def test_a_display_name_does_not_break_the_allowlist(monkeypatch):
     to become from_address, which is what the allowlist, is_internal, identity
     resolution and the thread key all key off, so every lawyer using a normal
     mail client was rejected."""
-    from lra.pipeline import intake
+    from secondeye.pipeline import intake
 
     monkeypatch.setenv("ALLOWED_SENDERS", "firm.com")
     settings.cache_clear()
@@ -195,7 +195,7 @@ def test_recipients_are_normalised_too(monkeypatch):
 def test_the_same_person_resolves_identically_with_and_without_a_name():
     """Otherwise they get a different conversation depending on whether their
     mail client included a display name."""
-    from lra import thread
+    from secondeye import thread
 
     plain = mk(from_address="jane@firm.com")
     named = mk(from_address="Jane Partner <jane@firm.com>")
@@ -206,7 +206,7 @@ def test_the_same_person_resolves_identically_with_and_without_a_name():
 
 
 def test_an_outsider_with_a_friendly_display_name_is_still_rejected(monkeypatch):
-    from lra.pipeline import intake
+    from secondeye.pipeline import intake
 
     monkeypatch.setenv("ALLOWED_SENDERS", "firm.com")
     settings.cache_clear()
@@ -232,7 +232,7 @@ def test_an_alias_that_forwards_to_the_agent_is_still_us(monkeypatch):
 
 def test_the_refusal_says_who_to_ask(monkeypatch):
     """"Not on the list yet" with no next step is where a colleague gives up."""
-    from lra.pipeline import intake
+    from secondeye.pipeline import intake
 
     monkeypatch.setenv("ALLOWED_SENDERS", "jim@firm.com")
     monkeypatch.setenv("ALLOWLIST_CONTACT", "Jim Baker")

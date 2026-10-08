@@ -30,7 +30,7 @@ jobs:
     # fork, which carry this file too), and only after CI has passed on main
     # or when asked for by hand.
     if: >-
-      github.repository == 'jamesbaker1/legal-review-agent' &&
+      github.repository == 'jamesbaker1/second-eye-private' &&
       (github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success')
     runs-on: ubuntu-latest
     env:

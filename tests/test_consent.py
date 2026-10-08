@@ -12,14 +12,14 @@ from datetime import UTC, datetime
 
 import pytest
 
-from lra import consent, oauth
-from lra.config import settings
-from lra.models import InboundEmail
+from secondeye import consent, oauth
+from secondeye.config import settings
+from secondeye.models import InboundEmail
 
 
 @pytest.fixture(autouse=True)
 def _isolated(tmp_path, monkeypatch):
-    monkeypatch.setenv("DATABASE_URL", f"sqlite:///{tmp_path / 'lra.sqlite3'}")
+    monkeypatch.setenv("DATABASE_URL", f"sqlite:///{tmp_path / 'second-eye.sqlite3'}")
     monkeypatch.setenv("MAIL_AGENT_ADDRESS", "review@example.com")
     settings.cache_clear()
     yield

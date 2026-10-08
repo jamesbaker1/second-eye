@@ -16,11 +16,11 @@ Four ways to run it, one scorer:
                        scorer can change without paying for the reviews again.
 
   .venv/bin/python -m evals.score_model --live --budget-usd 40
-  lra eval --live --budget-usd 40            (the same thing)
+  second-eye eval --live --budget-usd 40            (the same thing)
 
-  lra eval --triage --stub perfect|bad       triage, canned plans, and the rules'
-                                             baseline on the same emails
-  lra eval --triage --live                   the first live triage run
+  second-eye eval --triage --stub perfect|bad       triage, canned plans, and the rules'
+                                                    baseline on the same emails
+  second-eye eval --triage --live                   the first live triage run
 
 Writes scorecard.md and scorecard.json into --out (default
 work/model-eval/<time>-<how>/). Exits 0 when every target is met.
@@ -59,7 +59,7 @@ from pathlib import Path
 
 from evals import model_corpus
 from evals.model_corpus import CLAUSES, OFF, ModelSpec
-from lra.models import Attachment, Finding, Mode, ReviewResult, Severity
+from secondeye.models import Attachment, Finding, Mode, ReviewResult, Severity
 
 DOCX = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
 ROOT = Path(__file__).resolve().parents[1]
@@ -313,7 +313,7 @@ def table_rows(content: bytes | None) -> list[list[str]]:
 
 
 def _issues_rows(content: bytes | None) -> list[list[str]]:
-    from lra.pipeline.issues_list import COLUMNS
+    from secondeye.pipeline.issues_list import COLUMNS
 
     return [r for r in table_rows(content) if tuple(r[:4]) != COLUMNS]
 
@@ -620,7 +620,7 @@ def finish_their_paper(spec: ModelSpec, content: bytes, result: ReviewResult,
     """Put a their-paper review through the same local steps as the handler:
     mechanical findings first, cosmetic ones withheld, the issues list built,
     the redline written. What the lawyer would receive is what is scored."""
-    from lra.pipeline import redline, reply, their_paper
+    from secondeye.pipeline import redline, reply, their_paper
 
     settled = result.model_copy(deep=True)
     settled.findings = list(mechanical or []) + settled.findings
@@ -745,7 +745,7 @@ def stub(spec: ModelSpec, quality: str) -> Produced:
 
 def run_live(specs: list[ModelSpec], save_to: Path, budget_usd: float, per_doc_usd: float,
              time_budget: float, review_fn=None, clock=time.monotonic) -> dict[str, Produced]:
-    """Each document through pipeline/review.py, as `lra review --live` runs it.
+    """Each document through pipeline/review.py, as `second-eye review --live` runs it.
 
     The dollar budget is enforced as a worst case: every session is capped at
     `per_doc_usd` on the platform (MANAGED_SESSION_BUDGET_CENTS), and no
@@ -758,8 +758,8 @@ def run_live(specs: list[ModelSpec], save_to: Path, budget_usd: float, per_doc_u
     one lawyer has taught it. Results are saved as they come, so a run that is
     stopped can still be scored with --replay.
     """
-    from lra.config import settings
-    from lra.pipeline import checks, extract, review
+    from secondeye.config import settings
+    from secondeye.pipeline import checks, extract, review
 
     review_fn = review_fn or review.review
     previous = os.environ.get("MANAGED_SESSION_BUDGET_CENTS")
@@ -852,7 +852,7 @@ def write(card: dict, out: Path, title: str) -> Path:
 
 
 # --------------------------------------------------------------------------
-# Triage: `lra eval --triage` (src/lra/triage.py, docs/migration.md phase 3)
+# Triage: `second-eye eval --triage` (src/secondeye/triage.py, docs/migration.md phase 3)
 # --------------------------------------------------------------------------
 #
 # Every case in model_corpus.TRIAGE goes through the rules (triage.rules_plan,
@@ -876,7 +876,7 @@ def _answer_value(value: str) -> str:
 
 def triage_misses(case: model_corpus.TriageCase, plan) -> list[str]:
     """Where a plan departs from the case's expected plan. Empty when right."""
-    from lra import triage
+    from secondeye import triage
 
     if plan is None:
         return ["no plan"]
@@ -914,8 +914,8 @@ class _TriageWorld:
         self._saved: dict[str, str | None] = {}
 
     def __enter__(self):
-        from lra import closing, triage
-        from lra.config import settings
+        from secondeye import closing, triage
+        from secondeye.config import settings
 
         self.root.mkdir(parents=True, exist_ok=True)
         env = {**model_corpus.TRIAGE_ENV,
@@ -938,8 +938,8 @@ class _TriageWorld:
         )
 
     def __exit__(self, *exc) -> None:
-        from lra import closing
-        from lra.config import settings
+        from secondeye import closing
+        from secondeye.config import settings
 
         if self._closing:
             # One database may serve every case (the suite's D1 fake does).
@@ -958,7 +958,7 @@ def triage_rules(cases: list[model_corpus.TriageCase], root: Path) -> dict:
     as it is to the model."""
     from unittest.mock import patch
 
-    from lra import managed, triage
+    from secondeye import managed, triage
 
     plans = {}
     with patch.object(managed, "configured", lambda: True):
@@ -971,7 +971,7 @@ def triage_rules(cases: list[model_corpus.TriageCase], root: Path) -> dict:
 def triage_stub(case: model_corpus.TriageCase, quality: str):
     """A canned model plan: the expected one, or one that is wrong on every
     case (a review of nothing, sent to nobody)."""
-    from lra import triage
+    from secondeye import triage
 
     exp = case.expect
     if quality == "bad":
@@ -993,7 +993,7 @@ def triage_live(cases: list[model_corpus.TriageCase], root: Path, budget_usd: fl
                 save_to: Path) -> tuple[dict, dict]:
     """The real triage call for every case, saved as it goes. Returns the
     plans and, for a case that failed, why."""
-    from lra import triage
+    from secondeye import triage
 
     plans, errors = {}, {}
     spent = 0.0
@@ -1017,7 +1017,7 @@ def triage_live(cases: list[model_corpus.TriageCase], root: Path, budget_usd: fl
 
 
 def triage_replay(root: Path) -> dict:
-    from lra import triage
+    from secondeye import triage
 
     return {p.stem: triage.Plan.model_validate_json(p.read_text())
             for p in sorted(root.glob("*.json"))}
@@ -1093,11 +1093,11 @@ def main_triage(args) -> int:
     rules = triage_rules(cases, scratch)
     errors: dict = {}
     if args.live:
-        from lra import triage
+        from secondeye import triage
 
         if not triage.available():
             print("ANTHROPIC_API_KEY is not set, so the live triage cannot run. "
-                  "`lra eval --triage --stub perfect` shows the scorer and the rules' "
+                  "`second-eye eval --triage --stub perfect` shows the scorer and the rules' "
                   "baseline without it.")
             return 2
         print(f"{len(cases)} emails, at most ${TRIAGE_USD_PER_CALL:.2f} each. "
@@ -1123,7 +1123,7 @@ def main_triage(args) -> int:
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
-        prog="lra eval", description="Score the model-dependent features on a corpus "
+        prog="second-eye eval", description="Score the model-dependent features on a corpus "
                                      "with known answers.")
     how = parser.add_mutually_exclusive_group(required=True)
     how.add_argument("--live", action="store_true",
@@ -1153,7 +1153,7 @@ def main(argv: list[str] | None = None) -> int:
     out = args.out or ROOT / "work" / "model-eval" / f"{stamp}-{label}"
 
     if args.live:
-        from lra import managed
+        from secondeye import managed
 
         try:
             managed.require_configured()

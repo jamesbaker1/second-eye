@@ -13,14 +13,14 @@ from pathlib import Path
 
 import pytest
 
-from lra import flow, handler, policy
-from lra.config import settings
-from lra.models import OutboundEmail
-from lra.pipeline import reply
+from secondeye import flow, handler, policy
+from secondeye.config import settings
+from secondeye.models import OutboundEmail
+from secondeye.pipeline import reply
 from tests.test_cloudflare import cloud  # noqa: F401  (the fixture)
 from tests.test_end_to_end import JUDGMENT, TYPO, Captured, inbound, stub_agent
 
-SRC = Path(__file__).resolve().parents[1] / "src" / "lra"
+SRC = Path(__file__).resolve().parents[1] / "src" / "secondeye"
 
 
 @pytest.fixture
@@ -161,9 +161,9 @@ def test_every_provider_sends_the_header(monkeypatch):
     import httpx
     import respx
 
-    from lra.mail.agentmail import AgentMailProvider
-    from lra.mail.cloudflare import payload
-    from lra.mail.postmark import PostmarkProvider
+    from secondeye.mail.agentmail import AgentMailProvider
+    from secondeye.mail.cloudflare import payload
+    from secondeye.mail.postmark import PostmarkProvider
 
     monkeypatch.setenv("AGENTMAIL_API_KEY", "k")
     monkeypatch.setenv("AGENTMAIL_INBOX_ID", "inbox1")
@@ -227,7 +227,7 @@ def test_paused_mid_message_the_send_is_dropped(monkeypatch):
 def test_paused_the_application_asks_for_redelivery(cloud, monkeypatch):  # noqa: F811
     from fastapi.testclient import TestClient
 
-    from lra import crypto, main
+    from secondeye import crypto, main
     from tests.test_workflow_steps import AUTH, raw_review
 
     _pause(monkeypatch)

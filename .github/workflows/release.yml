@@ -41,7 +41,7 @@ jobs:
       # The source archive (reproducible, less every firm's deployment), the
       # config template and release.json. Standard library only.
       - name: Build the source archive, config template and manifest
-        run: PYTHONPATH=src python3 -m lra.release build --version "$GITHUB_REF_NAME" --out dist
+        run: PYTHONPATH=src python3 -m secondeye.release build --version "$GITHUB_REF_NAME" --out dist
 
       # The Worker as wrangler bundles it, for IT to read. A dry run: nothing
       # is uploaded, and no account or token is involved.
@@ -50,7 +50,7 @@ jobs:
         run: |
           npm ci
           npx wrangler deploy --dry-run --containers-rollout=none --outdir ../dist/worker
-          cd .. && PYTHONPATH=src python3 -m lra.release pack dist/worker "dist/second-eye-${GITHUB_REF_NAME}-worker.tar.gz"
+          cd .. && PYTHONPATH=src python3 -m secondeye.release pack dist/worker "dist/second-eye-${GITHUB_REF_NAME}-worker.tar.gz"
 
       # The Python dependencies as they resolve today. The image the firm
       # builds resolves them again; this is what to compare against.
@@ -70,7 +70,7 @@ jobs:
           upload-release-assets: false
 
       - name: Checksums
-        run: PYTHONPATH=src python3 -m lra.release checksums dist
+        run: PYTHONPATH=src python3 -m secondeye.release checksums dist
 
       - name: Attach to a draft release
         env:

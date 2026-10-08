@@ -1,6 +1,6 @@
 from datetime import UTC, datetime
 
-from lra.models import (
+from secondeye.models import (
     Attachment,
     Finding,
     InboundEmail,
@@ -9,7 +9,7 @@ from lra.models import (
     ReviewResult,
     Severity,
 )
-from lra.pipeline import reply
+from secondeye.pipeline import reply
 
 
 def inbound() -> InboundEmail:
@@ -47,7 +47,7 @@ def test_clean_document_says_so_plainly():
 
 def test_only_a_draft_with_nothing_in_it_is_called_clean():
     """Minor points, or a document already sent, do not earn the compliment."""
-    from lra.pipeline.identity import EntryMode
+    from secondeye.pipeline.identity import EntryMode
 
     nits = [nit("Double space")]
     out = reply.compose(inbound(), ReviewResult(mode=Mode.REDLINE, summary="", findings=nits),
@@ -74,7 +74,7 @@ def test_reply_stays_in_thread():
 
 
 def test_bcc_on_a_sent_message_reads_as_an_incident_not_a_redline():
-    from lra.pipeline.identity import EntryMode
+    from secondeye.pipeline.identity import EntryMode
 
     out = reply.compose(
         inbound(),
@@ -153,7 +153,7 @@ def test_an_already_sent_document_is_not_told_to_hold_the_send():
     """"Do not send until these are resolved" printed directly under "this
     already went to counsel@betacorp.com". The next action is a correction to
     the client, not holding a send that has happened."""
-    from lra.pipeline.identity import EntryMode
+    from secondeye.pipeline.identity import EntryMode
 
     out = reply.compose(
         inbound(),

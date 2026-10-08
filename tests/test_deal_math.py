@@ -15,8 +15,8 @@ import pytest
 from docx import Document
 
 from evals import corpus, model_corpus, realistic
-from lra.models import Attachment, InboundEmail, ReviewResult, Severity
-from lra.pipeline import checks, dealmath, extract, sigpack, timeline
+from secondeye.models import Attachment, InboundEmail, ReviewResult, Severity
+from secondeye.pipeline import checks, dealmath, extract, sigpack, timeline
 
 DOCX = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
 NEW = {"arithmetic", "party-name"}
@@ -242,9 +242,9 @@ def test_the_signature_pack_is_blocked_by_drift():
 
 @pytest.fixture
 def captured(monkeypatch, tmp_path):
-    from lra import handler
-    from lra.config import settings
-    from lra.mail.console import ConsoleProvider
+    from secondeye import handler
+    from secondeye.config import settings
+    from secondeye.mail.console import ConsoleProvider
 
     class Captured(ConsoleProvider):
         def __init__(self):
@@ -275,7 +275,7 @@ def _email(n, content, body="Quick look?", filename="Falcon SPA.docx", **kw):
 
 
 def test_a_new_version_on_the_thread_says_the_buyer_was_renamed(captured):
-    from lra import handler
+    from secondeye import handler
 
     handler.handle(_email(1, realistic.falcon_spa(2)))
     handler.handle(_email(2, realistic.falcon_spa(3, defects=True)))

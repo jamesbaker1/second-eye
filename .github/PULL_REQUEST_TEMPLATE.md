@@ -8,7 +8,7 @@
 
 - [ ] `.venv/bin/python -m ruff check src tests`
 - [ ] `.venv/bin/python -m pytest -q` (SQLite)
-- [ ] `LRA_TEST_BACKEND=d1 .venv/bin/python -m pytest -q` (the D1 adapter)
+- [ ] `SECOND_EYE_TEST_BACKEND=d1 .venv/bin/python -m pytest -q` (the D1 adapter)
 - [ ] `.venv/bin/python -m evals.run_checks` still meets its target (if checks changed)
 - [ ] `npm run check && npm test` in `cloudflare/` or `cloudflare/dms-mcp/` (if a Worker changed)
 - [ ] New behaviour has a test; a new check is tested both firing and staying silent

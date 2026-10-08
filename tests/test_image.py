@@ -8,7 +8,7 @@ its rubric on Cloudflare while every local run passed.
 
 from pathlib import Path
 
-from lra import managed, skillsync
+from secondeye import managed, skillsync
 
 ROOT = Path(__file__).resolve().parents[1]
 

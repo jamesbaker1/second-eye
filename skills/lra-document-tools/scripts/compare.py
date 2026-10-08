@@ -15,7 +15,7 @@ def main() -> None:
     parser.add_argument("--out", required=True)
     args = parser.parse_args()
 
-    from lra.pipeline import compare
+    from secondeye.pipeline import compare
 
     try:
         result = compare.compare(read(args.earlier), read(args.later))

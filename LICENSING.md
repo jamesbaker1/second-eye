@@ -52,7 +52,7 @@ complete corresponding source of what you run or ship, under the AGPL. That
 includes your changes and anything you combined with it into one program.
 
 **What "the program" is.** This repository: the Python application in
-`src/lra`, the Cloudflare Workers in `cloudflare/`, the agent definitions in
+`src/secondeye`, the Cloudflare Workers in `cloudflare/`, the agent definitions in
 `agents/`, the skills in `skills/`, and everything else here. Anthropic's
 models and platform, Cloudflare's platform and your firm's document system
 are separate services the program talks to; their own terms govern them.

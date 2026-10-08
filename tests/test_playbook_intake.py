@@ -20,11 +20,11 @@ from unittest.mock import patch
 import pytest
 from docx import Document
 
-import lra.config
-from lra import handler, managed, memory, playbook
-from lra.mail.console import ConsoleProvider
-from lra.models import Attachment, InboundEmail
-from lra.pipeline import redline
+import secondeye.config
+from secondeye import handler, managed, memory, playbook
+from secondeye.mail.console import ConsoleProvider
+from secondeye.models import Attachment, InboundEmail
+from secondeye.pipeline import redline
 from tests import api_contract as contract
 from tests import fake_sessions as fs
 
@@ -96,11 +96,11 @@ def env(monkeypatch, tmp_path):
     store = FakeStore()
     client = contract.strict(NS(beta=NS(memory_stores=NS(create=store.create_store,
                                                          memories=store))))
-    monkeypatch.setattr(lra.config, "anthropic_client", lambda: client)
+    monkeypatch.setattr(secondeye.config, "anthropic_client", lambda: client)
     provider = Captured()
     monkeypatch.setattr(handler, "get_provider", lambda: provider)
     yield NS(provider=provider, store=store)
-    lra.config.settings.cache_clear()
+    secondeye.config.settings.cache_clear()
 
 
 def docx(lines: list[str]) -> bytes:
@@ -227,11 +227,11 @@ def test_admins_default_to_the_allowlist_contact_then_the_firm(env, monkeypatch)
     assert playbook.is_admin("Jim@Firm.com")
     assert not playbook.is_admin("amy@firm.com")
     monkeypatch.setenv("ALLOWLIST_CONTACT", "")
-    lra.config.settings.cache_clear()
+    secondeye.config.settings.cache_clear()
     assert playbook.is_admin("amy@firm.com")
     assert not playbook.is_admin("counsel@other.com")
     monkeypatch.setenv("PLAYBOOK_ADMINS", "kl@firm.com")
-    lra.config.settings.cache_clear()
+    secondeye.config.settings.cache_clear()
     assert playbook.is_admin("kl@firm.com") and not playbook.is_admin("amy@firm.com")
 
 
@@ -285,7 +285,7 @@ def test_approval_publishes_the_firm_files_that_reviews_then_mount(env):
     assert "replace" in labels[0]["instructions"] and labels[0]["access"] == "read_only"
 
 
-def test_a_position_file_is_in_the_lra_playbook_format_marked_as_the_firms(env):
+def test_a_position_file_is_in_the_playbook_format_marked_as_the_firms(env):
     rendered = playbook.render({**LOL, "updated": "2026-09-28"})
     front, body = rendered.split("---\n", 2)[1:]
     meta = dict(line.split(": ", 1) for line in front.strip().splitlines())
@@ -395,7 +395,7 @@ def test_undo_walks_back_through_the_versions_to_the_starters(env):
 
 def test_approving_a_draft_built_on_a_playbook_since_changed_is_refused(env, monkeypatch):
     monkeypatch.setenv("PLAYBOOK_ADMINS", "jim@firm.com,kl@firm.com")
-    lra.config.settings.cache_clear()
+    secondeye.config.settings.cache_clear()
     run(env, playbook_email("a"), {"summary": "s", "positions": [LOL]})
     run(env, email("Here's our playbook", "b", sender="kl@firm.com",
                    attachments=[attachment("Positions memo.docx", MEMO_LINES)]),
@@ -428,7 +428,7 @@ def test_approving_with_nothing_waiting_says_so(env):
 
 def test_without_the_playbook_agent_nothing_changes_and_it_says_why(env, monkeypatch):
     monkeypatch.setenv("MANAGED_PLAYBOOK_AGENT_ID", "")
-    lra.config.settings.cache_clear()
+    secondeye.config.settings.cache_clear()
     handler.handle(playbook_email())
     assert "isn't set up yet" in reply(env).text_body
     assert playbook.history() == []

@@ -1,7 +1,7 @@
 """The story's emails as RFC 5322 messages.
 
 `emails.yaml` says what each email is; this turns one step of it into bytes
-a mail client can open and send, or `lra replay` and the rehearsal can feed
+a mail client can open and send, or `second-eye replay` and the rehearsal can feed
 to the handler. Everything that varies between runs in a normal message (the
 Message-ID, the MIME boundaries, the date) is fixed here, so the same step
 always makes the same bytes.

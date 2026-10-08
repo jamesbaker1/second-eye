@@ -11,9 +11,9 @@ from urllib.parse import unquote
 
 from docx import Document
 
-from lra import handler, thread
-from lra.models import InboundEmail
-from lra.pipeline import identity
+from secondeye import handler, thread
+from secondeye.models import InboundEmail
+from secondeye.pipeline import identity
 from tests import test_end_to_end as e2e
 from tests.conftest import documents
 from tests.test_end_to_end import TYPO, inbound, stub_agent

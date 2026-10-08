@@ -1,10 +1,10 @@
-"""`lra live-check`: the first live run in one command (src/lra/livecheck.py).
+"""`second-eye live-check`: the first live run in one command (src/secondeye/livecheck.py).
 
 Nothing here reaches the API. The preflight is held to the errors the API
 documents for the three ways the first run is expected to fail (no credit,
 retention not enabled, a wrong model id), built as the SDK raises them; the
 steps after it are replaced by fakes, except the agents step, which runs
-`lra agents apply` against the same fake client tests/test_cli.py uses, so
+`second-eye agents apply` against the same fake client tests/test_cli.py uses, so
 that the ids it writes into wrangler.jsonc are the ids apply printed.
 """
 
@@ -20,9 +20,9 @@ import anthropic
 import httpx2
 import pytest
 
-import lra.config
-from lra import livecheck
-from lra.config import settings
+import secondeye.config
+from secondeye import livecheck
+from secondeye.config import settings
 from tests import api_contract as contract
 from tests import fake_sessions as fs
 
@@ -136,7 +136,7 @@ def test_a_failed_preflight_stops_the_run_and_the_report_says_what_to_do(
         calls.append(kw)
         raise api_error(cls, status, kind, message)
 
-    monkeypatch.setattr(lra.config, "anthropic_client",
+    monkeypatch.setattr(secondeye.config, "anthropic_client",
                         lambda: contract.strict(NS(messages=NS(create=create))))
     rec = Recorder()
     assert main(where, steps=rec.steps(preflight=livecheck.step_preflight)) == 1
@@ -146,13 +146,13 @@ def test_a_failed_preflight_stops_the_run_and_the_report_says_what_to_do(
     assert "live-check stopped at preflight" in out and says in out
     text = report(where)
     assert "| preflight | FAIL |" in text and "| skills | not run |" in text
-    assert says in text and "lra live-check --from preflight" in text
+    assert says in text and "second-eye live-check --from preflight" in text
 
 
 def test_the_preflight_without_a_key_makes_no_call(where, monkeypatch):
     monkeypatch.setenv("ANTHROPIC_API_KEY", "")
     settings.cache_clear()
-    monkeypatch.setattr(lra.config, "anthropic_client",
+    monkeypatch.setattr(secondeye.config, "anthropic_client",
                         lambda: (_ for _ in ()).throw(AssertionError("a client was built")))
     rec = Recorder()
     assert main(where, steps=rec.steps(preflight=livecheck.step_preflight)) == 1
@@ -162,7 +162,7 @@ def test_the_preflight_without_a_key_makes_no_call(where, monkeypatch):
 def test_a_preflight_that_answers_passes(where, monkeypatch):
     reply = NS(model="claude-fable-5-1", stop_reason="end_turn",
                usage=NS(input_tokens=14, output_tokens=40))
-    monkeypatch.setattr(lra.config, "anthropic_client",
+    monkeypatch.setattr(secondeye.config, "anthropic_client",
                         lambda: contract.strict(NS(messages=NS(create=lambda **kw: reply))))
     rec = Recorder()
     assert main(where, steps=rec.steps(preflight=livecheck.step_preflight)) == 0
@@ -179,7 +179,7 @@ def test_the_run_stops_at_the_first_failure(where, capsys):
     assert rec.ran == ["preflight", "skills", "agents"]
     out = capsys.readouterr().out
     assert "live-check stopped at agents: agents broke" in out
-    assert "What to do: fix agents" in out and "lra live-check --from agents" in out
+    assert "What to do: fix agents" in out and "second-eye live-check --from agents" in out
     text = report(where)
     for name in ("preflight", "skills"):
         assert f"| {name} | pass |" in text
@@ -238,7 +238,7 @@ def _fake_apply_client(monkeypatch):
         environments=NS(create=lambda **kw: NS(id="env_1", name=kw["name"])),
         memory_stores=NS(create=lambda **kw: NS(id="memstore_1")),
     )))
-    monkeypatch.setattr(lra.config, "anthropic_client", lambda: client)
+    monkeypatch.setattr(secondeye.config, "anthropic_client", lambda: client)
 
 
 def _jsonc(text: str) -> dict:
@@ -310,7 +310,7 @@ def test_rewrite_wrangler_sets_a_value_already_there_and_names_what_is_absent():
 
 def test_the_dry_run_lists_the_steps_checks_locally_and_spends_nothing(
         where, monkeypatch, capsys):
-    monkeypatch.setattr(lra.config, "anthropic_client",
+    monkeypatch.setattr(secondeye.config, "anthropic_client",
                         lambda: (_ for _ in ()).throw(AssertionError("a client was built")))
     assert main(where, "--dry-run") == 0
     out = capsys.readouterr().out
@@ -363,7 +363,7 @@ def test_the_triage_cost_matches_the_evals_own_guard():
 
 def test_the_eval_step_runs_the_scorecard_within_its_share(where, monkeypatch):
     from evals import score_model
-    from lra import managed
+    from secondeye import managed
 
     monkeypatch.setattr(managed, "require_configured", lambda: None)
     seen = {}
@@ -393,7 +393,7 @@ def test_the_eval_step_runs_the_scorecard_within_its_share(where, monkeypatch):
 
 def test_the_eval_step_fails_when_the_account_cannot_pay(where, monkeypatch):
     from evals import score_model
-    from lra import managed
+    from secondeye import managed
 
     monkeypatch.setattr(managed, "require_configured", lambda: None)
 
@@ -417,21 +417,21 @@ def test_the_eval_step_fails_when_the_account_cannot_pay(where, monkeypatch):
 def test_the_command_is_wired_into_the_cli(monkeypatch, capsys):
     import sys
 
-    from lra import cli
+    from secondeye import cli
 
     got = {}
     monkeypatch.setattr(livecheck, "main", lambda args: got.setdefault("args", args) and 0)
-    monkeypatch.setattr(sys, "argv", ["lra", "live-check", "--dry-run"])
+    monkeypatch.setattr(sys, "argv", ["second-eye", "live-check", "--dry-run"])
     cli.main()
     assert got["args"] == ["--dry-run"]
-    monkeypatch.setattr(sys, "argv", ["lra"])
+    monkeypatch.setattr(sys, "argv", ["second-eye"])
     cli.main()
-    assert "lra live-check" in capsys.readouterr().out
+    assert "second-eye live-check" in capsys.readouterr().out
 
 
 def test_the_rehearsal_runs_as_many_steps_as_its_share_covers(where, monkeypatch):
     from demos.falcon import rehearse
-    from lra import managed
+    from secondeye import managed
 
     monkeypatch.setattr(managed, "configured", lambda: True)
     steps = livecheck.rehearsal_steps()
@@ -439,7 +439,7 @@ def test_the_rehearsal_runs_as_many_steps_as_its_share_covers(where, monkeypatch
 
     def fake_run(out, live=False, until=None, only=None, echo=print):
         seen.update(live=live, until=until,
-                    cap=lra.config.settings().managed_session_budget_cents)
+                    cap=secondeye.config.settings().managed_session_budget_cents)
         upto = steps.index(until) + 1 if until else len(steps)
         return {sid: {"replies": ["reply"], "missing": []} for sid in steps[:upto]}
 

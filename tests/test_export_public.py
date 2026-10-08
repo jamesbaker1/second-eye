@@ -83,8 +83,8 @@ def _run(repo: Path, out: Path, *extra: str) -> int:
     (".env", ".env", True),
     (".env", "cloudflare/.env", True),
     (".env", ".env.example", False),
-    ("*.sqlite3", "data/lra.sqlite3", True),
-    ("*.sqlite3", "data/lra.sqlite3.bak", False),
+    ("*.sqlite3", "data/second-eye.sqlite3", True),
+    ("*.sqlite3", "data/second-eye.sqlite3.bak", False),
     ("docs/*.md", "docs/a.md", True),
     ("docs/*.md", "docs/sub/a.md", False),      # * does not cross /
     ("docs/**/*.md", "docs/sub/deeper/a.md", True),

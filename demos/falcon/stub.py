@@ -110,7 +110,7 @@ REJECTED_IN_V2 = {"9.3": ("the cap", True), "12.1": ("the claims period", False)
 
 
 def _finding(**kw):
-    from lra.models import Finding, Severity
+    from secondeye.models import Finding, Severity
 
     kw.setdefault("severity", Severity.SUBSTANTIVE)
     kw.setdefault("category", "playbook")
@@ -132,7 +132,7 @@ def _points_v1() -> list:
 def _typos() -> list:
     """The spelling slips a reader finds; the repeated words are the
     mechanical checks' and are not reported twice."""
-    from lra.models import Severity
+    from secondeye.models import Severity
 
     right = {"accordence": "accordance", "recieve": "receive", "reasonabl": "reasonable",
              "occured": "occurred", "seperate": "separate", "immediatly": "immediately",
@@ -211,7 +211,7 @@ def negotiation_for(evidence: bytes) -> dict:
 
 def review(script: Script):
     """review.review, answering as the review session would at each step."""
-    from lra.models import ReviewResult, Severity
+    from secondeye.models import ReviewResult, Severity
 
     def run(doc, mode, instructions, **kw):
         script.calls.append({"step": script.step, "kind": "review",
@@ -314,8 +314,8 @@ _WORDING = {"Fraud carve-out": ("fraud", "Project Heron - SPA (executed).docx"),
 
 def read_positions(script: Script):
     def run(email, instruction, base, heartbeat=None):
-        from lra import playbook
-        from lra.pipeline import extract
+        from secondeye import playbook
+        from secondeye.pipeline import extract
 
         script.calls.append({"step": script.step, "kind": "playbook"})
         documents_read, texts = [], {}
@@ -382,9 +382,9 @@ TURNS = [
 
 def turn(script: Script):
     def run(att, comments, changes, instruction, heartbeat=None, client=None):
-        from lra import comments as host
-        from lra.models import Finding, Mode, ReviewResult, Severity
-        from lra.pipeline import redline, turning, wordcomments
+        from secondeye import comments as host
+        from secondeye.models import Finding, Mode, ReviewResult, Severity
+        from secondeye.pipeline import redline, turning, wordcomments
 
         script.calls.append({"step": script.step, "kind": "comments"})
         author = redline.configured_author()
@@ -418,7 +418,7 @@ def turn(script: Script):
 
 def run_session(script: Script, real):
     def run(**kw):
-        from lra.config import settings
+        from secondeye.config import settings
 
         if kw.get("agent_id") != settings().managed_closing_agent_id:
             raise NoNetwork(f"rehearse --stub: no scripted session for {kw.get('agent_id')}")
@@ -429,9 +429,9 @@ def run_session(script: Script, real):
 
 
 def _closing(kw: dict):
-    from lra import closing as host
-    from lra import managed
-    from lra.pipeline import closing_docs, closing_state
+    from secondeye import closing as host
+    from secondeye import managed
+    from secondeye.pipeline import closing_docs, closing_state
 
     with tempfile.TemporaryDirectory() as tmp:
         root = Path(tmp)
@@ -523,9 +523,9 @@ def _store_for(scope, key: str, create: bool = True) -> str:
 def patches(script: Script) -> ExitStack:
     """Every scripted seam, and the network refused. Leave the `with` and
     all of it is undone."""
-    from lra import comments, config, convert, managed, memory, playbook
-    from lra.pipeline import compare, extract
-    from lra.pipeline import review as review_mod
+    from secondeye import comments, config, convert, managed, memory, playbook
+    from secondeye.pipeline import compare, extract
+    from secondeye.pipeline import review as review_mod
 
     stack = ExitStack()
     for target, name, value in [

@@ -85,15 +85,15 @@ fallback accepts New York, and a reviewer that stays quiet about it is right.
 
 ### The first live run
 
-With credit on the account and the agents applied (`lra skills sync` for each
-skill, then `lra agents apply`), one command:
+With credit on the account and the agents applied (`second-eye skills sync` for each
+skill, then `second-eye agents apply`), one command:
 
 ```bash
-.venv/bin/lra eval --live --budget-usd 40
+.venv/bin/second-eye eval --live --budget-usd 40
 ```
 
 It runs each document through `pipeline/review.py` exactly as
-`lra review --live` does, with no memory stores mounted, and their-paper
+`second-eye review --live` does, with no memory stores mounted, and their-paper
 results through the handler's own local steps (cosmetic findings withheld,
 issues list built, redline written). Each session is capped on the platform at
 `--per-doc-usd` (default $2) and no session starts unless a whole cap still
@@ -107,10 +107,10 @@ a scorecard (markdown and JSON) beside them. To rescore them after
 changing the scorer, without paying again:
 
 ```bash
-.venv/bin/lra eval --replay work/model-eval/<time>-live
+.venv/bin/second-eye eval --replay work/model-eval/<time>-live
 ```
 
-Without credentials, `lra eval --stub perfect` and `lra eval --stub bad` score
+Without credentials, `second-eye eval --stub perfect` and `second-eye eval --stub bad` score
 canned right and wrong answers, which is how the tests prove the scorer tells
 them apart. The exit code is 0 only when every target is met.
 

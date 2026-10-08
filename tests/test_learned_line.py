@@ -8,9 +8,9 @@ from datetime import UTC, datetime
 
 import pytest
 
-from lra import handler, memory
-from lra.models import InboundEmail
-from lra.pipeline import router
+from secondeye import handler, memory
+from secondeye.models import InboundEmail
+from secondeye.pipeline import router
 from tests import test_end_to_end as e2e
 from tests.test_end_to_end import inbound, stub_agent
 

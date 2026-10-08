@@ -38,7 +38,7 @@ Cloudflare, so those endpoints are not on the Worker's public hostname at all
 
 The only thing outside Cloudflare is Anthropic. The review runs as a Managed
 Agents session (DECISIONS 29): the container opens a session on the agent
-definitions `lra agents apply` created, mounts the document in Anthropic's
+definitions `second-eye agents apply` created, mounts the document in Anthropic's
 sandbox with nobody attached, reads the findings and the redline the session
 leaves as files, and verifies what comes back before it is attached. The document is in Anthropic's
 container for the life of the session and retained under the terms in
@@ -49,12 +49,12 @@ Setting up the agents is a one-time step before the first deploy, from a
 machine with `ANTHROPIC_API_KEY` set:
 
 ```bash
-.venv/bin/lra skills sync                    # prints SANDBOX_SKILL_ID
-.venv/bin/lra skills sync lra-playbook       # prints SANDBOX_PLAYBOOK_SKILL_ID
-.venv/bin/lra agents apply                   # prints MANAGED_*_ID for .env / wrangler vars
+.venv/bin/second-eye skills sync                    # prints SANDBOX_SKILL_ID
+.venv/bin/second-eye skills sync lra-playbook       # prints SANDBOX_PLAYBOOK_SKILL_ID
+.venv/bin/second-eye agents apply                   # prints MANAGED_*_ID for .env / wrangler vars
 ```
 
-Run `lra agents apply` again after changing `agents/*.yaml`, the prompts they
+Run `second-eye agents apply` again after changing `agents/*.yaml`, the prompts they
 name, `AGENT_EFFORT`, `WEB_SEARCH_ENABLED`, `INFERENCE_GEO` or a skill id; it
 updates the agents in place, which makes a new version, and running sessions
 keep the old one. The ids are plain vars, not secrets. Every session's Console
@@ -70,12 +70,12 @@ account, or ours on their behalf. Set `jurisdiction` on the bucket to keep them
 in the EU. Rows that describe them are in D1.
 
 **Who can read them?** Whoever holds `DATA_KEY`. Every document is encrypted
-with AES-256-GCM before it leaves the application (`src/lra/crypto.py`), and so
+with AES-256-GCM before it leaves the application (`src/secondeye/crypto.py`), and so
 is an incoming message while it waits for its Workflow (the Worker does the same,
 in the same format). Cloudflare also encrypts at rest, but that protects
 against a stolen disk. This protects against a misconfigured bucket, a leaked
 token, and a request served on the host instead of the firm. The firm generates
-the key (`lra keygen`), and withdrawing it turns everything stored into noise.
+the key (`second-eye keygen`), and withdrawing it turns everything stored into noise.
 The service refuses to start on D1 without one.
 
 **What is not encrypted under our key?** Be exact about this. The rows in D1:
@@ -89,7 +89,7 @@ tokens are encrypted.
 
 Nothing about a document is kept more than 7 days after the conversation's
 last activity (Jim's call, 2026-10-04). The daily cron runs the sweep
-(`retention.py`, through the container's `/retention/sweep`); `lra purge`
+(`retention.py`, through the container's `/retention/sweep`); `second-eye purge`
 with no scope runs the same sweep by hand.
 
 | What | Kept for | Setting |
@@ -121,7 +121,7 @@ new conversation started, so a quiet week deleted nothing; the daily cron
 runs it now.
 
 **Can you delete everything for one person, client or matter?** Yes:
-`lra purge --lawyer jane@firm.com`, `--client 10234` or `--matter
+`second-eye purge --lawyer jane@firm.com`, `--client 10234` or `--matter
 10234-0007`, a dry run until `--apply`. Conversations, their documents in R2
 and earlier versions, closings and signed pages, archived mail and its
 attachments, remembered notes and suppressions, and Anthropic's sessions,
@@ -205,7 +205,7 @@ document's text, so a scanned PDF whose only link to the client is its
 parties would be transcribed by the model before they are known. List the
 client's domain or matter to cover its scans too.
 
-**How do we stop it at once?** Set `SERVICE_PAUSED` to `"true"` in the deployment's `tenant.jsonc`, `lra tenant render`, and deploy: every message is accepted and held sealed in R2 (never bounced), nothing is reviewed and nothing is sent; set it back and the held mail goes through, on the daily cron or at once with an operator's signed `POST /internal/release` (below, "Operator access").
+**How do we stop it at once?** Set `SERVICE_PAUSED` to `"true"` in the deployment's `tenant.jsonc`, `second-eye tenant render`, and deploy: every message is accepted and held sealed in R2 (never bounced), nothing is reviewed and nothing is sent; set it back and the held mail goes through, on the daily cron or at once with an operator's signed `POST /internal/release` (below, "Operator access").
 
 **Can I just BCC it on everything?** Yes, and that is the intended habit: a
 mail rule that BCCs the agent on every outgoing message. When the agent is on
@@ -274,7 +274,7 @@ npx wrangler r2 bucket lifecycle add legal-review-agent-docs \
 
 # 3. Secrets. The data key is the firm's: generate it, store it in their vault,
 #    and paste it here once.
-../.venv/bin/lra keygen                       # -> DATA_KEY
+../.venv/bin/second-eye keygen                # -> DATA_KEY
 openssl rand -base64 48                       # -> EDGE_SECRET
 npx wrangler secret put DATA_KEY
 npx wrangler secret put EDGE_SECRET
@@ -283,12 +283,12 @@ npx wrangler secret put ANTHROPIC_API_KEY     # a key created inside a workspace
 
 Do not edit `cloudflare/wrangler.jsonc`: its names, ids and vars are
 placeholders shared by every deployment. Make the deployment a tenant
-(`lra tenant new <name> --address ... --domains ...`, "One deployment per
+(`second-eye tenant new <name> --address ... --domains ...`, "One deployment per
 firm" below), put the D1 `database_id` and the `vars` (`MAIL_AGENT_ADDRESS`,
 `FIRM_DOMAINS`, `ALLOWED_SENDERS`, `EDGE_URL`) in
 `deployments/<name>/tenant.jsonc`, add `"primary": true` if it is the one
 deploy.yml's first job deploys (and change that job's `--config`), and run
-`lra tenant render <name>`. Every wrangler command for it then takes
+`second-eye tenant render <name>`. Every wrangler command for it then takes
 `--config ../deployments/<name>/wrangler.jsonc`, the secrets above included.
 Then:
 
@@ -304,7 +304,7 @@ container out. At this point the database and document store can already be
 checked from a laptop, through the operator's door ("Operator access",
 below): `DATABASE_URL=d1://`, `EDGE_URL` at the live Worker and
 `OPERATOR_SECRET` in the shell, then `store.claim` and `thread.start`.
-Then run `lra agents apply` against the same settings: `MANAGED_REVIEW_AGENT_ID`
+Then run `second-eye agents apply` against the same settings: `MANAGED_REVIEW_AGENT_ID`
 must be the clientless reviewer (`agents/review.agent.yaml`), or a review
 stops waiting for a tool nobody answers and degrades to the mechanical
 findings.
@@ -337,7 +337,7 @@ a sentence saying the file would not send. For a pilot, verify each lawyer's
 address in the dashboard and set `CLOUDFLARE_MAX_MESSAGE_MB=25`.
 
 The steps above are how the first deployment was set up, by hand. A firm's
-deployment is made with `lra tenant`, below, which runs the same commands
+deployment is made with `second-eye tenant`, below, which runs the same commands
 against its own names.
 
 ## One deployment per firm
@@ -346,7 +346,7 @@ Each firm runs in a deployment of its own: its own Worker, container, D1
 database, R2 bucket, Workflow, address, allowlist, `DATA_KEY` and Anthropic
 agents and memory store. Nothing is shared but the code. A deployment is one
 file, `deployments/<firm>/tenant.jsonc`: the firm's resource names and ids
-and its complete `vars`. `lra tenant render` turns it into
+and its complete `vars`. `second-eye tenant render` turns it into
 `deployments/<firm>/wrangler.jsonc`, the config `wrangler deploy --config`
 takes, taking everything else (the Worker's code, compatibility date,
 container class, cron) from `cloudflare/wrangler.jsonc`. The rendered file is
@@ -379,19 +379,19 @@ Adding a firm, from the repository root with Node and `cloudflare/` set up
 #    --senders defaults to the firm's domains; --jurisdiction eu keeps the
 #    database and the documents in the EU; --account-id if the firm's own
 #    Cloudflare account; --instance-type defaults to standard-1.
-.venv/bin/lra tenant new acme-llp --address review@legal.acme.com \
+.venv/bin/second-eye tenant new acme-llp --address review@legal.acme.com \
   --domains acme.com,acme.co.uk --contact gc@acme.com --admins partner@acme.com
 #    Read the vars it wrote (NO_AI_MATTERS, PLAYBOOK_ADMINS,
-#    MAX_EMAILS_PER_DAY...), then `lra tenant render acme-llp`.
+#    MAX_EMAILS_PER_DAY...), then `second-eye tenant render acme-llp`.
 
 # 2. The firm's Anthropic key, in a file git ignores:
 echo "ANTHROPIC_API_KEY=sk-ant-..." >> deployments/acme-llp/.env
 
 # 3. The Cloudflare resources. A dry run first: every wrangler command, in
 #    order, and nothing created.
-.venv/bin/lra tenant provision acme-llp
+.venv/bin/second-eye tenant provision acme-llp
 CLOUDFLARE_API_TOKEN=<a token for the firm's account> \
-  .venv/bin/lra tenant provision acme-llp --apply
+  .venv/bin/second-eye tenant provision acme-llp --apply
 ```
 
 `--apply` creates the D1 database (and writes its id into `tenant.jsonc`),
@@ -421,7 +421,7 @@ needs a person at a console. It prints each one with its exact command:
 2. The webhook: the firm's Console, Manage -> Webhooks, then
    `npx wrangler secret put ANTHROPIC_WEBHOOK_SIGNING_KEY --config
    ../deployments/<firm>/wrangler.jsonc`.
-3. The agents: `lra live-check --tenant <firm>` (`--dry-run` first). It reads
+3. The agents: `second-eye live-check --tenant <firm>` (`--dry-run` first). It reads
    the firm's settings only, from `deployments/<firm>/.env` and its
    `tenant.jsonc`, hiding whatever the shell and the working directory's
    `.env` hold, so the firm's key creates the firm's skills, agents,
@@ -433,7 +433,7 @@ needs a person at a console. It prints each one with its exact command:
    push.
 
 **How it deploys.** `.github/workflows/deploy.yml` deploys Jim's first,
-exactly as before. Then `python3 -m lra.tenant matrix` lists every other
+exactly as before. Then `python3 -m secondeye.tenant matrix` lists every other
 tenant in `deployments/`, and each is deployed in its own job with its own
 two secrets: `npx wrangler deploy --config ../deployments/<firm>/wrangler.jsonc`,
 then its `/health`. Jim's is the canary: a commit that fails there goes to
@@ -444,7 +444,7 @@ with no token. CI bundles every firm's config with `wrangler deploy
 `npx wrangler containers list` run under the firm's token to find its
 application id.
 
-`lra tenant list` shows every deployment and its state; `lra tenant check`
+`second-eye tenant list` shows every deployment and its state; `second-eye tenant check`
 is what the test runs.
 
 Not yet per firm: the document-system MCP server (`cloudflare/dms-mcp`) is
@@ -457,7 +457,7 @@ can instead run Second Eye entirely in its own Cloudflare account and its
 own Anthropic organisation, with no standing access for us. The firm's IT
 follows `docs/it/self-hosted.md`. What changes for us:
 
-- **The tenant.** `lra tenant new <firm> --self-hosted --account-id <theirs>
+- **The tenant.** `second-eye tenant new <firm> --self-hosted --account-id <theirs>
   [--anthropic-org ...] [--anthropic-workspace ...]` marks it. A self-hosted
   tenant is never in `deploy.yml`'s matrix, and the `tenants` job prints
   which firms it skipped and why. Its provisioning plan ends in a release
@@ -466,7 +466,7 @@ follows `docs/it/self-hosted.md`. What changes for us:
 - **Releases.** Pushing a tag `vX.Y.Z` runs `.github/workflows/release.yml`.
   It refuses a tag that is not on main. It attaches these files to a
   **draft** GitHub release:
-  - a reproducible source archive (`src/lra/release.py`), which leaves out
+  - a reproducible source archive (`src/secondeye/release.py`), which leaves out
     `deployments/` and blanks Jim's names in the shared config;
   - the Worker bundle (`wrangler deploy --dry-run`);
   - a config template;
@@ -476,21 +476,21 @@ follows `docs/it/self-hosted.md`. What changes for us:
   - `SHA256SUMS`.
 
   Publish the draft once CI on the tag is green. The firm runs
-  `lra tenant deploy <firm> --release vX.Y.Z` from the unpacked archive. Its
+  `second-eye tenant deploy <firm> --release vX.Y.Z` from the unpacked archive. Its
   wrangler builds the container image from the release's `Dockerfile`.
   There is no prebuilt image and no signature beyond the tag, and
   `release.json` says so.
-- **The kill switch without a deploy.** `lra pause <firm>` and
-  `lra resume <firm>` write `edge_settings.service_paused` in the firm's D1
+- **The kill switch without a deploy.** `second-eye pause <firm>` and
+  `second-eye resume <firm>` write `edge_settings.service_paused` in the firm's D1
   with `wrangler d1 execute --remote`. Without `--apply` they are a dry run.
   The Worker reads that row on every message, send, cron run and Workflow
   step (`cloudflare/src/pause.ts`). This works for every tenant, Jim's
   included. The `SERVICE_PAUSED` var still works, and it wins.
-- **Support.** `lra tenant support <firm>` prints the scoped, expiring
+- **Support.** `second-eye tenant support <firm>` prints the scoped, expiring
   Cloudflare token the firm creates for us when it wants help. The token is
   read-only unless the firm passes `--write`, and it never includes R2. The
   firm deletes it afterwards. There is no other way in.
-- **Leaving.** `lra tenant offboard <firm>` is a dry run that lists
+- **Leaving.** `second-eye tenant offboard <firm>` is a dry run that lists
   everything. With `--apply`, run by the firm, it does the following:
   1. Pauses the service.
   2. Exports the audit trail.
@@ -500,9 +500,9 @@ follows `docs/it/self-hosted.md`. What changes for us:
   5. Deletes the Worker, Workflow, container application, D1 database and R2
      bucket.
   6. Removes the local secrets.
-  7. Writes a deletion certificate (`src/lra/offboard.py`): ids, counts and
+  7. Writes a deletion certificate (`src/secondeye/offboard.py`): ids, counts and
      times, no contents, with an HMAC-SHA256 under a key the firm supplies.
-     `lra tenant certificate <file>` checks it.
+     `second-eye tenant certificate <file>` checks it.
 
 None of this has run against a real account yet.
 
@@ -510,7 +510,7 @@ None of this has run against a real account yet.
 
 Every email that passes the edge's checks starts a Cloudflare Workflow, one
 instance per email, which runs the review as separate, separately retried
-steps (`cloudflare/src/review-flow.ts`, `src/lra/flow.py`). It replaced a
+steps (`cloudflare/src/review-flow.ts`, `src/secondeye/flow.py`). It replaced a
 queue, its dead-letter queue, a 25-minute retry, the job lease and an
 in-process slow-notice timer (`docs/migration.md`, phases 2 and 5).
 
@@ -549,7 +549,7 @@ Worker scheduled() daily        wake instances still waiting; purge past retenti
   endpoint always answers 204; an unsigned or wrongly signed request gets 401.
   Verification is the Anthropic SDK's own `beta.webhooks.unwrap()`, which is
   pure JavaScript and runs in the Worker (`webhook.ts`).
-- **The session runner** is `src/lra/sessions_api.py`: the clientless session
+- **The session runner** is `src/secondeye/sessions_api.py`: the clientless session
   (`review.start`, `review.finish`). Anthropic's session id is what the webhook
   names, and the session outlives the container being replaced between steps.
 - **Retries.** prepare 3 x 30 s, session-start 3 x 10 s, each poll 3 x 10 s,
@@ -586,7 +586,7 @@ npx wrangler queues delete legal-review-inbound
 npx wrangler queues delete legal-review-inbound-dead
 ```
 
-and run `lra agents apply` before the first model-backed review, so
+and run `second-eye agents apply` before the first model-backed review, so
 `MANAGED_REVIEW_AGENT_ID` is the clientless reviewer. If
 `MANAGED_REVIEW_DETACHED_AGENT_ID` is still set it adopts that agent and says
 to delete the setting.
@@ -601,7 +601,7 @@ each step, its attempts and its output.
 bindings and one secret. The deploy workflow deploys it beside the edge; with
 nothing configured it refuses every tool call, so it is safe to have deployed
 before the firm's iManage exists. What it does and why is in
-`docs/migration.md`, phase 4, and `src/lra/dms_mcp.py`.
+`docs/migration.md`, phase 4, and `src/secondeye/dms_mcp.py`.
 
 One-time setup, once there is an iManage instance and its OAuth client:
 
@@ -625,7 +625,7 @@ npx wrangler secret put DMS_CLIENT_SECRET
 # 3. Console -> Manage -> Webhooks: subscribe the existing
 #    /anthropic/webhook endpoint to vault_credential.refresh_failed as well.
 
-# 4. With the same DMS_* settings in .env: `lra agents apply`. It gives the
+# 4. With the same DMS_* settings in .env: `second-eye agents apply`. It gives the
 #    reviewer and the associate the MCP server with an always_allow toolset,
 #    and turns allow_mcp_servers on in the environment.
 ```
@@ -691,7 +691,7 @@ After the rollout (check the image digest, "A deploy is not instant"):
    Workflow's steps fail with TLS errors or 520s, set
    `CONTAINER_EGRESS=open`, push, and read the container's logs.
 
-**Operator access.** `lra purge`, `lra audit` or an immediate release
+**Operator access.** `second-eye purge`, `second-eye audit` or an immediate release
 against production from a laptop go through `/internal/*` on the public
 hostname, which exists only while `OPERATOR_SECRET` is set on the Worker:
 
@@ -700,12 +700,12 @@ openssl rand -hex 32                          # -> the secret, for this job only
 npx wrangler secret put OPERATOR_SECRET       # paste it
 export OPERATOR_SECRET=<the same value>      # in the shell, never in .env
 export DATABASE_URL=d1:// EDGE_URL=https://<worker-url>
-.venv/bin/lra purge --lawyer jane@firm.com
-.venv/bin/python -c "from lra import edge; print(edge.call('/internal/release').json())"
+.venv/bin/second-eye purge --lawyer jane@firm.com
+.venv/bin/python -c "from secondeye import edge; print(edge.call('/internal/release').json())"
 npx wrangler secret delete OPERATOR_SECRET    # and the door is gone again
 ```
 
-`src/lra/edge.py` signs every request: HMAC-SHA256 under `OPERATOR_SECRET`
+`src/secondeye/edge.py` signs every request: HMAC-SHA256 under `OPERATOR_SECRET`
 of the method, the path, a timestamp, a one-time nonce and the body's hash
 (`cloudflare/src/operator.ts`). The Worker refuses a request more than five
 minutes off its clock, a nonce it has seen (kept in `edge_operator_nonces`,
@@ -748,7 +748,7 @@ Containers.
 
 Four layers, because the failure modes are in different places.
 
-1. **The whole suite, twice.** `LRA_TEST_BACKEND=d1 pytest` forces every
+1. **The whole suite, twice.** `SECOND_EYE_TEST_BACKEND=d1 pytest` forces every
    test's storage through `d1.Connection`, the JSON wire protocol and object
    storage, against a stand-in Worker (`tests/fake_edge.py`). Six hundred tests
    written against sqlite3 are the specification the adapter has to meet. CI
@@ -796,7 +796,7 @@ thread, which is why threads are also matched on the References chain.
 ## What changed in the application to make this possible
 
 `store.connect()` was already the only way anything reached the database, from
-42 call sites in 5 modules, using a small part of sqlite3. `src/lra/d1.py`
+42 call sites in 5 modules, using a small part of sqlite3. `src/secondeye/d1.py`
 implements that part over HTTP, so nothing above it changed. Two things are
 different on D1 and worth knowing:
 

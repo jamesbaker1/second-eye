@@ -152,7 +152,7 @@ describe("a lawyer's document-system token that Anthropic could not refresh", ()
   }
 
   async function connected(address: string, vaultId: string, credentialId: string): Promise<void> {
-    // The table the container writes on consent (src/lra/dms_mcp.py).
+    // The table the container writes on consent (src/secondeye/dms_mcp.py).
     await testEnv.DB.batch([
       testEnv.DB.prepare("CREATE TABLE IF NOT EXISTS dms_vaults (user_address TEXT PRIMARY KEY, " +
         "vault_id TEXT NOT NULL, credential_id TEXT, mcp_server_url TEXT, updated_at TEXT)"),
