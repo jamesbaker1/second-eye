@@ -1,13 +1,13 @@
 # A note for the firm's general counsel
 
 For the general counsel or risk partner deciding whether the firm's lawyers
-may send client documents to Redline Desk during a pilot. It describes the
+may send client documents to Second Eye during a pilot. It describes the
 system as built on 2026-10-04. The longer version, with sources, is
 `docs/trust.md`. Settings in capitals are switches the firm controls.
 
 ## What it does
 
-Redline Desk is an email address. A lawyer forwards or copies it on a draft.
+Second Eye is an email address. A lawyer forwards or copies it on a draft.
 It replies to that lawyer with a one-line verdict, the points it found, and
 the same document with Word tracked changes. The lawyer can reply to answer
 its questions, undo its changes, or ask for a clean copy or signature pages.

@@ -22,9 +22,9 @@ class Settings(BaseSettings):
     mail_provider: str = "console"
     # The one name the product goes by in a lawyer's inbox: the From display
     # name on every reply, and the name on the contact card we attach. It was
-    # "Legal Review" here while the landing page said "The Redline Desk", so a
+    # "Legal Review" here while the landing page said "Second Eye", so a
     # lawyer who signed up on one met a stranger in the other.
-    mail_agent_name: str = "Redline Desk"
+    mail_agent_name: str = "Second Eye"
     mail_agent_address: str = "review@example.com"
     # Other addresses that deliver to the agent (a firm's "legal@" forwarding
     # rule, say), comma separated. A message to one of these is addressed to

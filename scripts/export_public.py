@@ -1,17 +1,33 @@
 #!/usr/bin/env python3
-"""Export the committed tree, less what is private, as a new one-commit repository.
+"""Export the committed tree, less what is private, to the public repository.
 
-The public repository is not a mirror of this one. It starts from a single
-squashed commit of HEAD with the paths in `.publicignore` left out, so nothing
-in this repository's history (old configs, a firm's name in a commit message,
-a key that was committed and reverted) can reach it. This script makes that
-commit and nothing else: it never adds a remote, pushes or creates a GitHub
-repository. It prints those steps for a person to run.
+The public repository is not a mirror of this one. It started from a single
+squashed commit of HEAD with the paths in `.publicignore` left out, and each
+release adds one commit on top, so nothing in this repository's history (old
+configs, a firm's name in a commit message, a key that was committed and
+reverted) can reach it.
 
-    python3 scripts/export_public.py --out ../redline-desk-public
+Create mode makes the first commit as a new repository and nothing else: it
+never adds a remote, pushes or creates a GitHub repository. It prints those
+steps for a person to run.
 
-What it does, in order, stopping at the first failure without writing the
-output repository:
+    python3 scripts/export_public.py --out ../second-eye-public
+
+Update mode clones the existing public repository, replaces its whole working
+tree with the export of HEAD (so a file deleted or newly ignored here is
+deleted there) and commits that on top of its default branch. It does not push
+unless --push is given; then it prints the commit's `git show --stat`, checks
+that the public branch is still where it was when cloned, and pushes with a
+plain, fast-forward-only push. It never rewrites the public history. If the
+export matches the public tree already it says so and makes no commit. The
+default message is "Update YYYY-MM-DD"; nothing from this repository's history
+goes into it.
+
+    python3 scripts/export_public.py --update https://github.com/jamesbaker1/second-eye.git
+    python3 scripts/export_public.py --update <url-or-path> [--out DIR] [--message M] --push
+
+Both modes, in order, stopping at the first failure without writing the
+output repository (or, updating, without committing, and removing the clone):
 
 1. Refuses if tracked files have uncommitted changes (unless --allow-dirty),
    since only committed content is exported and the difference would be a
@@ -27,10 +43,13 @@ output repository:
    export stops.
 4. Writes the files with their modes to a staging directory and runs
    `gitleaks dir` over it when gitleaks is on PATH. Without gitleaks it warns
-   and carries on: the CI secret scan (secrets.yml) still runs on the public
-   repository's first push.
-5. Moves the staging directory to --out, runs `git init -b main` and makes one
-   commit with --author as both author and committer.
+   and carries on: the CI secret scan (secrets.yml) still runs on every push
+   to the public repository.
+5. Create: moves the staging directory to --out, runs `git init -b main` and
+   makes one commit with --author as both author and committer.
+   Update: clones the public repository (to --out, or a temporary directory),
+   deletes everything in it but `.git`, moves the staged files in and commits
+   with --author as both author and committer.
 
 `.publicignore` syntax is a subset of gitignore's: `#` comments, blank lines,
 `*`, `?`, `[...]`, `**` (as `**/x`, `x/**` and `x/**/y`), a trailing `/` for a
@@ -48,6 +67,7 @@ Standard library only; Python 3.12.
 from __future__ import annotations
 
 import argparse
+import datetime
 import io
 import os
 import re
@@ -342,15 +362,20 @@ def _write_tree(root: Path, entries: list[Entry], blobs: dict[str, bytes]) -> No
         target.chmod(0o755 if e.mode == "100755" else 0o644)
 
 
-def _commit(out: Path, name: str, email: str, message: str, expected: int) -> str:
+def _commit(out: Path, name: str, email: str, message: str, expected: int) -> str | None:
+    """Commits the working tree as it is; None, and no commit, if it matches HEAD."""
     env = {**os.environ, "GIT_AUTHOR_NAME": name, "GIT_AUTHOR_EMAIL": email,
            "GIT_COMMITTER_NAME": name, "GIT_COMMITTER_EMAIL": email}
     # The exported tree's own .gitignore, and anyone's global excludes, must
     # not drop a file that was committed here: hence --force.
     config = ["-c", "core.autocrlf=false", "-c", "core.safecrlf=false",
               "-c", "commit.gpgsign=false", "-c", f"user.name={name}", "-c", f"user.email={email}"]
-    git(out, "init", "-q", "-b", "main")
     git(out, *config, "add", "--all", "--force", ".", env=env)
+    has_head = subprocess.run(["git", "rev-parse", "-q", "--verify", "HEAD"], cwd=out,
+                              capture_output=True, check=False).returncode == 0
+    if has_head and subprocess.run(["git", "diff", "--cached", "--quiet"], cwd=out,
+                                   check=False).returncode == 0:
+        return None
     git(out, *config, "commit", "-q", "--no-verify", "-m", message, env=env)
     committed = git(out, "ls-tree", "-r", "--name-only", "-z", "HEAD").count(b"\0")
     if committed != expected:
@@ -358,16 +383,8 @@ def _commit(out: Path, name: str, email: str, message: str, expected: int) -> st
     return git(out, "rev-parse", "HEAD").decode().strip()
 
 
-def export(repo: Path, out: Path, *, author: str = DEFAULT_AUTHOR,
-           message: str = DEFAULT_MESSAGE, allow_dirty: bool = False) -> str:
-    """Returns the new commit's id. Raises ExportError, having written nothing at `out`."""
-    name, email = parse_author(author)
-    repo = Path(git(repo, "rev-parse", "--show-toplevel").decode().strip())
-    out = out.resolve()
-    if out.exists() and (not out.is_dir() or any(out.iterdir())):
-        raise ExportError(f"{out} exists and is not an empty directory")
-    if out == repo or repo in out.parents:
-        raise ExportError(f"{out} is inside the repository; put it somewhere else")
+def _filtered_head(repo: Path, allow_dirty: bool) -> tuple[list[Entry], dict[str, bytes]]:
+    """HEAD's files less `.publicignore`, with their contents, denylist-checked."""
     if not allow_dirty and (changes := dirty(repo)):
         raise ExportError("uncommitted changes to tracked files (commit them, or --allow-dirty "
                           "to export HEAD without them):\n  " + "\n  ".join(changes[:20]))
@@ -405,9 +422,13 @@ def export(repo: Path, out: Path, *, author: str = DEFAULT_AUTHOR,
             print(f"{h.where}: matches {h.pattern!r}", file=sys.stderr)
         raise ExportError(f"{len(hits)} denylisted string(s) in {len({h.where.split(':')[0].split('!')[0] for h in hits})} "
                           "file(s); nothing written")
+    return kept, blobs
 
-    out.parent.mkdir(parents=True, exist_ok=True)
-    staging = Path(tempfile.mkdtemp(prefix=".export-", dir=out.parent))
+
+def _stage(parent: Path, kept: list[Entry], blobs: dict[str, bytes]) -> Path:
+    """The files written to a new directory under `parent` and scanned by gitleaks."""
+    parent.mkdir(parents=True, exist_ok=True)
+    staging = Path(tempfile.mkdtemp(prefix=".export-", dir=parent))
     try:
         _write_tree(staging, kept, blobs)
         if binary := find_gitleaks():
@@ -417,6 +438,29 @@ def export(repo: Path, out: Path, *, author: str = DEFAULT_AUTHOR,
                   "\nsecrets. Install it (https://github.com/gitleaks/gitleaks) and run again,"
                   "\nor scan the output yourself before pushing it anywhere.\n" + "!" * 72 + "\n",
                   file=sys.stderr)
+    except BaseException:
+        shutil.rmtree(staging, ignore_errors=True)
+        raise
+    return staging
+
+
+def _check_out(repo: Path, out: Path) -> None:
+    if out.exists() and (not out.is_dir() or any(out.iterdir())):
+        raise ExportError(f"{out} exists and is not an empty directory")
+    if out == repo or repo in out.parents:
+        raise ExportError(f"{out} is inside the repository; put it somewhere else")
+
+
+def export(repo: Path, out: Path, *, author: str = DEFAULT_AUTHOR,
+           message: str = DEFAULT_MESSAGE, allow_dirty: bool = False) -> str:
+    """Returns the new commit's id. Raises ExportError, having written nothing at `out`."""
+    name, email = parse_author(author)
+    repo = Path(git(repo, "rev-parse", "--show-toplevel").decode().strip())
+    out = out.resolve()
+    _check_out(repo, out)
+    kept, blobs = _filtered_head(repo, allow_dirty)
+    staging = _stage(out.parent, kept, blobs)
+    try:
         if out.exists():
             out.rmdir()
         staging.rename(out)
@@ -424,10 +468,99 @@ def export(repo: Path, out: Path, *, author: str = DEFAULT_AUTHOR,
         shutil.rmtree(staging, ignore_errors=True)
         raise
     try:
-        return _commit(out, name, email, message, len(kept))
+        git(out, "init", "-q", "-b", "main")
+        sha = _commit(out, name, email, message, len(kept))
+        assert sha is not None
+        return sha
     except BaseException:
         shutil.rmtree(out, ignore_errors=True)
         raise
+
+
+# --- update: a new commit on top of the public repository ---------------------------
+
+
+@dataclass(frozen=True)
+class Update:
+    clone: Path
+    branch: str
+    base: str               # the public repository's tip when it was cloned
+    sha: str | None         # the new commit, or None when nothing changed
+
+
+def default_update_message() -> str:
+    return f"Update {datetime.datetime.now(datetime.UTC).date().isoformat()}"
+
+
+def update(repo: Path, public: str, clone: Path, *, author: str = DEFAULT_AUTHOR,
+           message: str | None = None, allow_dirty: bool = False) -> Update:
+    """Clone `public` into `clone` and commit HEAD's export on top of its default branch.
+
+    The clone's working tree is replaced entirely, so a file deleted or newly
+    ignored here is deleted there. Nothing is pushed. Raises ExportError,
+    having removed the clone, if any check fails.
+    """
+    name, email = parse_author(author)
+    repo = Path(git(repo, "rev-parse", "--show-toplevel").decode().strip())
+    clone = clone.resolve()
+    _check_out(repo, clone)
+    kept, blobs = _filtered_head(repo, allow_dirty)
+
+    created = not clone.exists()
+    clone.parent.mkdir(parents=True, exist_ok=True)
+    staging = None
+    try:
+        print(f"Cloning {public} into {clone} ...")
+        git(clone.parent, "clone", "-q", "--", public, str(clone))
+        branch = git(clone, "symbolic-ref", "--short", "HEAD").decode().strip()
+        try:
+            base = git(clone, "rev-parse", "--verify", "HEAD^{commit}").decode().strip()
+        except ExportError:
+            raise ExportError(f"{public} has no commits on {branch}; create it with --out instead") from None
+
+        staging = _stage(clone.parent, kept, blobs)
+        for child in clone.iterdir():
+            if child.name == ".git":
+                continue
+            if child.is_dir() and not child.is_symlink():
+                shutil.rmtree(child)
+            else:
+                child.unlink()
+        for child in staging.iterdir():
+            child.rename(clone / child.name)
+        staging.rmdir()
+        staging = None
+
+        sha = _commit(clone, name, email, message or default_update_message(), len(kept))
+    except BaseException:
+        if staging is not None:
+            shutil.rmtree(staging, ignore_errors=True)
+        if created:
+            shutil.rmtree(clone, ignore_errors=True)
+        else:   # it was an empty directory: leave it empty
+            shutil.rmtree(clone, ignore_errors=True)
+            clone.mkdir(exist_ok=True)
+        raise
+    if sha is not None and git(clone, "rev-parse", "HEAD^").decode().strip() != base:
+        raise ExportError(f"the new commit's parent is not {base}; not a fast-forward")
+    return Update(clone, branch, base, sha)
+
+
+def push(result: Update) -> None:
+    """Push the new commit to origin as a fast-forward, if origin is still where it was."""
+    clone, branch = result.clone, result.branch
+    if result.sha is None:
+        raise ExportError("nothing to push")
+    if git(clone, "rev-parse", "HEAD").decode().strip() != result.sha:
+        raise ExportError(f"{clone} has moved on from {result.sha}; push it yourself")
+    git(clone, "merge-base", "--is-ancestor", result.base, result.sha)   # raises if not
+    remote = git(clone, "ls-remote", "origin", f"refs/heads/{branch}").decode().split()
+    now = remote[0] if remote else None
+    if now != result.base:
+        raise ExportError(f"origin's {branch} has moved since the clone ({result.base[:12]} -> "
+                          f"{(now or 'deleted')[:12]}); not pushing. Run the update again.")
+    print(f"Pushing {result.sha[:12]} to origin {branch} (fast-forward from {result.base[:12]}) ...")
+    git(clone, "push", "-q", "origin", f"{result.sha}:refs/heads/{branch}")
 
 
 NEXT_STEPS = """\
@@ -444,28 +577,97 @@ Nothing has been pushed. To publish it (none of this is run for you):
   5. Create the CLA signatures branch (unprotected), which cla.yml commits to:
        git -C {out} switch --orphan cla-signatures && git -C {out} commit --allow-empty -m "CLA signatures" \\
          && git -C {out} push -u origin cla-signatures && git -C {out} switch main
+
+Later releases go on top of this commit, never into a new repository:
+  python3 scripts/export_public.py --update https://github.com/jamesbaker1/<name>.git
+"""
+
+UPDATE_NEXT_STEPS = """\
+Committed {sha} on {branch} in {clone}, on top of {base}.
+
+Nothing has been pushed. Read it, then push it with a plain push (never --force):
+
+  git -C {clone} show --stat | less
+  git -C {clone} push origin {branch}
+
+or run the update again with --push, which pushes only if the public
+repository has not moved since it was cloned.
 """
 
 
+def _show_stat(clone: Path) -> str:
+    return git(clone, "-c", "color.ui=never", "show", "--stat",
+               "--format=commit %H%nAuthor:    %an <%ae>%nCommitter: %cn <%ce>%n%n    %s%n",
+               "HEAD").decode(errors="replace")
+
+
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
-    parser.add_argument("--out", required=True, type=Path,
-                        help="where to create the new repository; must not exist, or be empty")
+    parser = argparse.ArgumentParser(
+        description=__doc__.split("\n\n")[0],
+        usage="%(prog)s --out DIR [options]\n"
+              "       %(prog)s --update PUBLIC [--out DIR] [--push] [options]")
+    parser.add_argument("--out", type=Path,
+                        help="create mode: where to create the new repository. With --update: where "
+                             "to clone the public repository (default: a new temporary directory). "
+                             "Must not exist, or be empty")
+    parser.add_argument("--update", metavar="PUBLIC",
+                        help="add one commit on top of this existing public repository (a URL or a "
+                             "local path; it is cloned) instead of creating a new one")
+    parser.add_argument("--push", action="store_true",
+                        help="with --update: push the new commit to the public repository's default "
+                             "branch, fast-forward only, refused if it has moved since the clone")
     parser.add_argument("--author", default=DEFAULT_AUTHOR,
                         help=f"'Name <email>' for the commit's author and committer (default: {DEFAULT_AUTHOR})")
-    parser.add_argument("--message", default=DEFAULT_MESSAGE, help="the commit message")
+    parser.add_argument("--message",
+                        help=f"the commit message (default: {DEFAULT_MESSAGE!r}; with --update, "
+                             "'Update YYYY-MM-DD')")
     parser.add_argument("--allow-dirty", action="store_true",
                         help="export HEAD even if tracked files have uncommitted changes")
     parser.add_argument("--repo", type=Path, default=Path.cwd(),
                         help="the repository to export (default: the current directory's)")
     args = parser.parse_args(argv)
+
+    if args.update is None:
+        if args.out is None:
+            parser.error("--out DIR is required, or --update PUBLIC")
+        if args.push:
+            parser.error("--push only goes with --update")
+        try:
+            sha = export(args.repo, args.out, author=args.author,
+                         message=args.message or DEFAULT_MESSAGE, allow_dirty=args.allow_dirty)
+        except ExportError as e:
+            print(f"export_public: {e}", file=sys.stderr)
+            return 1
+        print(NEXT_STEPS.format(out=args.out.resolve(), sha=sha))
+        return 0
+
+    temp = Path(tempfile.mkdtemp(prefix="public-update-")) if args.out is None else None
+    clone = temp / "public" if temp is not None else args.out
     try:
-        sha = export(args.repo, args.out, author=args.author, message=args.message,
-                     allow_dirty=args.allow_dirty)
+        result = update(args.repo, args.update, clone, author=args.author, message=args.message,
+                        allow_dirty=args.allow_dirty)
     except ExportError as e:
+        if temp is not None:
+            shutil.rmtree(temp, ignore_errors=True)
         print(f"export_public: {e}", file=sys.stderr)
         return 1
-    print(NEXT_STEPS.format(out=args.out.resolve(), sha=sha))
+    if result.sha is None:
+        print(f"Nothing changed: {args.update} {result.branch} at {result.base[:12]} already "
+              "matches the export of HEAD. No commit made.")
+        if temp is not None:
+            shutil.rmtree(temp, ignore_errors=True)
+        return 0
+    print(_show_stat(result.clone))
+    if args.push:
+        try:
+            push(result)
+        except ExportError as e:
+            print(f"export_public: {e}\nThe commit is still in {result.clone}.", file=sys.stderr)
+            return 1
+        print(f"Pushed {result.sha} to {args.update} {result.branch}.")
+        return 0
+    print(UPDATE_NEXT_STEPS.format(sha=result.sha, branch=result.branch, clone=result.clone,
+                                   base=result.base[:12]))
     return 0
 
 

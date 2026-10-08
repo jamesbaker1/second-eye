@@ -1,6 +1,6 @@
 # Contributing
 
-Thank you for wanting to help. Redline Desk handles privileged legal
+Thank you for wanting to help. Second Eye handles privileged legal
 documents, so the bar for a change is that it is tested, that it says what it
 does not do, and that it never makes the review noisier. This page covers
 setting up, running the tests, the style, and the one formality: the
@@ -113,7 +113,7 @@ what was not tested. Keep separate changes in separate commits.
 
 ## The contributor licence agreement
 
-Redline Desk is licensed under AGPL-3.0-only and also commercially. To
+Second Eye is licensed under AGPL-3.0-only and also commercially. To
 include your contribution in both, we need you to sign the CLA in `CLA.md`
 once. You keep the copyright in your work, and any version that includes
 it stays available as open source. `LICENSING.md`, "Why is there a CLA?",

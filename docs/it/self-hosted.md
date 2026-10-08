@@ -1,11 +1,11 @@
-# Running Redline Desk in your own accounts
+# Running Second Eye in your own accounts
 
 For a firm's IT team. This is an option, not the default. By default we host
 a separate deployment for each firm: its own Worker, database, storage and
 keys, shared with nobody, run by us. Choose this option if your security
 policy says client documents may only pass through accounts your firm owns.
 
-With this option, Redline Desk runs entirely in your own Cloudflare account
+With this option, Second Eye runs entirely in your own Cloudflare account
 and your own Anthropic organisation. We write the software and publish
 releases. You decide which release to deploy and when, and you hold every
 credential. We have no standing access to anything.
@@ -47,7 +47,7 @@ certifications your policy relies on. Newer products may not be in scope yet,
 and we have not checked.
 
 **An Anthropic organisation** (Claude Console), with credit, and one workspace
-used only for Redline Desk. In that workspace:
+used only for Second Eye. In that workspace:
 
 - **Data retention.** The review model, Claude Fable 5.1, needs 30-day data
   retention turned on. Alternatively, use zero data retention and set
@@ -96,18 +96,18 @@ contains:
 
 | File | What it is |
 | --- | --- |
-| `redline-desk-vX.Y.Z-source.tar.gz` | The code at that tag. It excludes every firm's deployment and replaces our own names with blanks. A `RELEASE` file inside says which tag it is. It is also the container's build context. |
-| `redline-desk-vX.Y.Z-worker.tar.gz` | The Worker as wrangler bundles it, for you to read |
-| `redline-desk-vX.Y.Z-wrangler.template.jsonc` | The Cloudflare config your deployment will have, with placeholders for your names |
-| `redline-desk-vX.Y.Z-requirements.txt` | The Python dependencies as they resolved when the release was built |
-| `redline-desk-vX.Y.Z-sbom.cdx.json` | A CycloneDX software bill of materials (syft) |
+| `second-eye-vX.Y.Z-source.tar.gz` | The code at that tag. It excludes every firm's deployment and replaces our own names with blanks. A `RELEASE` file inside says which tag it is. It is also the container's build context. |
+| `second-eye-vX.Y.Z-worker.tar.gz` | The Worker as wrangler bundles it, for you to read |
+| `second-eye-vX.Y.Z-wrangler.template.jsonc` | The Cloudflare config your deployment will have, with placeholders for your names |
+| `second-eye-vX.Y.Z-requirements.txt` | The Python dependencies as they resolved when the release was built |
+| `second-eye-vX.Y.Z-sbom.cdx.json` | A CycloneDX software bill of materials (syft) |
 | `release.json` | What is in the release, and what is not |
 | `SHA256SUMS` | Checksums of everything above |
 
 ```bash
 sha256sum -c SHA256SUMS          # every line must say OK
-tar xzf redline-desk-vX.Y.Z-source.tar.gz
-cd redline-desk-vX.Y.Z
+tar xzf second-eye-vX.Y.Z-source.tar.gz
+cd second-eye-vX.Y.Z
 python3.12 -m venv .venv && .venv/bin/pip install -e .
 ```
 
@@ -266,7 +266,7 @@ setting will show there. Reads, such as tailing a log, may not show. We have
 not checked whether the log names the token.
 
 We will ask for an Anthropic key only if the problem is on that side. In that
-case, create one in the Redline Desk workspace named for the same dates, and
+case, create one in Second Eye workspace named for the same dates, and
 delete it afterwards. Console -> Usage can be filtered by key.
 
 ## Upgrading
@@ -340,7 +340,7 @@ reach them:
 - Delete the Anthropic keys and the workspace.
 - Destroy every other copy of `DATA_KEY` (your password manager or KMS, and
   the offline copy).
-- Delete any Cloudflare token made for Redline Desk.
+- Delete any Cloudflare token made for Second Eye.
 
 ## What has and has not been tested
 

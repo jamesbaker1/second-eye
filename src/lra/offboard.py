@@ -55,7 +55,7 @@ from pathlib import Path
 
 from lra import tenant as tenants
 
-CERT_TYPE = "redline-desk-deletion-certificate"
+CERT_TYPE = "second-eye-deletion-certificate"
 CERT_VERSION = 1
 # The agent ids a deployment's vars name (tenant.EXCLUSIVE_VARS, less the rest).
 AGENT_VARS = ("MANAGED_REVIEW_AGENT_ID", "MANAGED_ASSOCIATE_AGENT_ID", "MANAGED_PLAYBOOK_AGENT_ID",
@@ -194,10 +194,10 @@ def cloudflare_items(o: Offboarding, t: tenants.Tenant) -> None:
         "The firm's mail flow: remove the transport rule or gateway policy that BCCs the agent",
         "Anthropic Console: remove the webhook to <EDGE_URL>/anthropic/webhook",
         "Anthropic Console: delete the API key(s) this deployment used, then the workspace "
-        f"{t.get('anthropic_workspace') or ''} if it was only for Redline Desk".rstrip(),
+        f"{t.get('anthropic_workspace') or ''} if it was only for Second Eye".rstrip(),
         ("Every other copy of DATA_KEY: the firm's password manager or KMS entry and the "
         "offline copy (destroying them is what makes anything left anywhere unreadable)"),
-        "Any Cloudflare API token made for Redline Desk (deploy, support): delete it",
+        "Any Cloudflare API token made for Second Eye (deploy, support): delete it",
     ], status="by hand")
 
 
@@ -380,7 +380,7 @@ def check(cert: dict, key: bytes | None = None) -> list[str]:
     the key, signed with it)."""
     body = cert.get("certificate")
     if not isinstance(body, dict) or body.get("type") != CERT_TYPE:
-        return ["not a Redline Desk deletion certificate"]
+        return ["not a Second Eye deletion certificate"]
     found = []
     if hashlib.sha256(canonical(body)).hexdigest() != cert.get("sha256"):
         found.append("sha256 does not match: the certificate was changed")

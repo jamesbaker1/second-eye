@@ -360,11 +360,11 @@ def test_a_signature_header_we_cannot_compare_is_a_rejection_not_a_crash(env):
 
 
 def test_the_agent_goes_by_the_name_on_the_landing_page():
-    """One name. The landing page says Redline Desk; the inbox said "Legal
+    """One name. The landing page says Second Eye; the inbox said "Legal
     Review", so a lawyer met two products."""
     from lra.config import Settings
 
-    assert Settings.model_fields["mail_agent_name"].default == "Redline Desk"
+    assert Settings.model_fields["mail_agent_name"].default == "Second Eye"
 
 
 @respx.mock
@@ -373,19 +373,19 @@ def test_postmark_sends_from_the_agent_name_not_a_bare_address(env):
 
     env(POSTMARK_INBOUND_SECRET="s", POSTMARK_SERVER_TOKEN="t",
         MAIL_AGENT_ADDRESS="review@legal.firm.com", FIRM_DOMAINS="firm.com",
-        MAIL_AGENT_NAME="Redline Desk")
+        MAIL_AGENT_NAME="Second Eye")
     route = respx.post("https://api.postmarkapp.com/email").mock(
         return_value=httpx.Response(200, json={"MessageID": "out"})
     )
     PostmarkProvider().send(OutboundEmail(to=["jane@firm.com"], subject="Re: NDA",
                                           text_body="Fine."))
     sent = json.loads(route.calls[0].request.content)
-    assert sent["From"] == "Redline Desk <review@legal.firm.com>"
+    assert sent["From"] == "Second Eye <review@legal.firm.com>"
 
 
 def test_console_shows_who_the_reply_is_from(env, capsys):
     env(MAIL_AGENT_ADDRESS="review@legal.firm.com", FIRM_DOMAINS="firm.com",
-        MAIL_AGENT_NAME="Redline Desk")
+        MAIL_AGENT_NAME="Second Eye")
     ConsoleProvider().send(OutboundEmail(to=["jane@firm.com"], subject="Re: NDA",
                                          text_body="Fine."))
-    assert "From: Redline Desk <review@legal.firm.com>" in capsys.readouterr().out
+    assert "From: Second Eye <review@legal.firm.com>" in capsys.readouterr().out

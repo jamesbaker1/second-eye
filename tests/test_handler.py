@@ -750,7 +750,7 @@ def test_the_first_review_brings_the_contact_card_and_the_second_does_not(
     monkeypatch.setattr(handler.review, "review", stub_review())
     handler.handle(email_with_sample("first"))
     [card] = _cards(captured.sent[0])
-    assert card.filename == "Redline Desk.vcf"
+    assert card.filename == "Second Eye.vcf"
     assert b"EMAIL;TYPE=INTERNET,PREF:review@example.com" in card.content
     assert documents(captured.sent[0]), "the card came instead of the redline"
 

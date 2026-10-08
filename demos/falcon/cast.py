@@ -19,7 +19,7 @@ IDENTITY = load()
 
 FIRM = "Carrow Lisle LLP"
 AGENT = IDENTITY.agent
-AGENT_NAME = "Redline Desk"
+AGENT_NAME = "Second Eye"
 FIRM_DOMAIN = IDENTITY.firm_domain
 LAWYER = IDENTITY.lawyer
 LAWYER_NAME = IDENTITY.lawyer_name

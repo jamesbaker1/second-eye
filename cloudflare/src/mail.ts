@@ -28,7 +28,7 @@ export function failureNotice(headers: Map<string, string>, sender: string, env:
     ...(notice ? { "X-Privileged": notice.replace(/[\u2013\u2014]/g, "-").replace(/[^\x20-\x7e]/g, "") } : {}),
   };
   return {
-    from: { email: env.MAIL_AGENT_ADDRESS, name: env.MAIL_AGENT_NAME || "Redline Desk" },
+    from: { email: env.MAIL_AGENT_ADDRESS, name: env.MAIL_AGENT_NAME || "Second Eye" },
     to: [sender],
     subject: subject ? `Re: ${subject.replace(/^re:\s*/i, "")}` : "I could not review your document",
     text: `I couldn't review ${what}. Nothing was sent to anyone else. Please resend it.\n`

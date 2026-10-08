@@ -1,9 +1,9 @@
 # Sub-processors
 
-Who besides Redline Desk touches a firm's data or its deployment, what each
+Who besides Second Eye touches a firm's data or its deployment, what each
 receives, where, and what independent assurance each publishes. Vendor
 claims are linked to the vendor's own page with the date it was read; nothing
-here is a certification of Redline Desk, which holds none
+here is a certification of Second Eye, which holds none
 (`questionnaire.md`, "Governance").
 
 Last checked: 2026-10-04.
@@ -44,7 +44,7 @@ remedy. Anthropic gives its own customers "reasonable notice" and fifteen
 days to object (DPA, C.3); thirty days is offered here so a firm has time
 to run its own vendor review.
 
-> **Sub-processor changes.** Redline Desk will give the Customer at least
+> **Sub-processor changes.** Second Eye will give the Customer at least
 > **[30]** days' written notice, by email to **[the Customer's named
 > contact]**, before any new sub-processor receives Customer Data, or before
 > an existing sub-processor receives a new category of Customer Data or
@@ -52,14 +52,14 @@ to run its own vendor review.
 > what it will receive, where, and why. The Customer may object in writing
 > within the notice period on reasonable data-protection grounds; if the
 > parties cannot resolve the objection, the Customer may terminate the
-> affected service without penalty, and Redline Desk will delete the
+> affected service without penalty, and Second Eye will delete the
 > Customer's data under the offboarding procedure (`incident-response.md`).
 > The current list is `docs/it/subprocessors.md` in the version supplied to
 > the Customer, and every change to it is dated.
 >
 > Where the Customer runs the deployment in its own Cloudflare account and
 > Anthropic organisation, those vendors are the Customer's own, and this
-> clause covers only any vendor Redline Desk adds to the software's path.
+> clause covers only any vendor Second Eye adds to the software's path.
 
 The same applies to a change in what we send an existing sub-processor that
 is not already in the table above, for example a new Cloudflare product in

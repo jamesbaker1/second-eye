@@ -54,7 +54,7 @@ def recipe(t: tenants.Tenant, *, days: int = 3, write: bool = False,
         "",
         ("In the firm's Cloudflare dashboard: My Profile -> API Tokens -> Create Token -> "
         "Create Custom Token."),
-        f"  Token name:       Redline Desk support {start.isoformat()} (expires {end.isoformat()})",
+        f"  Token name:       Second Eye support {start.isoformat()} (expires {end.isoformat()})",
         "  Permissions:",
     ]
     lines += [f"    {scope} | {name} | {level:5}  {why}" for scope, name, level, why in perms]

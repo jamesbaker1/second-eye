@@ -605,7 +605,7 @@ def run(target: Target, *, offline: bool = False, wrangler: bool = False,
 
 def render(target: Target, checks: list[Check]) -> str:
     counts = {s: sum(1 for c in checks if c.status == s) for s in (PASS, WARN, FAIL, INFO, SKIP)}
-    lines = [f"Redline Desk self-test: {target.label}",
+    lines = [f"Second Eye self-test: {target.label}",
              (f"Run {datetime.now(UTC).strftime('%Y-%m-%d %H:%M UTC')}. Read-only: no model "
               "call, no email sent, nothing written."), ""]
     width = max((len(c.name) for c in checks), default=10)

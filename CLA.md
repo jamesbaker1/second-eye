@@ -8,7 +8,7 @@ Version 1.0
 > first outside contribution is accepted, and may change in that review;
 > until then, no outside contribution is merged.
 
-Thank you for contributing to Redline Desk. This agreement sets out the
+Thank you for contributing to Second Eye. This agreement sets out the
 rights you give the project in what you contribute. It does **not** transfer
 your copyright: you keep it, and you remain free to use your contribution for
 anything else.
@@ -45,7 +45,7 @@ channel.
 
 ## The agreement
 
-**Licensor:** James Baker, the copyright holder of Redline Desk,
+**Licensor:** James Baker, the copyright holder of Second Eye,
 and its successors and assigns ("we", "us").
 
 ### 1. Definitions
@@ -62,7 +62,7 @@ intentionally submit to us for inclusion in the Project, by pull request,
 patch, issue, email or any other means. Something you have marked
 conspicuously, or told us in writing, as "Not a Contribution" is not one.
 
-"**Project**" means Redline Desk, the software we publish and any work we
+"**Project**" means Second Eye, the software we publish and any work we
 make from it, in any edition and under any licence.
 
 "**Submit**" means any form of communication sent to us or our

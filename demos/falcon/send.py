@@ -6,7 +6,7 @@
 
 Sending from Python would need the lawyer's Gmail OAuth, so this writes the
 message instead, attachments and all, from the one allowlisted address to
-Redline Desk (or, for step 6, to Harrowgate with Redline Desk on Bcc). Then:
+Second Eye (or, for step 6, to Harrowgate with Second Eye on Bcc). Then:
 
 - Apple Mail: open the .eml, then Message > Send Again.
 - Outlook: open it, then Actions > Resend This Message.

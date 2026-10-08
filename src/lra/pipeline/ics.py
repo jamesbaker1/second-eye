@@ -40,7 +40,7 @@ MIN_DATED = 2
 REMINDER_DAYS = 7
 # Undated periods named in the email; the table above carries the rest.
 UNDATED_LISTED = 6
-PRODID = "-//Redline Desk//Deadlines//EN"
+PRODID = "-//Second Eye//Deadlines//EN"
 
 
 @dataclass
@@ -136,7 +136,7 @@ def calendar(events: list[Event], document: str,
                        "Check the date against the signed version.")
         lines += [
             "BEGIN:VEVENT",
-            f"UID:{uid}@redline-desk",
+            f"UID:{uid}@second-eye",
             f"DTSTAMP:{stamp}",
             f"DTSTART;VALUE=DATE:{e.day:%Y%m%d}",
             f"DTEND;VALUE=DATE:{e.day + datetime.timedelta(days=1):%Y%m%d}",

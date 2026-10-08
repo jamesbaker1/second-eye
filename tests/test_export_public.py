@@ -240,3 +240,204 @@ def test_this_repositorys_export_rules_parse_and_cover_the_private_paths():
     for public in ["README.md", ".env.example", "deployments/acme-llp/tenant.jsonc", "samples/clean.docx",
                    "scripts/export_public.py", ".gitleaks.toml"]:
         assert export_public.ignored_by(public, rules) is None, public
+
+
+# --- update: a new commit on top of the public repository ---------------------------
+
+
+def _public(tmp_path: Path, repo: Path) -> Path:
+    """The private repository's first export, as a bare 'public remote'."""
+    seed = tmp_path / "seed"
+    assert _run(repo, seed) == 0
+    bare = tmp_path / "public.git"
+    _git(tmp_path, "clone", "-q", "--bare", str(seed), str(bare))
+    return bare
+
+
+def _change(repo: Path, files: dict[str, str | bytes | None], message: str = "private change") -> None:
+    for name, content in files.items():
+        path = repo / name
+        if content is None:
+            path.unlink()
+            continue
+        path.parent.mkdir(parents=True, exist_ok=True)
+        if isinstance(content, bytes):
+            path.write_bytes(content)
+        else:
+            path.write_text(content)
+    _git(repo, "add", "--all", "--force")
+    _git(repo, "commit", "-q", "-m", message)
+
+
+def _update(repo: Path, public: Path, *extra: str) -> int:
+    return export_public.main(["--repo", str(repo), "--update", str(public), *extra])
+
+
+def _log(repo: Path, ref: str = "main") -> list[str]:
+    return _git(repo, "log", "--format=%an <%ae>|%cn <%ce>|%s", ref).splitlines()
+
+
+def test_an_update_is_one_commit_on_top_by_the_given_author_and_is_not_pushed(tmp_path, capsys):
+    repo = _repo(tmp_path, {"README.md": "v1\n", "src/app.py": "x = 1\n"},
+                 ignore="work/\n.publicignore\n")
+    public = _public(tmp_path, repo)
+    first = _git(public, "rev-parse", "main").strip()
+    _change(repo, {"README.md": "v2\n", "src/new.py": "y = 2\n", "work/notes.txt": "private\n"},
+            "a private commit message")
+    capsys.readouterr()
+
+    clone = tmp_path / "clone"
+    assert _update(repo, public, "--out", str(clone), "--author", "Pat Example <pat@example.com>",
+                   "--message", "Release 2") == 0
+    printed = capsys.readouterr().out
+    assert "src/new.py" in printed, "the git show --stat summary is printed"
+    assert f"git -C {clone.resolve()} push origin main" in printed
+
+    owner = export_public.DEFAULT_AUTHOR
+    assert _log(clone) == ["Pat Example <pat@example.com>|Pat Example <pat@example.com>|Release 2",
+                           f"{owner}|{owner}|Initial public release"]
+    assert _git(clone, "rev-parse", "HEAD^").strip() == first
+    assert sorted(_git(clone, "ls-files").splitlines()) == ["README.md", "src/app.py", "src/new.py"]
+    assert (clone / "README.md").read_text() == "v2\n"
+    assert not (clone / "work").exists() and not (clone / ".publicdeny").exists()
+    assert _git(clone, "status", "--porcelain") == ""
+    assert _git(public, "rev-parse", "main").strip() == first, "nothing is pushed without --push"
+
+
+def test_the_default_update_message_is_the_date_and_names_nothing_private(tmp_path):
+    repo = _repo(tmp_path, {"README.md": "v1\n"})
+    public = _public(tmp_path, repo)
+    _change(repo, {"README.md": "v2\n"}, "private subject")
+    clone = tmp_path / "clone"
+    assert _update(repo, public, "--out", str(clone)) == 0
+    message = _git(clone, "log", "-1", "--format=%B").strip()
+    assert message == export_public.default_update_message()
+    assert message.startswith("Update 20")
+    assert _git(repo, "rev-parse", "--short", "HEAD").strip() not in message
+
+
+def test_deleted_and_newly_ignored_files_disappear_from_the_public_tree(tmp_path):
+    repo = _repo(tmp_path, {"README.md": "x\n", "old.txt": "gone soon\n", "drafts/plan.md": "plan\n",
+                            "keep/a.txt": "a\n"}, ignore=".publicignore\n")
+    public = _public(tmp_path, repo)
+    _change(repo, {"old.txt": None, ".publicignore": ".publicignore\ndrafts/\n"})
+    clone = tmp_path / "clone"
+    assert _update(repo, public, "--out", str(clone)) == 0
+    assert sorted(_git(clone, "ls-files").splitlines()) == ["README.md", "keep/a.txt"]
+    assert not (clone / "old.txt").exists() and not (clone / "drafts").exists()
+    assert _git(clone, "show", "--name-status", "--format=", "HEAD").split() == [
+        "D", "drafts/plan.md", "D", "old.txt"]
+
+
+def test_files_only_in_the_public_tree_are_not_kept(tmp_path):
+    repo = _repo(tmp_path, {"README.md": "x\n"})
+    public = _public(tmp_path, repo)
+    other = tmp_path / "other"
+    _git(tmp_path, "clone", "-q", str(public), str(other))
+    _change(other, {"stray.txt": "added on the public side\n"})
+    _git(other, "push", "-q", "origin", "main")
+    clone = tmp_path / "clone"
+    assert _update(repo, public, "--out", str(clone)) == 0
+    assert _git(clone, "ls-files").split() == [".publicignore", "README.md"]
+
+
+def test_a_denylist_hit_refuses_the_update_and_leaves_the_remote_untouched(tmp_path, capsys):
+    repo = _repo(tmp_path, {"README.md": "x\n"}, deny="secret-firm\n")
+    public = _public(tmp_path, repo)
+    first = _git(public, "rev-parse", "main").strip()
+    _change(repo, {"samples/letter.docx": _docx("Dear Secret-Firm LLP")})
+    clone = tmp_path / "clone"
+    assert _update(repo, public, "--out", str(clone), "--push") == 1
+    assert "samples/letter.docx!word/document.xml:1: matches 'secret-firm'" in capsys.readouterr().err
+    assert _git(public, "rev-parse", "main").strip() == first
+    assert not clone.exists()
+
+
+def test_a_release_todo_marker_refuses_the_update(tmp_path, capsys):
+    repo = _repo(tmp_path, {"README.md": "x\n"})
+    public = _public(tmp_path, repo)
+    _change(repo, {"SECURITY.md": f"{TODO}\n"})
+    assert _update(repo, public, "--out", str(tmp_path / "clone"), "--push") == 1
+    assert f"SECURITY.md:1: matches '{TODO}'" in capsys.readouterr().err
+    assert len(_log(public)) == 1
+
+
+def test_gitleaks_findings_refuse_the_update_and_remove_the_clone(tmp_path, monkeypatch):
+    repo = _repo(tmp_path, {"README.md": "x\n"})
+    public = _public(tmp_path, repo)
+    _change(repo, {"README.md": "y\n"})
+    monkeypatch.setattr(export_public, "find_gitleaks", lambda: "gitleaks")
+
+    def leak(binary, tree):
+        assert (tree / "README.md").read_text() == "y\n" and not (tree / ".git").exists()
+        raise export_public.ExportError("gitleaks found secrets")
+
+    monkeypatch.setattr(export_public, "run_gitleaks", leak)
+    clone = tmp_path / "clone"
+    assert _update(repo, public, "--out", str(clone), "--push") == 1
+    assert not clone.exists()
+    assert not [p for p in tmp_path.iterdir() if p.name.startswith(".export-")]
+    assert len(_log(public)) == 1
+
+
+def test_no_change_makes_no_commit_and_exits_0(tmp_path, capsys):
+    repo = _repo(tmp_path, {"README.md": "x\n", "work/a.txt": "a\n"}, ignore="work/\n")
+    public = _public(tmp_path, repo)
+    _change(repo, {"work/a.txt": "private only\n"})     # only an ignored path changed
+    capsys.readouterr()
+    clone = tmp_path / "clone"
+    assert _update(repo, public, "--out", str(clone), "--push") == 0
+    assert "Nothing changed" in capsys.readouterr().out
+    assert len(_log(public)) == 1
+    assert len(_log(clone)) == 1
+
+
+def test_push_fast_forwards_the_public_remote(tmp_path, capsys):
+    repo = _repo(tmp_path, {"README.md": "v1\n"})
+    public = _public(tmp_path, repo)
+    first = _git(public, "rev-parse", "main").strip()
+    _change(repo, {"README.md": "v2\n"})
+    clone = tmp_path / "clone"
+    assert _update(repo, public, "--out", str(clone), "--push", "--message", "Release 2") == 0
+    out = capsys.readouterr().out
+    assert out.index("README.md | ") < out.index("Pushing "), "the summary comes before the push"
+    assert _git(public, "rev-parse", "main").strip() == _git(clone, "rev-parse", "HEAD").strip()
+    assert _git(public, "rev-parse", "main^").strip() == first
+    assert _git(public, "show", "main:README.md") == "v2\n"
+
+
+def test_push_is_refused_when_the_remote_moved_since_the_clone(tmp_path, monkeypatch, capsys):
+    repo = _repo(tmp_path, {"README.md": "v1\n"})
+    public = _public(tmp_path, repo)
+    _change(repo, {"README.md": "v2\n"})
+    other = tmp_path / "other"
+    _git(tmp_path, "clone", "-q", str(public), str(other))
+
+    def someone_pushes(binary, tree):   # runs after the clone, before the commit
+        _change(other, {"CHANGELOG.md": "theirs\n"}, "theirs")
+        _git(other, "push", "-q", "origin", "main")
+
+    monkeypatch.setattr(export_public, "find_gitleaks", lambda: "gitleaks")
+    monkeypatch.setattr(export_public, "run_gitleaks", someone_pushes)
+    clone = tmp_path / "clone"
+    assert _update(repo, public, "--out", str(clone), "--push") == 1
+    assert "has moved since the clone" in capsys.readouterr().err
+    assert _git(public, "rev-parse", "main").strip() == _git(other, "rev-parse", "HEAD").strip()
+    assert _git(clone, "show", "HEAD:README.md") == "v2\n", "the commit is kept to look at"
+
+
+def test_an_empty_public_repository_is_refused(tmp_path, capsys):
+    repo = _repo(tmp_path, {"README.md": "x\n"})
+    bare = tmp_path / "empty.git"
+    _git(tmp_path, "init", "-q", "--bare", "-b", "main", str(bare))
+    assert _update(repo, bare, "--out", str(tmp_path / "clone")) == 1
+    assert "no commits" in capsys.readouterr().err
+    assert not (tmp_path / "clone").exists()
+
+
+def test_push_needs_update_and_one_mode_is_required(tmp_path):
+    repo = _repo(tmp_path, {"README.md": "x\n"})
+    with pytest.raises(SystemExit):
+        _run(repo, tmp_path / "out", "--push")
+    with pytest.raises(SystemExit):
+        export_public.main(["--repo", str(repo)])

@@ -50,13 +50,13 @@ jobs:
         run: |
           npm ci
           npx wrangler deploy --dry-run --containers-rollout=none --outdir ../dist/worker
-          cd .. && PYTHONPATH=src python3 -m lra.release pack dist/worker "dist/redline-desk-${GITHUB_REF_NAME}-worker.tar.gz"
+          cd .. && PYTHONPATH=src python3 -m lra.release pack dist/worker "dist/second-eye-${GITHUB_REF_NAME}-worker.tar.gz"
 
       # The Python dependencies as they resolve today. The image the firm
       # builds resolves them again; this is what to compare against.
       - uses: astral-sh/setup-uv@caf0cab7a618c569241d31dcd442f54681755d39 # v3.2.4
       - name: Record the Python dependencies
-        run: uv pip compile pyproject.toml --quiet -o "dist/redline-desk-${GITHUB_REF_NAME}-requirements.txt"
+        run: uv pip compile pyproject.toml --quiet -o "dist/second-eye-${GITHUB_REF_NAME}-requirements.txt"
 
       # syft, through anchore's action: free, no account. Over the repository
       # (pyproject.toml, the requirements just written, cloudflare's lockfile).
@@ -65,7 +65,7 @@ jobs:
         with:
           path: .
           format: cyclonedx-json
-          output-file: dist/redline-desk-${{ github.ref_name }}-sbom.cdx.json
+          output-file: dist/second-eye-${{ github.ref_name }}-sbom.cdx.json
           upload-artifact: false
           upload-release-assets: false
 
@@ -77,5 +77,5 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           gh release create "$GITHUB_REF_NAME" dist/* --draft --verify-tag \
-            --title "Redline Desk $GITHUB_REF_NAME" \
+            --title "Second Eye $GITHUB_REF_NAME" \
             --notes "For a self-hosted firm: check with \`sha256sum -c SHA256SUMS\`, then follow docs/it/self-hosted.md ('Deploying a release'). release.json says what is and is not included."

@@ -86,7 +86,7 @@ function defaults(path: string, job: string): Reply {
 
 export function outbound(text: string, attached = false): Record<string, unknown> {
   return {
-    from: { email: "review@legal.firm.com", name: "Redline Desk" },
+    from: { email: "review@legal.firm.com", name: "Second Eye" },
     to: ["jim@firm.com"],
     cc: [],
     subject: "Re: NDA",

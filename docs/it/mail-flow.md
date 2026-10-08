@@ -1,7 +1,7 @@
 # Mail flow: what IT changes, and what it must not
 
 The only part of the firm's estate IT has to touch is mail. Lawyers can use
-Redline Desk with no change at all, by forwarding a draft to the agent's
+Second Eye with no change at all, by forwarding a draft to the agent's
 address. What a firm usually wants for a pilot is the **BCC habit**: every
 message a pilot lawyer sends outside the firm with a document attached is
 copied to the agent, which reads what went out and replies to that lawyer
@@ -14,7 +14,7 @@ Proofpoint configuration. Read and adapt before applying; run the
 transport rule in audit mode first.
 
 Placeholders: `review@legal.firm.com` is the agent's address; `firm.com` is
-the firm's own domain; `RedlineDesk-Pilot` is a mail-enabled security group
+the firm's own domain; `SecondEye-Pilot` is a mail-enabled security group
 holding the pilot lawyers.
 
 ## What the agent does with what it receives
@@ -61,7 +61,7 @@ document attached:
 
 | Setting | Value | Microsoft name (EAC / PowerShell) |
 | --- | --- | --- |
-| Apply if the sender is a member of | `RedlineDesk-Pilot` | The sender is a member of / `FromMemberOf` |
+| Apply if the sender is a member of | `SecondEye-Pilot` | The sender is a member of / `FromMemberOf` |
 | And the recipient is located | Outside the organization | The recipient is located / `SentToScope NotInOrganization` |
 | And any attachment's file extension includes | `docx doc pdf rtf odt` | Any attachment's file extension matches / `AttachmentExtensionMatchesWords` |
 | Do the following | Add `review@legal.firm.com` to the Bcc box | Add recipients to the Bcc box / `BlindCopyTo` |
@@ -80,11 +80,11 @@ In Exchange Online PowerShell (**verify on your tenant**):
 Connect-ExchangeOnline
 
 # The pilot group, if it does not exist yet.
-New-DistributionGroup -Name "RedlineDesk-Pilot" -Type Security
-Add-DistributionGroupMember -Identity "RedlineDesk-Pilot" -Member jane@firm.com
+New-DistributionGroup -Name "SecondEye-Pilot" -Type Security
+Add-DistributionGroupMember -Identity "SecondEye-Pilot" -Member jane@firm.com
 
-New-TransportRule -Name "Redline Desk: copy pilot outbound documents" `
-  -FromMemberOf "RedlineDesk-Pilot" `
+New-TransportRule -Name "Second Eye: copy pilot outbound documents" `
+  -FromMemberOf "SecondEye-Pilot" `
   -SentToScope NotInOrganization `
   -AttachmentExtensionMatchesWords "docx","doc","pdf","rtf","odt" `
   -BlindCopyTo "review@legal.firm.com" `
@@ -93,7 +93,7 @@ New-TransportRule -Name "Redline Desk: copy pilot outbound documents" `
   -Mode Audit
 
 # After checking message trace for a few days:
-Set-TransportRule -Identity "Redline Desk: copy pilot outbound documents" -Mode Enforce
+Set-TransportRule -Identity "Second Eye: copy pilot outbound documents" -Mode Enforce
 ```
 
 Notes, each from Microsoft's pages above unless marked:
@@ -120,7 +120,7 @@ TLS with the certificate checked (**verify on your tenant**; Microsoft:
 [configure mail flow using connectors](https://learn.microsoft.com/en-us/exchange/mail-flow-best-practices/use-connectors-to-configure-mail-flow/use-connectors-to-configure-mail-flow)):
 
 ```powershell
-New-OutboundConnector -Name "Redline Desk (TLS required)" -ConnectorType Partner `
+New-OutboundConnector -Name "Second Eye (TLS required)" -ConnectorType Partner `
   -RecipientDomains "legal.firm.com" -UseMXRecord $true -TlsSettings DomainValidation `
   -TlsDomain "<the name on the certificate the MX presents>"
 ```
@@ -144,7 +144,7 @@ tighten once you have.
 - **Sensitivity labels with encryption (rights management):** a protected
   attachment can be opened only by the identities the label grants, and the
   agent is not one of them. Either leave labelled-and-encrypted documents
-  out of the pilot, or decide label by label. Redline Desk has not been
+  out of the pilot, or decide label by label. Second Eye has not been
   tested with a rights-protected file and does not yet say "this file is
   protected" in so many words; expect a reply that it could not read the
   document.
@@ -244,7 +244,7 @@ your tenant.**
 
 ## Turning it off
 
-Disable the transport rule (`Disable-TransportRule -Identity "Redline Desk:
+Disable the transport rule (`Disable-TransportRule -Identity "Second Eye:
 copy pilot outbound documents"`), or the routing setting in Google
 Workspace. Copies stop on the firm's side once the change has propagated (Exchange
-rule changes are not instant), with no change needed at Redline Desk. The rest of the off-switches are in `incident-response.md`.
+rule changes are not instant), with no change needed at Second Eye. The rest of the off-switches are in `incident-response.md`.

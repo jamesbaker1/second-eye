@@ -1,6 +1,6 @@
 # Security
 
-Redline Desk reads privileged legal documents and replies by email, so a
+Second Eye reads privileged legal documents and replies by email, so a
 security problem in it can expose a client's confidences. Thank you for
 reporting one privately.
 

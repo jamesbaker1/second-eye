@@ -1,6 +1,6 @@
 """The self-hosted option (docs/it/self-hosted.md).
 
-A firm whose IT runs Redline Desk in the firm's own Cloudflare account and
+A firm whose IT runs Second Eye in the firm's own Cloudflare account and
 Anthropic organisation: never in deploy.yml's matrix, deployed by the firm
 from a release, paused and resumed without a deploy, given support access
 only by a token it creates and revokes, and offboarded with a deletion
@@ -158,11 +158,11 @@ def test_the_source_archive_is_reproducible_and_carries_no_firm(tmp_path):
     assert record["version"] == "v1.2.3" and re.match(r"^[0-9a-f]{40}$", record["commit"])
     with tarfile.open(fileobj=io.BytesIO(first)) as tar:
         names = tar.getnames()
-        assert all(n.startswith("redline-desk-v1.2.3/") for n in names)
+        assert all(n.startswith("second-eye-v1.2.3/") for n in names)
         assert not [n for n in names if "/deployments/" in n]
-        assert "redline-desk-v1.2.3/RELEASE" in names
-        assert "redline-desk-v1.2.3/Dockerfile" in names
-        shared = tar.extractfile("redline-desk-v1.2.3/cloudflare/wrangler.jsonc").read().decode()
+        assert "second-eye-v1.2.3/RELEASE" in names
+        assert "second-eye-v1.2.3/Dockerfile" in names
+        shared = tar.extractfile("second-eye-v1.2.3/cloudflare/wrangler.jsonc").read().decode()
         assert {m.mtime for m in tar.getmembers()} == {tar.getmembers()[0].mtime}
     assert gzip.decompress(first)  # a real gzip
     v = tenant.parse_jsonc(shared)["vars"]
@@ -180,8 +180,8 @@ def test_the_source_archive_is_reproducible_and_carries_no_firm(tmp_path):
 def test_release_files_are_checked_against_their_checksums(tmp_path):
     written = release.build("v1.2.3", tmp_path, ROOT)
     assert sorted(p.name for p in written) == [
-        "redline-desk-v1.2.3-source.tar.gz", "redline-desk-v1.2.3-wrangler.template.jsonc",
-        "release.json"]
+        "release.json",
+        "second-eye-v1.2.3-source.tar.gz", "second-eye-v1.2.3-wrangler.template.jsonc"]
     manifest = json.loads((tmp_path / "release.json").read_text())
     assert manifest["excluded_from_source"] == ["deployments/"]
     assert any("prebuilt container image" in n for n in manifest["not_included"])
@@ -190,7 +190,7 @@ def test_release_files_are_checked_against_their_checksums(tmp_path):
     assert template["name"] == "legal-review-agent-<firm>"
     assert template["vars"]["MAIL_AGENT_ADDRESS"] == "<review@legal.firm.com>"
     sums = release.checksums(tmp_path).read_text()
-    assert re.match(r"^[0-9a-f]{64}  redline-desk-v1\.2\.3-source\.tar\.gz$", sums.splitlines()[0])
+    assert any(re.match(r"^[0-9a-f]{64}  second-eye-v1\.2\.3-source\.tar\.gz$", line) for line in sums.splitlines())
     assert release.verify(tmp_path) == []
     (tmp_path / "release.json").write_text("{}")
     assert release.verify(tmp_path) == ["release.json: checksum does not match"]
@@ -210,7 +210,7 @@ def test_pack_is_deterministic_and_leaves_only_the_archive(tmp_path):
 
 
 def _release_tree(repo, version="v1.2.3"):
-    (repo / "RELEASE").write_text(json.dumps({"product": "redline-desk", "version": version,
+    (repo / "RELEASE").write_text(json.dumps({"product": "second-eye", "version": version,
                                               "commit": "a" * 40}))
 
 
@@ -331,7 +331,7 @@ def test_jims_deployment_can_be_paused_the_same_way(repo, capsys):
 def test_support_access_is_a_token_the_firm_creates_scoped_and_expiring(repo):
     t = firm(repo)
     text = support.recipe(t, days=3, today=date(2026, 10, 4))
-    assert "Redline Desk support 2026-10-04 (expires 2026-10-07)" in text
+    assert "Second Eye support 2026-10-04 (expires 2026-10-07)" in text
     assert f"Include | {ACCOUNT} only" in text
     assert "Workers Tail | Read" in text and "| Write" not in text
     assert "Workers R2 Storage" in text.split("Never in it:")[1]
@@ -483,7 +483,7 @@ def test_offboard_apply_deletes_everything_and_certifies_it(held, capsys):
     path = next((held.dir / "offboarding").glob("deletion-certificate-*.json"))
     cert = json.loads(path.read_text())
     body = cert["certificate"]
-    assert body["type"] == "redline-desk-deletion-certificate" and body["complete"] is True
+    assert body["type"] == "second-eye-deletion-certificate" and body["complete"] is True
     assert body["tenant"] == "acme-llp" and body["cloudflare_account"] == ACCOUNT
     assert body["anthropic_workspace"] == "wrkspc_acme" and body["run_by"] == "it@acme-law.com"
     assert body["counts"]["anthropic session"] == 2

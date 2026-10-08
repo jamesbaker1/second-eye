@@ -1,6 +1,6 @@
 # The send-moment demo
 
-"Word agents review the document you open. Redline Desk reviews what you
+"Word agents review the document you open. Second Eye reviews what you
 send." One email, as a lawyer would send it at 11pm: the execution version of
 an SPA, a board deck and a PDF exhibit. Every mistake in it is one a careful
 associate checks for before pressing send, and every catch is made without a

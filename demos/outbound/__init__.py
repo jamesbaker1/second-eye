@@ -1,6 +1,6 @@
 """The send-moment demo: one email that should not go out as it stands.
 
-"Word agents review the document you open. Redline Desk reviews what you
+"Word agents review the document you open. Second Eye reviews what you
 send." This is that sentence as a message: an execution version going out
 with three attachments, every mistake in it one a careful associate checks
 for before pressing send, and every catch made without a model.

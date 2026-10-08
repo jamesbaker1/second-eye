@@ -1,12 +1,12 @@
 """Versioned releases a self-hosted firm deploys when it chooses.
 
 Our own deployments go out on every push to main (deploy.yml). A firm that
-runs Redline Desk in its own Cloudflare account and its own Anthropic
+runs Second Eye in its own Cloudflare account and its own Anthropic
 organisation (`lra tenant new <firm> --self-hosted`) does not take that: its
 IT deploys a release, a tag `vX.Y.Z`, when it has read it. A release is what
 .github/workflows/release.yml builds from the tag, as a draft GitHub release:
 
-  redline-desk-<v>-source.tar.gz      the repository at the tag, less every
+  second-eye-<v>-source.tar.gz      the repository at the tag, less every
                                       firm's deployment (deployments/) and with
                                       Jim's names blanked from the shared
                                       config; a RELEASE file says which tag.
@@ -14,16 +14,16 @@ IT deploys a release, a tag `vX.Y.Z`, when it has read it. A release is what
                                       the firm's `wrangler deploy` builds the
                                       image from its Dockerfile, on the firm's
                                       machine, into the firm's account.
-  redline-desk-<v>-worker.tar.gz      the Worker exactly as wrangler bundles it
+  second-eye-<v>-worker.tar.gz      the Worker exactly as wrangler bundles it
                                       (`wrangler deploy --dry-run --outdir`), to
                                       read; the firm's deploy bundles its own
                                       from the source and can compare.
-  redline-desk-<v>-wrangler.template.jsonc
+  second-eye-<v>-wrangler.template.jsonc
                                       the config a firm's tenant renders to,
                                       with placeholders where its names go
-  redline-desk-<v>-requirements.txt   the Python dependencies as they resolved
+  second-eye-<v>-requirements.txt   the Python dependencies as they resolved
                                       on our runner for that tag
-  redline-desk-<v>-sbom.cdx.json      a CycloneDX SBOM (syft, via
+  second-eye-<v>-sbom.cdx.json      a CycloneDX SBOM (syft, via
                                       anchore/sbom-action), when it built
   release.json                        what is in the release and what is not
   SHA256SUMS                          `sha256sum -c SHA256SUMS` checks the rest
@@ -59,7 +59,7 @@ from pathlib import Path
 from lra import tenant as tenants
 
 REPO = tenants.REPO
-PRODUCT = "redline-desk"
+PRODUCT = "second-eye"
 VERSION = re.compile(r"^v\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$")
 # Never in a release: every firm's deployment (names, addresses, ids, and
 # their .env if one were ever committed by mistake).

@@ -287,7 +287,7 @@ def test_a_reply_is_sent_in_the_shape_the_email_service_takes(cloud):
     ))
     assert sent_id == "cf-1"
     [out] = cloud.sent
-    assert out["from"] == {"email": "review@legal.firm.com", "name": "Redline Desk"}
+    assert out["from"] == {"email": "review@legal.firm.com", "name": "Second Eye"}
     assert out["headers"] == {"In-Reply-To": "<first@firm.com>", "References": "<first@firm.com>"}
     assert out["attachments"] == [
         {"filename": "NDA (redline).docx", "type": "application/x", "content": "YWJj"}]

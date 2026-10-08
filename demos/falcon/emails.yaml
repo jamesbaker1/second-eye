@@ -1,6 +1,6 @@
 # Project Falcon: every email the story sends, in order.
 #
-# Each entry is one email to Redline Desk. `reply_to` names the step whose
+# Each entry is one email to Second Eye. `reply_to` names the step whose
 # reply this email answers: it is sent as a reply in that thread (In-Reply-To
 # and References are set from the agent's reply when rehearsing, and in Gmail
 # you press Reply on that reply). `attachments` are keys of build.FILES.
@@ -10,7 +10,7 @@
 # whether the step spends model credit when run live.
 #
 # Sender: every email goes from the one allowlisted address, whoever the
-# story says wrote it. "lawyer" is that address; "agent" is Redline Desk.
+# story says wrote it. "lawyer" is that address; "agent" is Second Eye.
 # {{lawyer}}, {{lawyer_first}} and {{agent}} are filled in from cast.py
 # (demos/identity.py): whoever runs the demo, never written here.
 

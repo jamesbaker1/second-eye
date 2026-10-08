@@ -66,7 +66,7 @@ def test_an_eml_opens_as_the_email_it_describes(files):
     msg = email.message_from_bytes(raw, policy=email.policy.default)
     assert msg["From"] == f"{cast.LAWYER_NAME} <{cast.LAWYER}>"
     assert "dana.whitlock@harrowgate.example" in msg["To"]
-    assert msg["Bcc"] == f"Redline Desk <{cast.AGENT}>"
+    assert msg["Bcc"] == f"Second Eye <{cast.AGENT}>"
     [attached] = list(msg.iter_attachments())
     assert attached.get_filename() == "Project Falcon - SPA v2 (Harrowgate) - JP notes.docx"
     assert attached.get_payload(decode=True) == files["spa_v2_jp"][1]

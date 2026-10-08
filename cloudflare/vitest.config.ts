@@ -25,7 +25,7 @@ export default defineConfig({
           EDGE_URL: "https://edge.test",
           DATA_KEY: "MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY=",
           MAIL_AGENT_ADDRESS: "review@legal.firm.com",
-          MAIL_AGENT_NAME: "Redline Desk",
+          MAIL_AGENT_NAME: "Second Eye",
           ALLOWED_SENDERS: "jim@firm.com, firm.com",
           MAX_EMAILS_PER_DAY: "0",
           ANTHROPIC_WEBHOOK_SIGNING_KEY: "whsec_MfKQ9r8GKYqrTwjUPD8ILPZIo2LaLaSw",

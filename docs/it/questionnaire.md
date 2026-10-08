@@ -10,7 +10,7 @@ They are not the licensed question text; map them onto your own form.
 Every answer is true of the code and the operation on 2026-10-04. Each row
 is one of: **Yes**; **Partly** (what is and is not done); **No** (with the
 plan); **N/A** (with why); or **[Founder decision]** (needs a commercial,
-contractual or spending decision, not code). "We" is Redline Desk, which is
+contractual or spending decision, not code). "We" is Second Eye, which is
 one founder. "Customer-hosted" means the firm runs the deployment in its own
 Cloudflare account and Anthropic organisation.
 
@@ -21,7 +21,7 @@ answers (`README.md`, "Check it yourself").
 
 | Question | Answer | Status |
 | --- | --- | --- |
-| Do you hold SOC 2 Type II, ISO 27001 or Cyber Essentials (Plus)? | None, for Redline Desk itself. Cloudflare and Anthropic hold theirs for their platforms (`subprocessors.md`); those do not cover our code. Plan: readiness through a compliance platform toward SOC 2 Type I, and Cyber Essentials Plus first for a UK firm. | **No** · **[Founder decision]** (cost and order) |
+| Do you hold SOC 2 Type II, ISO 27001 or Cyber Essentials (Plus)? | None, for Second Eye itself. Cloudflare and Anthropic hold theirs for their platforms (`subprocessors.md`); those do not cover our code. Plan: readiness through a compliance platform toward SOC 2 Type I, and Cyber Essentials Plus first for a UK firm. | **No** · **[Founder decision]** (cost and order) |
 | Has an independent penetration test been performed in the last 12 months? | No. The known findings a tester would report first (internet-reachable `/internal/*`, the DMARC rule, open container egress) are being fixed first (`architecture.md`, "Known exposures"), then a third-party test. | **No** · **[Founder decision]** |
 | Do you have a written information security policy, and who owns it? | No standalone policy document. The security rules that bind the product are written into the code and its docs (`docs/trust.md`, DECISIONS 28 and 31, this pack) and pinned by tests. Owner: the founder. | **No** (policy set to be written) |
 | Do you publish a list of sub-processors and notify changes? | Yes: `subprocessors.md`. The notice commitment is a template clause awaiting agreement. | **Partly** · **[Founder decision]** (notice period) |
@@ -143,7 +143,7 @@ answers (`README.md`, "Check it yourself").
 
 What a reviewer will mark against us today, and the plan:
 
-1. No SOC 2, ISO 27001, Cyber Essentials or pen test for Redline Desk.
+1. No SOC 2, ISO 27001, Cyber Essentials or pen test for Second Eye.
    **[Founder decision]**
 2. No DPA, pilot agreement or MSA. **[Founder decision]**
 3. `/internal/*` reachable from the internet behind one secret (change in

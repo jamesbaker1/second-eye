@@ -1,4 +1,4 @@
-# Redline Desk
+# Second Eye
 
 A legal review agent that lives as an email contact.
 
@@ -9,7 +9,7 @@ document back with real Word tracked changes you can accept or reject.
 
 No portal. No login. No plugin. No new app. The interface is the address book.
 
-> **Not legal advice.** Redline Desk is software that checks documents. It does
+> **Not legal advice.** Second Eye is software that checks documents. It does
 > not give legal advice, and using it creates no lawyer–client relationship with
 > anyone. Its output can be wrong, incomplete or missing things a careful lawyer
 > would catch. The lawyer who sends a document remains responsible for every
@@ -38,7 +38,7 @@ An example, with only the mechanical pass running:
 > Quick look before I send this out? Care most about the defined terms.
 > 📎 Acme NDA.docx
 
-> **From:** Redline Desk
+> **From:** Second Eye
 > **Subject:** Re: NDA for Acme - sending this to the client in an hour
 >
 > Don't send yet: 2 things to fix first.
@@ -155,7 +155,7 @@ In short (`docs/trust.md` has the detail and the sources):
   is not eligible for zero data retention.
 - `lra purge --client/--matter/--lawyer` deletes everything held for that
   scope, ours and Anthropic's. `lra audit` exports who used it and how.
-- No SOC 2, ISO 27001 or independent penetration test of Redline Desk
+- No SOC 2, ISO 27001 or independent penetration test of Second Eye
   itself.
 
 For a firm's IT and security review: `docs/it/README.md`.
@@ -190,7 +190,7 @@ run and its budget before anything is spent.
 
 ## Deploy it
 
-Redline Desk runs on Cloudflare end to end: Email Routing and the Email
+Second Eye runs on Cloudflare end to end: Email Routing and the Email
 Service, a Worker, Workflows, a container, D1 and R2, with Anthropic for the
 model.
 
@@ -223,7 +223,7 @@ review for legal documents), `ROADMAP.md`, `DECISIONS.md`, `docs/agentic.md`,
 
 ## Licence
 
-Redline Desk is free software under the **GNU Affero General Public License,
+Second Eye is free software under the **GNU Affero General Public License,
 version 3 only** (`AGPL-3.0-only`; the text is in `LICENSE`). A firm can run
 it, unmodified or modified, for its own lawyers; if you modify it and others
 use it over a network, you must offer them your source.

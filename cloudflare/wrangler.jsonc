@@ -92,7 +92,7 @@
     // passed for exactly that domain. A DMARC failure is never admitted.
     "DKIM_ONLY_DOMAINS": "",
     "MAIL_AGENT_ADDRESS": "review@legal.example.com",
-    "MAIL_AGENT_NAME": "Redline Desk",
+    "MAIL_AGENT_NAME": "Second Eye",
     // Needs subaddressing on in this zone's Email Routing settings. Off: a
     // test to review+routingcheck@ on 2026-09-27 bounced "address not found".
     "ONE_TAP_LINKS": "false",

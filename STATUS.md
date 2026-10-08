@@ -9,7 +9,7 @@ Last reviewed: 2026-10-07.
 
 ## In one paragraph
 
-Redline Desk is a legal review agent that lives at an email address; one
+Second Eye is a legal review agent that lives at an email address; one
 production deployment runs it today, for one allowlisted sender. A lawyer
 forwards a draft and gets back a one-line verdict, the findings clause by clause, and the
 same document with real Word tracked changes; replies in the thread answer
@@ -147,7 +147,7 @@ What was built and found, newest first.
     the sender; keyed store refuses plaintext.
   - Trust: redline author is REDLINE_AUTHOR ("Reviewer"), not the tool's
     name; a thread clean copy says which copy it is; replies come from
-    "Redline Desk" with a contact card; the reason for each substantive
+    "Second Eye" with a contact card; the reason for each substantive
     change sits in the Word margin.
   - New: dates and deadlines table; "renumber" with cross-reference repair,
     proved by the checks; "B is fine" dismissal with learned suppression;

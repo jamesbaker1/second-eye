@@ -13,7 +13,7 @@ the firm's account.
 
 | Role | Today | Customer-hosted |
 | --- | --- | --- |
-| Incident lead at Redline Desk | The founder | The founder, on the firm's request |
+| Incident lead at Second Eye | The founder | The founder, on the firm's request |
 | Firm contact | `ALLOWLIST_CONTACT` and the firm's security team | Same |
 | Can pause the service | Whoever can deploy the firm's tenant (the founder; anyone with push to `main`) | The firm, from its Cloudflare account, as well |
 | Can cut mail off | The firm (transport rule) and whoever holds the Cloudflare account (routing rule) | The firm |
@@ -42,7 +42,7 @@ Not built: alerting of any kind, and a SIEM feed (`questionnaire.md`, 5).
 
 | Lever | Who | How | Takes effect | Effect |
 | --- | --- | --- | --- | --- |
-| **Disable the firm's transport rule** | Firm IT | `Disable-TransportRule -Identity "Redline Desk: copy pilot outbound documents"` (`mail-flow.md`) | As fast as Exchange applies a rule change | No more BCC copies. Forwarded mail still arrives |
+| **Disable the firm's transport rule** | Firm IT | `Disable-TransportRule -Identity "Second Eye: copy pilot outbound documents"` (`mail-flow.md`) | As fast as Exchange applies a rule change | No more BCC copies. Forwarded mail still arrives |
 | **Delete or disable the Email Routing rule** | Holder of the Cloudflare account | Dashboard: the zone → Email → Email Routing → rules, or `npx wrangler email routing rules ...` | When Cloudflare applies it; not timed by us | Nothing reaches the Worker. Senders may get bounces, **not verified** |
 | **Revoke the Anthropic API key** | Holder of the Anthropic organisation | Console → API keys | Immediately for new requests, per the Console | No model calls. Reviews fall back to the deterministic checks, or the "I couldn't review" email |
 | **Kill switch `SERVICE_PAUSED`** | Whoever can deploy the tenant | Set `"SERVICE_PAUSED": "true"` in `deployments/<firm>/tenant.jsonc`, `lra tenant render <firm>`, commit, push to `main`. CI runs, then `deploy.yml` deploys. In an emergency, deploy that tenant directly: `npx wrangler deploy --config ../deployments/<firm>/wrangler.jsonc`, then commit the same change at once, or the next deploy from `main` undoes it | The Worker enforces it as soon as its new version is live: the end of the deploy. The container picks it up only when its rollout replaces the old instance, which took one to two minutes in production (`docs/deploy-cloudflare.md`, "A deploy is not instant"), but the Worker already refuses every send. Through CI it also waits for the whole test suite; we have not timed that end to end | Mail accepted and held sealed in R2, never bounced; nothing reviewed; nothing sent (the Worker refuses every send while paused). Switched back, held mail is released by the daily cron or `POST /internal/release` |
@@ -105,14 +105,14 @@ What a firm's outside-counsel guidelines usually demand is notice within 24
 to 72 hours of becoming aware. **The window is the firm's choice**, set in
 the agreement; this is the template.
 
-> **Security incident notice.** Redline Desk will notify the Customer's
+> **Security incident notice.** Second Eye will notify the Customer's
 > named security contact **[name, email, phone]** without undue delay and in
 > any event within **[24 / 48 / 72]** hours of becoming aware of a security
 > incident affecting Customer Data, including one at a sub-processor that
-> Redline Desk is notified of. The notice will say what is known of what
+> Second Eye is notified of. The notice will say what is known of what
 > happened, when, which data and which lawyers, clients or matters are
 > affected (from the audit trail), what has been done to contain it, and
-> who to contact; and it will be updated as more is known. Redline Desk will
+> who to contact; and it will be updated as more is known. Second Eye will
 > keep the logs and audit rows that bear on the incident for **[90]** days,
 > or longer if the Customer asks, and will not purge them meanwhile.
 
@@ -171,5 +171,5 @@ deletion certificate. The steps, in order, with what exists:
    listing steps 1-7 with dates, the purge ids from `lra purge --history`,
    and the Anthropic ids deleted. **[Founder decision]** on the form.
 
-Customer-hosted, the firm runs steps 2-7 itself; Redline Desk deletes any
+Customer-hosted, the firm runs steps 2-7 itself; Second Eye deletes any
 copy of the firm's `.env` and confirms.

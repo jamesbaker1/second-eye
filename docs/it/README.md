@@ -116,7 +116,7 @@ revoke the Anthropic key.
 **What we do not have yet.** Said here so nobody finds it later:
 
 - No SOC 2, ISO 27001, Cyber Essentials or third-party penetration test of
-  Redline Desk itself. Cloudflare's and Anthropic's attestations cover their
+  Second Eye itself. Cloudflare's and Anthropic's attestations cover their
   platforms, not our code (`subprocessors.md`).
 - No signed DPA, pilot agreement or MSA in this repository.
 - D1 rows are not sealed under the firm's key.

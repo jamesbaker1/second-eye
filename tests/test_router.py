@@ -168,9 +168,9 @@ def test_an_empty_mail_with_no_attachment_is_a_review_request():
 
 
 @pytest.mark.parametrize("attribution", [
-    "On Tue, Sep 29, 2026 07:44 PM, Redline Desk <review@legal.example.com>\nwrote:",
-    "On Tue, Sep 29, 2026 at 7:44 PM Redline Desk <\nreview@legal.example.com> wrote:",
-    "On Tue, Sep 29, 2026 07:44 PM, Redline Desk <review@legal.example.com> wrote:",
+    "On Tue, Sep 29, 2026 07:44 PM, Second Eye <review@legal.example.com>\nwrote:",
+    "On Tue, Sep 29, 2026 at 7:44 PM Second Eye <\nreview@legal.example.com> wrote:",
+    "On Tue, Sep 29, 2026 07:44 PM, Second Eye <review@legal.example.com> wrote:",
 ])
 def test_a_wrapped_attribution_is_still_quoted_history(attribution):
     """Production: a bare "30" arrived as twelve words over four lines because

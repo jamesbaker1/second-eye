@@ -1,7 +1,7 @@
 # AI policy crosswalk
 
 What the professional rules and clients' outside-counsel guidelines ask of a
-firm using a generative-AI tool, mapped to the control in Redline Desk that
+firm using a generative-AI tool, mapped to the control in Second Eye that
 meets each, and where the firm still has to act. The controls are settings
 and commands that exist in the code today (file named); where one does not
 exist, the row says so.

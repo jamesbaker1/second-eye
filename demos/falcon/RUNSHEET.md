@@ -13,7 +13,7 @@ deployment's private folder (`deployments/<name>/demo.env`; see
 `demos/identity.py`). Without them the build and the send refuse, and
 `--example` writes them with invented addresses to look at.
 
-The thread through the talk: **a Word add-in sees one document; Redline Desk
+The thread through the talk: **a Word add-in sees one document; Second Eye
 sees the email it travels in, the version before it, what we asked for last
 round, and what happens after it is sent.** Every beat is one of those.
 

@@ -1,6 +1,6 @@
 """Every short reply command, through every mail client's reply format.
 
-Production, 2026-09-29: Gmail wrapped "On <date>, Redline Desk <review@...>
+Production, 2026-09-29: Gmail wrapped "On <date>, Second Eye <review@...>
 wrote:" before "wrote:", the stripper missed it, and a bare "30" answering
 "30 or 13?" was read as a twelve-word instruction. Every short command the
 reviews teach ("30", "undo 2", "B is fine", "clean copy", "sig pages",
@@ -55,7 +55,7 @@ COMMANDS: dict[str, tuple[list[str], list[tuple[int, str]], list[int], list[str]
 
 # Anything of these in the lawyer's words means quoted history, a signature,
 # a disclaimer or a client footer leaked through.
-LEAKS = ("Redline Desk", "review@", "Should this be", "wrote", "écrit", "escribió",
+LEAKS = ("Second Eye", "review@", "Should this be", "wrote", "écrit", "escribió",
          "schrieb", "From:", "Von:", "De :", "Sent", "Gesendet", "Envoyé", "Original Message",
          "Forwarded", "CONFIDENTIALITY", "+44", "+1 415", "Kind regards", "freundlichen",
          "LLP", "Partner", "Outlook", "iPhone", "Reply ", "undo 1")
@@ -189,7 +189,7 @@ def test_a_signature_needs_contact_details_or_a_sign_off_to_be_one():
 
 
 def test_an_attribution_as_the_first_line_is_not_the_reply():
-    body = "On 29/09/2026 19:44, Redline Desk wrote:\n> Should this be 30 or 13?\n\n30\n\n> Changes\n"
+    body = "On 29/09/2026 19:44, Second Eye wrote:\n> Should this be 30 or 13?\n\n30\n\n> Changes\n"
     assert router.strip_reply(body) == "30"
 
 

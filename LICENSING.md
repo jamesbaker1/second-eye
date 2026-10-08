@@ -1,6 +1,6 @@
 # Licensing
 
-Redline Desk is open source under the **GNU Affero General Public License,
+Second Eye is open source under the **GNU Affero General Public License,
 version 3 only** (SPDX: `AGPL-3.0-only`). The full text is in `LICENSE`.
 
 The same code is also available under a **commercial licence** from the
@@ -27,7 +27,7 @@ below), and nothing outside that directory changes.
 
 The AGPL is the GPL with one addition, section 13: if you **modify** the
 program and people **interact with it over a network**, you must offer those
-people the source code of your modified version. Redline Desk is used by
+people the source code of your modified version. Second Eye is used by
 email, which is a network interaction, so section 13 is the part to think
 about.
 
@@ -82,7 +82,7 @@ which is AGPL).
 
 ## The hosted service
 
-The copyright holder also runs Redline Desk as a paid hosted service, a
+The copyright holder also runs Second Eye as a paid hosted service, a
 separate deployment per firm, with support. A firm that uses the hosted
 service needs no licence for the code at all: it is a customer of a service,
 on the terms of its service agreement. The self-hosted path is documented in
@@ -104,13 +104,13 @@ If `ee/` is ever created:
 
 ## Trademarks
 
-The AGPL licenses the code, not the name. "Redline Desk" and any logo used
+The AGPL licenses the code, not the name. "Second Eye" and any logo used
 with it are not licensed under the AGPL or under the CLA.
 
 You may say truthfully that your software is based on, derived from or
-compatible with Redline Desk. If you distribute a modified version, or offer
+compatible with Second Eye. If you distribute a modified version, or offer
 one to others as a service, give it a different name and do not present it
-as Redline Desk or as endorsed by this project. Running an unmodified copy
+as Second Eye or as endorsed by this project. Running an unmodified copy
 inside your own firm under the name is fine.
 
 ## Third-party components

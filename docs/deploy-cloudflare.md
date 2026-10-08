@@ -453,7 +453,7 @@ deployed for Jim's only. A firm that connects iManage needs its own copy.
 ### Self-hosted option
 
 By default we host each firm's deployment, as above. A security-strict firm
-can instead run Redline Desk entirely in its own Cloudflare account and its
+can instead run Second Eye entirely in its own Cloudflare account and its
 own Anthropic organisation, with no standing access for us. The firm's IT
 follows `docs/it/self-hosted.md`. What changes for us:
 

@@ -375,14 +375,14 @@ def test_no_clean_copy_hint_when_nothing_was_changed():
 
 
 def test_the_contact_card_is_a_vcard_a_phone_will_import():
-    card = reply.contact_card("Redline Desk", "review@legal.firm.com")
-    assert card.filename == "Redline Desk.vcf"
+    card = reply.contact_card("Second Eye", "review@legal.firm.com")
+    assert card.filename == "Second Eye.vcf"
     assert card.content_type == "text/vcard"
     assert card.size_bytes == len(card.content) < 1024
     lines = card.content.decode().split("\r\n")
     assert lines[:2] == ["BEGIN:VCARD", "VERSION:3.0"]
-    assert "FN:Redline Desk" in lines
-    assert "ORG:Redline Desk" in lines
+    assert "FN:Second Eye" in lines
+    assert "ORG:Second Eye" in lines
     assert "EMAIL;TYPE=INTERNET,PREF:review@legal.firm.com" in lines
     assert "NOTE:Forward or BCC documents here for a review before they go out." in lines
     assert lines[-2:] == ["END:VCARD", ""]
@@ -404,12 +404,12 @@ def test_the_card_never_costs_the_lawyer_their_redline():
     out = OutboundEmail(to=["jim@firm.com"], subject="Re: SPA", text_body="x", attachments=[
         Attachment(filename="SPA (redline).docx", content_type=reply.DOCX_TYPE,
                    size_bytes=near_limit, content=b"")])
-    reply.attach_contact_card(out, "Redline Desk", "review@firm.com")
+    reply.attach_contact_card(out, "Second Eye", "review@firm.com")
     assert [a.filename for a in out.attachments] == ["SPA (redline).docx"]
 
     out.attachments[0].size_bytes = 1000
-    reply.attach_contact_card(out, "Redline Desk", "review@firm.com")
-    assert [a.filename for a in out.attachments] == ["SPA (redline).docx", "Redline Desk.vcf"]
+    reply.attach_contact_card(out, "Second Eye", "review@firm.com")
+    assert [a.filename for a in out.attachments] == ["SPA (redline).docx", "Second Eye.vcf"]
 
 
 def test_setup_points_at_the_attached_card():

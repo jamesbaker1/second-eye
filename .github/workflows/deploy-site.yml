@@ -4,7 +4,7 @@ name: Deploy site
 # passed; the next run reads the commit from here instead (below).
 run-name: Deploy site at ${{ github.event.workflow_run.head_sha || github.sha }}
 
-# The landing site (site/, the static-assets Worker `redline-desk`). Deployed
+# The landing site (site/, the static-assets Worker `second-eye`). Deployed
 # the way the app is, from a commit on main that passed CI, so the page a
 # firm reads is always one that was reviewed and merged, never a copy from
 # someone's laptop. Separate from deploy.yml so a wording change on the site

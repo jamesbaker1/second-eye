@@ -29,7 +29,7 @@ names nobody's.
   lra tenant list | matrix               the tenants (matrix: JSON for deploy.yml)
   lra tenant url <firm>                  its EDGE_URL (deploy.yml's health check)
 
-Self-hosted (docs/it/self-hosted.md): a firm whose IT runs Redline Desk in
+Self-hosted (docs/it/self-hosted.md): a firm whose IT runs Second Eye in
 the firm's own Cloudflare account and Anthropic organisation, with no
 standing access for us. It is made with `new <firm> --self-hosted
 --account-id <theirs>`, is never in deploy.yml's matrix, and is deployed by
@@ -621,7 +621,7 @@ BACKUP = """\
 DATA_KEY for {name} is in {env} (mode 600), and on the Worker.
 Back it up now, before any document is stored: it is the only key to them.
   1. Put it in the firm's own secret store (their password manager or KMS),
-     under "Redline Desk DATA_KEY ({worker})". The firm holds it (DECISIONS 13).
+     under "Second Eye DATA_KEY ({worker})". The firm holds it (DECISIONS 13).
   2. Keep a second copy offline (a sealed note or a hardware key) with ours.
   3. Then remove it from {env} unless you run `lra clients` or `lra purge`
      against the firm's database from this machine; the Worker has its own copy.

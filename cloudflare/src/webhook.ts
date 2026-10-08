@@ -120,7 +120,7 @@ async function refreshFailed(env: Env, event: WebhookEvent): Promise<void> {
   if (!inserted.meta.changes) return;
   const notice = typeof env.PRIVILEGE_NOTICE === "string" ? env.PRIVILEGE_NOTICE : PRIVILEGE_NOTICE;
   await env.EMAIL.send({
-    from: { email: env.MAIL_AGENT_ADDRESS, name: env.MAIL_AGENT_NAME || "Redline Desk" },
+    from: { email: env.MAIL_AGENT_ADDRESS, name: env.MAIL_AGENT_NAME || "Second Eye" },
     to: [lawyer],
     subject: "Your document system needs reconnecting",
     text: RECONNECT + (notice ? `\n${notice}\n` : ""),
