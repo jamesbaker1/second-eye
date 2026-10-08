@@ -1,417 +1,376 @@
 <!doctype html>
 <html lang="en">
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <script>
-  // Motion is opt-in: without this class the page renders in its final state,
-  // which is what no-JS and reduced-motion readers get.
+  // JS on: the ribbon's buttons work. Motion is opt-in on top of that; without
+  // the "anim" class the page renders in its final state.
+  document.documentElement.classList.add('js');
   if (matchMedia('(prefers-reduced-motion: no-preference)').matches) document.documentElement.classList.add('anim');
 </script>
-<title>Second Eye</title>
-<meta name="description" content="Email it a draft. Get back what to fix and a Word redline. Reply to finish it.">
+<title>Second Eye: the associate you email</title>
+<meta name="description" content="Forward a draft and say what you need. Second Eye replies in the thread, with the work done in Word.">
+<meta name="color-scheme" content="light dark">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%231F55AE'/%3E%3Cpath d='M4.5 16c3.4-5.4 7.2-8 11.5-8s8.1 2.6 11.5 8c-3.4 5.4-7.2 8-11.5 8s-8.1-2.6-11.5-8z' fill='none' stroke='%23fff' stroke-width='2.4' stroke-linejoin='round'/%3E%3Ccircle cx='16' cy='16' r='4.3' fill='%23fff'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;0,6..72,500;1,6..72,300;1,6..72,400&family=Public+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=Public+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
 
 <style>
 /* The whole page is one document open in a word processor with Track Changes
-   on. Chrome is system sans so it reads as the app; the pages are the content. */
+   on. Chrome is system sans so it reads as the app; the pages are the content.
+   Mobile first: on a phone the chrome is a title bar and one slim strip. */
 :root {
-  --canvas:     #E4E4E2;
+  --canvas:     #E6E5E1;
   --page:       #FFFFFF;
-  --markup:     #F3F3F1;
+  --markup:     #F4F3F0;
   --ink:        #1A1D21;
-  --muted:      #666A70;
-  --rule:       #DAD9D4;
-  --chrome:     #1E56B0;
+  --muted:      #5D6168;
+  --rule:       #DCDAD4;
+  --chrome:     #1F55AE;
   --chrome-ink: #FFFFFF;
-  --ribbon:     #F5F5F3;
-  --ribbon-ink: #2A2C30;
-  --heading:    #2F5496;
-  --strike:     #9E2B3A;
-  --insert:     #1D6A6E;
-  --flag:       #B4772A;
-  --comment-bg: #FBF3E4;
+  --ribbon:     #F8F8F6;
+  --ribbon-ink: #26282C;
+  --heading:    #2B4F8E;
+  --strike:     #A3283A;
+  --insert:     #17675F;
+  --flag:       #95590F;
+  --comment-bg: #FBF4E6;
+  --shadow:     0 0 0 1px rgb(0 0 0 / .05), 0 1px 2px rgb(0 0 0 / .06), 0 12px 32px -16px rgb(0 0 0 / .3);
 
   --display: "Newsreader", "Iowan Old Style", Georgia, serif;
   --body:    "Public Sans", -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
   --ui:      -apple-system, "Segoe UI", system-ui, Helvetica, Arial, sans-serif;
   --mono:    "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
 }
-
 @media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --canvas:     #121315;
-    --page:       #1D1F22;
-    --markup:     #17191B;
-    --ink:        #E8E6E1;
-    --muted:      #9A9DA3;
-    --rule:       #33363B;
-    --chrome:     #0C0D0F;
-    --chrome-ink: #D8D8D6;
-    --ribbon:     #232529;
+  :root {
+    --canvas:     #0F1012;
+    --page:       #1C1E21;
+    --markup:     #17191C;
+    --ink:        #E9E7E2;
+    --muted:      #A1A5AB;
+    --rule:       #32353A;
+    --chrome:     #1A1B1E;
+    --chrome-ink: #DCDCDA;
+    --ribbon:     #232528;
     --ribbon-ink: #DCDCDA;
-    --heading:    #8FB0EA;
-    --strike:     #E0798A;
-    --insert:     #5FBFC3;
-    --flag:       #D9A45F;
-    --comment-bg: #2A261D;
+    --heading:    #93B3EC;
+    --strike:     #EF8C9B;
+    --insert:     #67C7BB;
+    --flag:       #DDA860;
+    --comment-bg: #29251D;
+    --shadow:     0 0 0 1px rgb(255 255 255 / .05), 0 12px 32px -16px rgb(0 0 0 / .8);
   }
-}
-:root[data-theme="dark"] {
-  --canvas:     #121315;
-  --page:       #1D1F22;
-  --markup:     #17191B;
-  --ink:        #E8E6E1;
-  --muted:      #9A9DA3;
-  --rule:       #33363B;
-  --chrome:     #0C0D0F;
-  --chrome-ink: #D8D8D6;
-  --ribbon:     #232529;
-  --ribbon-ink: #DCDCDA;
-  --heading:    #8FB0EA;
-  --strike:     #E0798A;
-  --insert:     #5FBFC3;
-  --flag:       #D9A45F;
-  --comment-bg: #2A261D;
 }
 
 *, *::before, *::after { box-sizing: border-box; }
-
+html { -webkit-text-size-adjust: 100%; }
 body {
   margin: 0;
   background: var(--canvas);
   color: var(--ink);
-  font-family: var(--body);
-  font-size: 16px;
-  line-height: 1.55;
+  font: 400 1rem/1.6 var(--body);
   -webkit-font-smoothing: antialiased;
-  padding-bottom: 2.4rem;
+  /* The status bar is fixed; this keeps the last page clear of it. */
+  padding-bottom: calc(3rem + env(safe-area-inset-bottom, 0px));
 }
-.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+:focus-visible { outline: 2px solid var(--heading); outline-offset: 2px; border-radius: 3px; }
+a { color: var(--heading); text-underline-offset: .16em; }
 
 /* ---------- title bar ---------- */
-
 .titlebar {
-  background: var(--chrome);
-  color: var(--chrome-ink);
-  font-family: var(--ui);
-  font-size: .78rem;
-  display: grid;
-  grid-template-columns: 1fr auto 1fr;
-  align-items: center;
-  gap: 1rem;
-  padding: .5rem .9rem;
+  background: var(--chrome); color: var(--chrome-ink);
+  font: .8rem/1 var(--ui);
+  display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: .8rem;
+  padding: .55rem 16px;
+  padding-left: max(16px, env(safe-area-inset-left));
+  padding-right: max(16px, env(safe-area-inset-right));
 }
-.tb-left { display: flex; align-items: center; gap: .8rem; }
-.docicon {
-  width: .85rem; height: 1.05rem;
-  border: 1.5px solid currentColor; border-radius: 2px;
-  position: relative; opacity: .9;
-}
-.docicon::after { content: ""; position: absolute; left: 2px; right: 2px; top: 3px; height: 1.5px; background: currentColor; box-shadow: 0 3px 0 currentColor, 0 6px 0 currentColor; }
-.autosave { display: inline-flex; align-items: center; gap: .4rem; opacity: .85; }
-.autosave i { width: 1.5rem; height: .8rem; border-radius: 99px; background: rgb(255 255 255 / .9); position: relative; }
-.autosave i::after { content: ""; position: absolute; right: 2px; top: 2px; width: .55rem; height: .55rem; border-radius: 50%; background: var(--chrome); }
-.tb-name { font-weight: 600; white-space: nowrap; }
-.tb-name span { font-weight: 400; opacity: .7; }
-.titlebar a { justify-self: end; color: inherit; opacity: .85; text-decoration: none; border-bottom: 1px solid rgb(255 255 255 / .35); white-space: nowrap; }
-.titlebar a:hover, .titlebar a:focus-visible { opacity: 1; border-bottom-color: currentColor; }
-@media (max-width: 40rem) { .autosave { display: none; } .titlebar { grid-template-columns: auto 1fr auto; gap: .6rem; } .tb-name span { display: none; } }
+.tb-left { display: flex; align-items: center; gap: .9rem; }
+.tb-left svg { width: 1.15rem; height: 1.15rem; flex: none; }
+.autosave { display: none; align-items: center; gap: .4rem; opacity: .85; }
+.autosave i { width: 1.6rem; height: .85rem; border-radius: 99px; background: currentColor; position: relative; opacity: .9; }
+.autosave i::after { content: ""; position: absolute; right: 2px; top: 2px; width: .6rem; height: .6rem; border-radius: 50%; background: var(--chrome); }
+.tb-name { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tb-name span { font-weight: 400; opacity: .75; }
+.tb-links { justify-self: end; display: flex; gap: 1rem; }
+.titlebar a { color: inherit; text-decoration: none; opacity: .9; padding: .2rem 0; white-space: nowrap; }
+.titlebar a:hover { opacity: 1; text-decoration: underline; }
+.titlebar :focus-visible { outline-color: currentColor; }
+.tb-name .saved { display: none; }
+@media (min-width: 40rem) { .autosave, .tb-name .saved { display: inline-flex; } }
 
 /* ---------- ribbon ---------- */
-
 .ribbon {
   position: sticky; top: 0; z-index: 20;
-  background: var(--ribbon);
-  color: var(--ribbon-ink);
+  background: var(--ribbon); color: var(--ribbon-ink);
   font-family: var(--ui);
   border-bottom: 1px solid var(--rule);
-  box-shadow: 0 2px 8px rgb(0 0 0 / .08);
+  box-shadow: 0 1px 6px rgb(0 0 0 / .06);
 }
-.tabs { display: flex; gap: .2rem; padding: .3rem .7rem 0; font-size: .8rem; }
-.tabs span { padding: .3rem .7rem .4rem; color: var(--muted); border-bottom: 2.5px solid transparent; }
-.tabs .on { color: var(--ribbon-ink); font-weight: 600; border-bottom-color: var(--heading); }
-.controls { display: flex; align-items: stretch; overflow-x: auto; padding: .35rem .5rem .3rem; scrollbar-width: none; }
-.controls::-webkit-scrollbar { display: none; }
-.group { display: flex; flex-direction: column; justify-content: space-between; gap: .15rem; padding: 0 .7rem; border-right: 1px solid var(--rule); }
-.group:last-child { border-right: 0; }
-.group > div { display: flex; align-items: center; gap: .3rem; }
-.group small { font-size: .62rem; color: var(--muted); text-align: center; letter-spacing: .02em; }
+.tabs { display: none; gap: .2rem; padding: .3rem 1rem 0; font-size: .8rem; }
+.tabs span { padding: .35rem .7rem .45rem; color: var(--muted); border-bottom: 2.5px solid transparent; }
+.tabs .on { color: var(--ribbon-ink); font-weight: 600; border-bottom-color: var(--chrome); }
+@media (prefers-color-scheme: dark) { .tabs .on { border-bottom-color: var(--heading); } }
+.controls { display: flex; align-items: center; gap: .3rem; padding: .4rem 12px; }
+.group { display: flex; align-items: center; gap: .3rem; }
+.group + .group { border-left: 1px solid var(--rule); padding-left: .4rem; margin-left: .1rem; }
+.group small { display: none; }
 .ribbon button, .ribbon select, .ribbon .static {
-  font: inherit; font-size: .78rem;
-  color: inherit;
-  background: transparent;
-  border: 1px solid transparent;
-  border-radius: 4px;
-  padding: .32rem .55rem;
-  white-space: nowrap;
-  cursor: pointer;
+  font: 500 .8rem/1.2 var(--ui); color: inherit;
+  background: transparent; border: 1px solid transparent; border-radius: 5px;
+  padding: .4rem .55rem; white-space: nowrap; cursor: pointer;
 }
-.ribbon .static { cursor: default; background: color-mix(in srgb, var(--insert) 14%, transparent); border-color: color-mix(in srgb, var(--insert) 40%, transparent); }
+.ribbon .static { display: none; cursor: default; background: color-mix(in srgb, var(--insert) 12%, transparent); border-color: color-mix(in srgb, var(--insert) 35%, transparent); }
 .ribbon .static b { color: var(--insert); font-weight: 600; }
-.ribbon select { border-color: var(--rule); background: var(--page); padding-right: .3rem; }
-.ribbon button:hover { background: color-mix(in srgb, var(--ribbon-ink) 9%, transparent); }
+.ribbon select { border-color: var(--rule); background: var(--page); }
+.ribbon button:hover { background: color-mix(in srgb, var(--ribbon-ink) 8%, transparent); }
 .ribbon button .ok { color: var(--insert); font-weight: 700; }
 .ribbon button .no { color: var(--strike); font-weight: 700; }
-@media (max-width: 40rem) { .tabs span:not(.on) { display: none; } .group small { display: none; } .group { padding: 0 .4rem; } }
-
-.ruler {
-  height: 1.1rem;
-  max-width: 62rem; margin: .9rem auto -.4rem;
-  background:
-    linear-gradient(var(--page), var(--page)) center / calc(100% - 9rem) 100% no-repeat,
-    var(--markup);
-  border: 1px solid var(--rule);
-  position: relative;
+.pages-group { display: none !important; }
+html:not(.js) .needs-js { display: none !important; }
+@media (min-width: 40rem) {
+  .controls { padding: .45rem 1rem; gap: .5rem; }
+  .ribbon .static { display: inline-block; }
+  .pages-group { display: flex !important; }
 }
-.ruler::after {
-  content: ""; position: absolute; inset: 0 4.5rem;
-  background: repeating-linear-gradient(to right, var(--muted) 0 1px, transparent 1px 3rem) 0 100% / 100% 45% no-repeat,
-              repeating-linear-gradient(to right, var(--muted) 0 1px, transparent 1px .75rem) 0 100% / 100% 22% no-repeat;
-  opacity: .5;
+@media (min-width: 64rem) {
+  .tabs { display: flex; }
+  .controls { align-items: stretch; padding: .35rem 1rem .3rem; }
+  .group { flex-direction: column; justify-content: space-between; gap: .2rem; padding: 0 .8rem; }
+  .group > div { display: flex; align-items: center; gap: .3rem; }
+  .group + .group { padding-left: .8rem; margin-left: 0; }
+  .group small { display: block; font-size: .64rem; color: var(--muted); text-align: center; letter-spacing: .02em; }
 }
-@media (max-width: 64rem) { .ruler { display: none; } }
 
-/* ---------- pages ---------- */
-
-.page {
-  --pad: clamp(1.4rem, 6vw, 4.5rem);
-  max-width: 62rem;
-  margin: 1.4rem auto;
-  background: var(--page);
-  box-shadow: 0 0 0 1px var(--rule), 0 10px 30px -14px rgb(0 0 0 / .35);
-  padding: 2.2rem var(--pad) 1.6rem;
-  position: relative;
-  scroll-margin-top: 7.5rem;
-  overflow: hidden;
-}
-@media (max-width: 64rem) { .page { margin: .8rem .6rem; } }
-/* The markup area: the grey strip down the right where balloons live. */
-@media (min-width: 60rem) {
-  .page { background: linear-gradient(to right, var(--page) calc(100% - 17rem), var(--markup) 0); padding-right: 0; }
-  .row { display: grid; grid-template-columns: minmax(0, 1fr) 17rem; }
-  .row > :first-child { padding-right: var(--pad); }
-  .row > .comment, .row > .balloons { margin: 0 1rem; align-self: start; }
-  .row > .comment { margin-bottom: 1rem; }
-  .balloons .comment:first-child { margin-top: 0; }
-  .row .comment::before {
-    content: ""; position: absolute; top: 1.1rem; right: 100%;
-    width: calc(var(--pad) + 1rem);
-    border-top: 1px dashed var(--flag);
+.ruler { display: none; }
+@media (min-width: 64rem) {
+  .ruler {
+    display: block; height: 1.1rem; max-width: 66rem; margin: 1rem auto -.5rem;
+    background: linear-gradient(var(--page), var(--page)) center / calc(100% - 9rem) 100% no-repeat, var(--markup);
+    border: 1px solid var(--rule); position: relative;
+  }
+  .ruler::after {
+    content: ""; position: absolute; inset: 0 4.5rem; opacity: .45;
+    background: repeating-linear-gradient(to right, var(--muted) 0 1px, transparent 1px 3rem) 0 100% / 100% 45% no-repeat,
+                repeating-linear-gradient(to right, var(--muted) 0 1px, transparent 1px .75rem) 0 100% / 100% 22% no-repeat;
   }
 }
 
-.running { display: flex; justify-content: space-between; font-size: .7rem; color: var(--muted); letter-spacing: .04em; padding-bottom: 1.6rem; }
-@media (min-width: 60rem) { .running { padding-right: calc(17rem + var(--pad)); } }
-.folio { text-align: center; font-size: .7rem; color: var(--muted); padding-top: 2rem; }
-@media (min-width: 60rem) { .folio { padding-right: calc(17rem + var(--pad)); } }
-
-h1, h2, h3 { margin: 0; text-wrap: balance; }
-h1 {
-  font-family: var(--display);
-  font-weight: 300;
-  font-size: clamp(2.3rem, 6vw, 4rem);
-  line-height: 1.05;
-  letter-spacing: -.02em;
+/* ---------- pages ---------- */
+.page {
+  --pad: 1.15rem;
+  max-width: 66rem;
+  margin: .75rem 8px;
+  background: var(--page);
+  box-shadow: var(--shadow);
+  padding: 1.4rem var(--pad) 1.2rem;
+  position: relative;
+  scroll-margin-top: 4.5rem;
 }
+@media (min-width: 40rem) { .page { --pad: clamp(2rem, 6vw, 4.5rem); margin: 1.2rem 1rem; padding-top: 2.2rem; } }
+@media (min-width: 68rem) { .page { margin: 1.4rem auto; } }
+/* The markup area: the grey strip down the right where balloons live. */
+@media (min-width: 60rem) {
+  .page { background: linear-gradient(to right, var(--page) calc(100% - 16rem), var(--markup) 0); padding-right: 0; }
+  .row { display: grid; grid-template-columns: minmax(0, 1fr) 16rem; }
+  .row > :first-child { padding-right: var(--pad); }
+  .row > .note { padding: 0 1rem; align-self: start; display: grid; gap: .6rem; }
+  .row .comment::before {
+    content: ""; position: absolute; top: 1.05rem; right: 100%;
+    width: calc(var(--pad) + 1rem); border-top: 1px dashed var(--flag);
+  }
+  .running, .folio { padding-right: calc(16rem + var(--pad)); }
+}
+
+.running { display: flex; justify-content: space-between; gap: 1rem; font: .72rem/1.4 var(--ui); color: var(--muted); letter-spacing: .03em; padding-bottom: 1.4rem; }
+.folio { text-align: center; font: .72rem/1.4 var(--ui); color: var(--muted); padding-top: 2.2rem; }
+
+h1, h2 { margin: 0; text-wrap: balance; }
+h1 { font-family: var(--display); font-weight: 400; font-size: clamp(2.6rem, 10vw, 3.9rem); line-height: 1.02; letter-spacing: -.025em; }
 h1 del, h1 ins { text-decoration-thickness: 2px; }
-h1 ins { text-underline-offset: .09em; margin-left: .1em; }
-.subtitle { font-size: clamp(1.05rem, 2.2vw, 1.3rem); color: var(--muted); margin: 1rem 0 0; max-width: 30ch; }
-h2 ins { margin-left: .2em; }
-.figure-cap.tight { margin-top: 1.2rem; }
-h2 { font-family: var(--body); font-weight: 300; font-size: clamp(1.6rem, 3.6vw, 2.2rem); line-height: 1.15; color: var(--heading); letter-spacing: -.01em; }
-h3 { font-family: var(--body); font-weight: 600; font-size: .95rem; color: var(--heading); margin-bottom: .6rem; }
-.kicker { margin: .5rem 0 0; color: var(--muted); max-width: 40ch; }
+h1 ins { text-underline-offset: .1em; }
+.subtitle { font-size: clamp(1.1rem, 2.4vw, 1.3rem); line-height: 1.45; color: var(--muted); margin: 1rem 0 0; max-width: 36ch; }
+/* Word's Heading 1: blue, sans. */
+h2 { font-family: var(--body); font-weight: 400; font-size: clamp(1.55rem, 4.4vw, 2rem); line-height: 1.15; color: var(--heading); letter-spacing: -.01em; }
+.kicker { margin: .4rem 0 0; color: var(--muted); }
+.spaced { margin-top: 3rem; }
 
 .changed { position: relative; }
-.changed::before { content: ""; position: absolute; left: -1rem; top: .25em; bottom: .25em; width: 2px; background: var(--strike); opacity: .7; }
+.changed::before { content: ""; position: absolute; left: calc(-1 * min(var(--pad), 1.4rem) / 1.6); top: .2em; bottom: .2em; width: 2px; background: var(--strike); }
 
 del { color: var(--strike); text-decoration: line-through; text-decoration-thickness: 1px; }
 ins { color: var(--insert); text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 2px; }
-mark.q { background: var(--comment-bg); color: inherit; border-bottom: 2px solid var(--flag); padding: 0 .1em; }
+mark.q { background: var(--comment-bg); color: inherit; border-bottom: 2px solid var(--flag); padding: 0 .08em; }
 s { text-decoration-color: var(--strike); text-decoration-thickness: 1.5px; color: var(--muted); }
 
-/* steps */
-.steps { list-style: none; display: grid; gap: .6rem; margin: 2.2rem 0 0; padding: 0; counter-reset: step; }
-@media (min-width: 44rem) { .steps { grid-template-columns: repeat(3, 1fr); } }
-.steps li { counter-increment: step; border: 1px solid var(--rule); padding: 1rem 1.1rem; font-weight: 500; line-height: 1.3; }
-.steps li::before { content: counter(step); display: block; font-family: var(--display); font-size: 2rem; font-weight: 300; line-height: 1; color: var(--heading); margin-bottom: .5rem; }
-@media (max-width: 43.99rem) {
-  .steps li { display: grid; grid-template-columns: 2rem 1fr; align-items: center; padding: .7rem 1rem; }
-  .steps li::before { margin: 0; }
-  }
-.steps li span { display: block; font-weight: 400; font-size: .85rem; color: var(--muted); margin-top: .25rem; }
-.nos { margin: 1.2rem 0 0; font-size: .95rem; }
+/* steps: a numbered list, set like one */
+.steps { list-style: none; margin: 1.8rem 0 0; padding: 0; counter-reset: step; border-top: 1px solid var(--rule); }
+.steps li { counter-increment: step; display: grid; grid-template-columns: 2rem 1fr; align-items: baseline; padding: .75rem 0; border-bottom: 1px solid var(--rule); }
+.steps li::before { content: counter(step); font-family: var(--display); font-size: 1.5rem; line-height: 1; color: var(--heading); }
+.steps b { font-weight: 600; }
+.steps span { display: block; color: var(--muted); font-size: .92rem; }
+@media (min-width: 44rem) {
+  .steps { display: grid; grid-template-columns: repeat(3, 1fr); }
+  .steps li { display: block; padding: 1rem 1.2rem 1.1rem 0; border-bottom: 0; }
+  .steps li + li { padding-left: 1.2rem; border-left: 1px solid var(--rule); }
+  .steps li::before { display: block; font-size: 2rem; margin-bottom: .45rem; }
+}
+.nos { margin: 1.1rem 0 0; }
 
-/* the specimen */
-.figure-cap { font-size: .78rem; font-style: italic; color: var(--heading); margin: 2.4rem 0 .6rem; }
-.sheet { border: 1px solid var(--rule); padding: 1.3rem 1.4rem; font-family: var(--display); font-size: 1.04rem; line-height: 1.75; }
-.sheet p { margin: 0 0 .8rem; }
-.sheet p:last-child { margin: 0; }
+/* figures: Word's caption style */
+.figure-cap { font-size: .8rem; font-style: italic; color: var(--heading); margin: 2.6rem 0 .6rem; }
+
+/* the excerpt: one bordered sheet, a clause per row, its comments beside it */
+.ex .row { border-inline: 1px solid var(--rule); padding: .55rem 1rem; }
+.ex .row:first-child { border-top: 1px solid var(--rule); padding-top: 1rem; }
+.ex .row:last-child { border-bottom: 1px solid var(--rule); padding-bottom: 1rem; }
+.ex .row > div > p { margin: 0; font-family: var(--display); font-size: 1.06rem; line-height: 1.7; }
+.ex .note { display: grid; gap: .5rem; margin-top: .6rem; }
+@media (min-width: 60rem) {
+  .ex .row { border: 0; padding: 0; }
+  .ex .row > :first-child { border-inline: 1px solid var(--rule); padding: .5rem 1.4rem; margin-right: var(--pad); padding-right: 1.4rem; }
+  .ex .row:first-child > :first-child { border-top: 1px solid var(--rule); padding-top: 1.2rem; }
+  .ex .row:last-child > :first-child { border-bottom: 1px solid var(--rule); padding-bottom: 1.2rem; }
+  .ex .row > .note { margin: 0; padding-top: .5rem; }
+  .ex .row:first-child > .note { padding-top: 1.2rem; }
+  .ex .row .comment::before { width: calc(var(--pad) + 1rem); }
+}
+.ex .changed::before { left: -.6rem; }
+@media (min-width: 60rem) { .ex .changed::before { left: -.8rem; } }
 
 .comment {
   position: relative;
   background: var(--page);
-  border: 1px solid var(--rule);
-  border-left: 3px solid var(--flag);
-  border-radius: 4px;
-  padding: .6rem .7rem .5rem;
-  font-family: var(--ui);
-  font-size: .78rem;
-  line-height: 1.45;
-  box-shadow: 0 2px 8px -4px rgb(0 0 0 / .25);
-  margin: .7rem 0 1rem;
+  border: 1px solid var(--rule); border-left: 3px solid var(--flag); border-radius: 4px;
+  padding: .55rem .7rem .55rem;
+  font: .8rem/1.45 var(--ui);
+  box-shadow: 0 2px 8px -5px rgb(0 0 0 / .3);
   transition: opacity .4s ease;
 }
-.comment .who { display: flex; align-items: center; gap: .45rem; font-weight: 600; margin-bottom: .3rem; }
-.comment .who i { font-style: normal; font-size: .6rem; font-weight: 700; width: 1.35rem; height: 1.35rem; border-radius: 50%; display: grid; place-items: center; background: var(--flag); color: var(--page); }
-.comment .who time { margin-left: auto; font-weight: 400; color: var(--muted); font-size: .7rem; }
+.ex .comment { background: var(--comment-bg); box-shadow: none; }
+@media (min-width: 60rem) { .ex .comment { background: var(--page); box-shadow: 0 2px 8px -5px rgb(0 0 0 / .3); } }
+.comment .who { display: flex; align-items: center; gap: .45rem; font-weight: 600; margin-bottom: .2rem; }
+.comment .who i { font-style: normal; font-size: .6rem; font-weight: 700; width: 1.3rem; height: 1.3rem; border-radius: 50%; display: grid; place-items: center; background: var(--flag); color: var(--page); }
+.comment .who time { margin-left: auto; font-weight: 400; color: var(--muted); font-size: .72rem; }
 .comment p { margin: 0; }
-.comment .opts { display: flex; gap: .3rem; margin-top: .5rem; flex-wrap: wrap; }
-.comment button { font: inherit; font-size: .72rem; color: var(--muted); background: transparent; border: 1px solid var(--rule); border-radius: 3px; padding: .15rem .5rem; cursor: pointer; }
+.comment .opts { display: flex; gap: .3rem; margin-top: .45rem; flex-wrap: wrap; }
+.comment button { font: inherit; font-size: .74rem; color: var(--muted); background: var(--page); border: 1px solid var(--rule); border-radius: 4px; padding: .2rem .55rem; cursor: pointer; }
 .comment button:hover { color: var(--ink); border-color: currentColor; }
-.comment.resolved { opacity: .45; }
+.comment.resolved { opacity: .5; }
 .comment.resolved .opts { display: none; }
-.comment.resolved .who::after { content: "Resolved"; font-weight: 400; color: var(--insert); font-size: .7rem; }
+.comment.resolved .who::after { content: "Resolved"; font-weight: 400; color: var(--insert); font-size: .72rem; margin-left: auto; }
 .comment.resolved .who time { display: none; }
+.hero-note { margin-top: 1.2rem; }
+@media (min-width: 60rem) { .hero-note { margin-top: .4rem; } }
 
-.email { border: 1px solid var(--rule); background: var(--markup); font-family: var(--mono); font-size: .8rem; line-height: 1.6; margin-top: 1rem; }
-.email .head { padding: .7rem 1rem; border-bottom: 1px solid var(--rule); color: var(--muted); }
-.email .head b { color: var(--ink); font-weight: 500; }
-.email pre { margin: 0; padding: .9rem 1rem; white-space: pre-wrap; font: inherit; }
-.email .verdict { color: var(--strike); font-weight: 500; }
-.email .attach { padding: .6rem 1rem; border-top: 1px solid var(--rule); color: var(--insert); }
+/* the reply, as an email */
+.email { border: 1px solid var(--rule); border-radius: 6px; background: var(--page); overflow: hidden; }
+.email .head { display: grid; grid-template-columns: 2.2rem minmax(0, 1fr); gap: .7rem; padding: .85rem 1rem; border-bottom: 1px solid var(--rule); background: var(--markup); font: .82rem/1.4 var(--ui); }
+.email .av { width: 2.2rem; height: 2.2rem; border-radius: 50%; display: grid; place-items: center; background: var(--chrome); color: #fff; }
+@media (prefers-color-scheme: dark) { .email .av { background: color-mix(in srgb, var(--heading) 22%, var(--page)); color: var(--heading); } }
+.email .av svg { width: 1.35rem; height: 1.35rem; }
+.email .from { display: flex; justify-content: space-between; gap: .6rem; font-weight: 600; }
+.email .from time { font-weight: 400; color: var(--muted); }
+.email .subj { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.email .to { color: var(--muted); }
+.email .verdict { margin: 0; padding: .9rem 1rem 0; font-family: var(--display); font-size: 1.3rem; line-height: 1.3; color: var(--strike); }
+.email pre { margin: 0; padding: .7rem 1rem 1rem; white-space: pre-wrap; overflow-wrap: anywhere; font: .86rem/1.6 var(--ui); }
+.email pre b { font-weight: 600; }
+.email .attach { display: flex; align-items: center; gap: .5rem; margin: 0 1rem 1rem; padding: .5rem .7rem; border: 1px solid var(--rule); border-radius: 5px; font: .8rem/1.3 var(--ui); max-width: max-content; }
+.email .attach svg { flex: none; width: .9rem; height: 1.1rem; color: var(--heading); }
+.email .attach span { overflow-wrap: anywhere; }
 
-/* near-misses: what the lawyer nearly sent, then what came back */
-.caught { list-style: none; margin: 1.6rem 0 0; padding: 0; border-top: 1px solid var(--rule); }
-.caught li { padding: .7rem 0 .7rem 1rem; border-bottom: 1px solid var(--rule); position: relative; }
-.caught li::before { content: ""; position: absolute; left: 0; top: .95rem; bottom: .95rem; width: 2px; background: var(--strike); opacity: .7; }
-.caught b { display: block; font-weight: 500; }
-.caught span { display: block; font-family: var(--mono); font-size: .76rem; line-height: 1.55; color: var(--insert); margin-top: .2rem; }
-
-
-.trio { display: grid; gap: 0; margin-top: 1.8rem; border: 1px solid var(--rule); }
-@media (min-width: 44rem) { .trio { grid-template-columns: repeat(3, 1fr); } }
-.trio div { padding: 1.1rem 1.2rem; border-bottom: 1px solid var(--rule); }
-.trio div:last-child { border-bottom: 0; }
-@media (min-width: 44rem) { .trio div { border-bottom: 0; border-right: 1px solid var(--rule); } .trio div:last-child { border-right: 0; } }
-.trio .n { display: block; font-family: var(--display); font-size: clamp(1.7rem, 3.4vw, 2.3rem); line-height: 1.05; font-variant-numeric: tabular-nums; }
-.trio .n .w { color: var(--strike); font-style: italic; }
-.trio .what { display: block; font-size: .85rem; color: var(--muted); margin-top: .4rem; }
-
-/* ladder */
-.ladder { list-style: none; margin: 2rem 0 0; padding: 0; }
-.ladder li { position: relative; padding: 0 0 1.35rem 2.2rem; }
-.ladder li:last-child { padding-bottom: 0; }
-.ladder li::before { content: ""; position: absolute; left: .4rem; top: .6rem; bottom: -.6rem; border-left: 1px dashed var(--muted); opacity: .55; }
-.ladder li.done::before { border-left: 1px solid var(--insert); opacity: 1; }
-.ladder li:last-child::before { display: none; }
-.ladder li::after { content: ""; position: absolute; left: 0; top: .38rem; width: .85rem; height: .85rem; border-radius: 50%; background: var(--page); border: 1.5px solid var(--muted); }
-.ladder li.done::after { background: var(--insert); border-color: var(--insert); box-shadow: 0 0 0 4px color-mix(in srgb, var(--insert) 18%, transparent); }
-.ladder li.next::after { border-color: var(--flag); background: radial-gradient(var(--flag) 0 36%, var(--page) 40%); }
-.ladder li.stretch::after { border-style: dashed; }
-.ladder .ask { font-family: var(--display); font-size: clamp(1.1rem, 2.2vw, 1.3rem); line-height: 1.3; }
-.ladder li.plan .ask, .ladder li.stretch .ask { color: color-mix(in srgb, var(--ink) 70%, var(--page)); }
-.ladder li.stretch .ask { font-style: italic; }
-.ladder .state { margin-bottom: .15rem; display: block; font-family: var(--mono); font-size: .68rem; letter-spacing: .1em; text-transform: uppercase; margin-top: .2rem; color: var(--muted); }
-.ladder .state b { font-weight: 500; }
-.ladder .done .state b { color: var(--insert); }
-.ladder .next .state b { color: var(--flag); }
-
-/* status */
-.watermark {
-  position: absolute; inset: 0; display: grid; place-items: center; pointer-events: none;
-  font-family: var(--body); font-weight: 600; font-size: clamp(5rem, 20vw, 13rem); letter-spacing: .08em;
-  color: var(--ink); opacity: .04; transform: rotate(-24deg);
+/* replies */
+kbd, code { font-family: var(--mono); font-size: .86em; background: var(--markup); border: 1px solid var(--rule); border-radius: 4px; padding: .03em .38em; }
+.cmds { display: grid; grid-template-columns: minmax(0, 1fr); margin: 1.6rem 0 0; border-top: 1px solid var(--rule); }
+.cmds dt, .cmds dd { margin: 0; padding: .65rem 0; border-bottom: 1px solid var(--rule); }
+.cmds dt { border-bottom: 0; padding-bottom: .1rem; }
+.cmds dd { padding-top: .1rem; color: var(--muted); }
+.cmds kbd { color: var(--insert); -webkit-box-decoration-break: clone; box-decoration-break: clone; line-height: 1.8; }
+@media (min-width: 40rem) {
+  .cmds { grid-template-columns: minmax(0, 15rem) minmax(0, 1fr); }
+  .cmds dt { border-bottom: 1px solid var(--rule); padding-bottom: .65rem; padding-right: 1rem; }
+  .cmds dd { padding-top: .65rem; color: inherit; }
 }
-.signoff { margin: 2rem 0 0; font-size: .95rem; color: var(--muted); }
-.signoff a { color: var(--heading); }
+.fine { font-size: .86rem; color: var(--muted); margin: 1rem 0 0; }
+
+.trio { display: grid; list-style: none; margin: 1.6rem 0 0; padding: 0; border: 1px solid var(--rule); }
+.trio li { padding: 1rem 1.1rem; }
+.trio li + li { border-top: 1px solid var(--rule); }
+@media (min-width: 44rem) { .trio { grid-template-columns: repeat(3, 1fr); } .trio li + li { border-top: 0; border-left: 1px solid var(--rule); } }
+.trio .n { display: block; font-family: var(--display); font-size: clamp(1.5rem, 3.4vw, 1.9rem); line-height: 1.1; }
+.trio .what { display: block; font-size: .88rem; color: var(--muted); margin-top: .3rem; }
+.promise { font-family: var(--display); font-size: clamp(1.25rem, 3.4vw, 1.5rem); line-height: 1.3; margin: 1.4rem 0 0; }
+.signoff { display: flex; flex-wrap: wrap; gap: .4rem 1.4rem; margin: 1.4rem 0 0; font-weight: 500; }
+
+/* a footnote, set the way Word sets one */
+.footnote { margin-top: 3rem; padding-top: .7rem; background: linear-gradient(var(--muted), var(--muted)) 0 0 / 9rem 1px no-repeat; font-size: .8rem; line-height: 1.5; color: var(--muted); }
+.footnote p { margin: 0 0 .3rem; }
+.footnote a { color: inherit; }
+.signoff span { color: var(--muted); }
+.figure-cap .fig { font-weight: 600; }
+.nos { margin: 1rem 0 0; }
+
+/* the site's own footer, on the canvas below the pages */
+.docfoot { max-width: 66rem; margin: 1.6rem auto .5rem; padding: 0 16px; text-align: center; font: .82rem/1.55 var(--ui); color: var(--muted); }
+.docfoot p { margin: 0 auto .5rem; max-width: 36rem; }
+.docfoot a { color: inherit; }
+.docfoot a:hover { color: var(--ink); }
 
 /* ---------- status bar ---------- */
-
 .statusbar {
   position: fixed; left: 0; right: 0; bottom: 0; z-index: 20;
   background: var(--chrome); color: var(--chrome-ink);
-  font-family: var(--ui); font-size: .72rem;
+  font: .74rem/1 var(--ui);
   display: flex; align-items: center; gap: 1.2rem;
-  padding: .35rem .9rem calc(.35rem + env(safe-area-inset-bottom, 0px));
+  padding: .5rem 16px calc(.5rem + env(safe-area-inset-bottom, 0px));
   white-space: nowrap; overflow: hidden;
 }
-.statusbar .grow { flex: 1; overflow: hidden; text-overflow: ellipsis; opacity: .85; }
-.statusbar input[type=range] { width: 6rem; accent-color: var(--chrome-ink); }
-.statusbar label { display: flex; align-items: center; gap: .5rem; }
-@media (max-width: 46rem) { .statusbar .wide { display: none; } }
+.statusbar .grow { flex: 1; overflow: hidden; text-overflow: ellipsis; opacity: .9; }
+.statusbar .wide { display: none; }
+@media (min-width: 46rem) { .statusbar .wide { display: inline; } }
 
 /* ---------- markup views: All Markup / No Markup / Original ---------- */
-
 [data-view="final"] del, [data-view="original"] ins { display: none !important; }
-[data-view="final"] ins { display: inline !important; color: inherit; text-decoration: none; margin-left: 0; }
+[data-view="final"] ins { display: inline !important; color: inherit; text-decoration: none; }
 [data-view="original"] del { color: inherit !important; text-decoration: none; background: none !important; }
 [data-view="final"] mark.q, [data-view="original"] mark.q { background: none !important; border-bottom-color: transparent !important; }
 [data-view="final"] .changed::before, [data-view="original"] .changed::before { display: none; }
-[data-view="final"] .comment, [data-view="original"] .comment { visibility: hidden; }
-@media (max-width: 59.99rem) { [data-view="final"] .comment, [data-view="original"] .comment { display: none; } }
+[data-view="final"] .comment, [data-view="original"] .comment { display: none; }
 
-/* ---------- the redline, performed ---------- */
-
-.anim .rl del {
-  text-decoration: none;
-  color: inherit;
-  background: linear-gradient(var(--strike), var(--strike)) no-repeat 0 56% / 0% 1px;
-  transition: background-size .45s ease, color .3s ease .15s;
-}
+/* ---------- the redline, performed (motion opt-in) ---------- */
+.anim .rl del { text-decoration: none; color: inherit; background: linear-gradient(var(--strike), var(--strike)) no-repeat 0 56% / 0% 1px; transition: background-size .45s ease, color .3s ease .15s; }
 .anim h1.rl del { background-size: 0% 2px; }
 .anim .rl del.struck { background-size: 100% 1px; color: var(--strike); }
 .anim h1.rl del.struck { background-size: 100% 2px; }
 .anim .rl ins { display: none; }
 .anim .rl ins.shown { display: inline; animation: fresh 1.4s ease; }
-@keyframes fresh { from { background: color-mix(in srgb, var(--insert) 30%, transparent); } to { background: transparent; } }
-.rl ins.typing::after {
-  content: ""; display: inline-block; width: 2px; height: .85em; margin-left: 2px; vertical-align: -.08em;
-  background: var(--insert); animation: blink .7s steps(1) infinite;
-}
+@keyframes fresh { from { background: color-mix(in srgb, var(--insert) 28%, transparent); } to { background: transparent; } }
+.rl ins.typing::after { content: ""; display: inline-block; width: 2px; height: .85em; margin-left: 2px; vertical-align: -.08em; background: var(--insert); animation: blink .7s steps(1) infinite; }
 @keyframes blink { 50% { opacity: 0; } }
 .anim .rl mark.q { background: transparent; border-bottom-color: transparent; transition: background .5s ease, border-color .5s ease; }
 .anim .rl mark.q.lit { background: var(--comment-bg); border-bottom-color: var(--flag); }
-.anim .pop { opacity: 0; transform: translateX(12px); transition: opacity .6s ease, transform .6s cubic-bezier(.2,.7,.2,1); }
+.anim .pop { opacity: 0; transform: translateY(6px); transition: opacity .5s ease, transform .5s cubic-bezier(.2,.7,.2,1); }
+@media (min-width: 60rem) { .anim .pop { transform: translateX(10px); } }
 .anim .pop.in { opacity: 1; transform: none; }
-.anim .reveal { opacity: 0; transform: translateY(12px); }
-.anim .reveal.in { opacity: 1; transform: none; transition: opacity .6s ease var(--d, 0ms), transform .6s cubic-bezier(.2,.7,.2,1) var(--d, 0ms); }
-
-/* replies, terms, fine print */
-.spaced { margin-top: 2.8rem; }
-kbd, code { font-family: var(--mono); font-size: .86em; background: var(--markup); border: 1px solid var(--rule); border-radius: 3px; padding: .02em .35em; white-space: nowrap; }
-code { border: 0; }
-.cmds { display: grid; grid-template-columns: minmax(0, 15rem) minmax(0, 1fr); margin: 1.8rem 0 0; border-top: 1px solid var(--rule); }
-.cmds dt, .cmds dd { margin: 0; padding: .6rem 0; border-bottom: 1px solid var(--rule); }
-.cmds dt { padding-right: 1rem; }
-.cmds kbd { white-space: normal; color: var(--insert); -webkit-box-decoration-break: clone; box-decoration-break: clone; line-height: 1.7; }
-.cmds dd { font-size: .95rem; }
-@media (max-width: 40rem) {
-  .cmds { grid-template-columns: minmax(0, 1fr); }
-  .cmds dt { border-bottom: 0; padding-bottom: 0; }
-  .cmds dd { padding-top: .25rem; }
-}
-.fine { font-size: .85rem; color: var(--muted); margin: 1.1rem 0 0; }
-.fine kbd { font-size: .92em; }
-.terms { margin: 1.8rem 0 0; padding-left: 1.3rem; }
-.terms li { padding: .35rem 0; }
-.terms li::marker { font-family: var(--display); color: var(--heading); }
-.terms b { font-weight: 600; }
-.terms a, .page p a { color: var(--heading); }
-
-:focus-visible { outline: 2px solid var(--insert); outline-offset: 2px; }
 @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
 </style>
 
-<div class="titlebar">
-  <div class="tb-left"><span class="docicon" aria-hidden="true"></span><span class="autosave" aria-hidden="true">AutoSave <i></i></span></div>
-  <div class="tb-name">Second Eye.docx <span>&middot; Saved</span></div>
-  <a href="/security.html">Security</a>
-</div>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="eye" viewBox="0 0 32 32"><path d="M3.5 16c3.6-5.8 7.8-8.6 12.5-8.6s8.9 2.8 12.5 8.6c-3.6 5.8-7.8 8.6-12.5 8.6S7.1 21.8 3.5 16z" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linejoin="round"/><circle cx="16" cy="16" r="4.4" fill="currentColor"/></symbol>
+  <symbol id="docx" viewBox="0 0 16 20"><path d="M2 1h8l4 4v14H2z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M5 9h6M5 12h6M5 15h4" stroke="currentColor" stroke-width="1.3"/></symbol>
+</svg>
 
-<div class="ribbon" role="toolbar" aria-label="Review">
+<header class="titlebar">
+  <div class="tb-left"><svg aria-hidden="true"><use href="#eye"/></svg><span class="autosave" aria-hidden="true">AutoSave <i></i></span></div>
+  <div class="tb-name">Second Eye.docx<span class="saved">&nbsp;&middot; Saved</span></div>
+  <nav class="tb-links" aria-label="Site"><a href="/security.html">Security</a><a href="/trust.html">Trust</a></nav>
+</header>
+
+<div class="ribbon needs-js" role="toolbar" aria-label="Review">
   <div class="tabs" aria-hidden="true">
     <span>File</span><span>Home</span><span>Insert</span><span>Layout</span><span>References</span><span class="on">Review</span><span>View</span>
   </div>
@@ -427,11 +386,11 @@ code { border: 0; }
       <small>Tracking</small>
     </div>
     <div class="group">
-      <div><button type="button" id="accept"><span class="ok">&check;</span> Accept All</button>
-        <button type="button" id="reject"><span class="no">&times;</span> Reject All</button></div>
+      <div><button type="button" id="accept"><span class="ok" aria-hidden="true">&check;</span> Accept All</button>
+        <button type="button" id="reject"><span class="no" aria-hidden="true">&times;</span> Reject All</button></div>
       <small>Changes</small>
     </div>
-    <div class="group">
+    <div class="group pages-group">
       <div><button type="button" id="prev">&uarr; Previous</button>
         <button type="button" id="next">&darr; Next</button></div>
       <small>Pages</small>
@@ -442,109 +401,116 @@ code { border: 0; }
 <div class="ruler" aria-hidden="true"></div>
 
 <main>
-  <!-- 1: what it is -->
+  <!-- 1: what it is, and what comes back -->
   <article class="page" aria-labelledby="h-top">
-    <div class="running"><span>Second Eye</span><span>Legal review by email</span></div>
+    <div class="running"><span>Second Eye</span></div>
 
     <div class="row">
       <div>
-        <h1 id="h-top" class="rl changed" aria-label="The associate you email.">The <del>plugin</del><ins>associate</ins><br>you email.</h1>
-        <p class="subtitle">Email it a draft. Get back what to fix, and a Word redline.</p>
+        <h1 id="h-top" class="rl changed" aria-label="The associate you email.">The <del>plugin</del> <ins>associate</ins><br>you email.</h1>
+        <p class="subtitle">Forward a draft and say what you need: check it, clean it up, renumber it, build the sig pages. It replies in the thread, in Word.</p>
+        <p class="nos">No <s>portal</s>. No <s>login</s>. Just email.</p>
       </div>
-      <aside class="comment pop" id="c0">
-        <div class="who"><i>R</i>Reviewer<time>11:49 PM</time></div>
-        <p>Try Accept All in the ribbon.</p>
-        <div class="opts"><button type="button" data-resolve>Resolve</button></div>
-      </aside>
+      <div class="note needs-js">
+        <aside class="comment pop hero-note" id="c0">
+          <div class="who"><i aria-hidden="true">R</i>Reviewer<time>11:49 PM</time></div>
+          <p>Try Accept All in the ribbon.</p>
+          <div class="opts"><button type="button" data-resolve>Resolve</button></div>
+        </aside>
+      </div>
     </div>
 
     <div class="row"><div>
       <ol class="steps">
-        <li><div>Email it your draft<span>Or BCC it when you send.</span></div></li>
-        <li><div>Read the first line<span>It says if you can send.</span></div></li>
-        <li><div>Open the redline<span>Real tracked changes in Word.</span></div></li>
+        <li><div><b>Forward it.</b><span>Send the draft, or BCC it when you send.</span></div></li>
+        <li><div><b>Say what you need.</b><span>In plain English, or nothing at all for a check.</span></div></li>
+        <li><div><b>Get it back in Word.</b><span>Tracked changes, comments in the margin, a note on top.</span></div></li>
       </ol>
-      <p class="nos">No <s>portal</s>. No <s>plugin</s>. No <s>login</s>. Just email.</p>
-      <p class="figure-cap">Figure 1. A share purchase agreement, sent at 11:47 PM as &ldquo;the execution version (v5)&rdquo;. What comes back (example)</p>
+      <p class="figure-cap"><span class="fig">Figure 1.</span> A share purchase agreement, sent at 11:47 PM as &ldquo;the execution version&rdquo;. Back at 11:49 PM.</p>
     </div></div>
 
-    <div class="row">
-      <div><div class="sheet rl">
-        <p>2. Price. The price for the Shares is <mark class="q">twelve million five hundred thousand pounds (&pound;1,250,000)</mark>, payable at Completion.</p>
-        <p class="changed">3. Exclusivity. The <del>Sellar</del><ins>Seller</ins> shall not solicit any other offer for the Shares during the exclusivity period of sixty (60) days.</p>
-        <p>6.2 The Seller&rsquo;s total liability shall not exceed the price, subject to <mark class="q">clause 6.4</mark>. <mark class="q">[NTD: client will go to 2x the price if pushed.]</mark></p>
-        <p>Signed for and on behalf of <mark class="q">LINDEN HOLDINGS LIMITED</mark></p>
-      </div></div>
-      <div class="balloons">
-        <aside class="comment pop">
-          <div class="who"><i>R</i>Reviewer<time>11:49 PM</time></div>
-          <p>Should this be 12,500,000 or 1,250,000?</p>
-          <div class="opts"><button type="button" data-resolve>12,500,000</button><button type="button" data-resolve>1,250,000</button></div>
-        </aside>
-        <aside class="comment pop">
-          <div class="who"><i>R</i>Reviewer<time>11:49 PM</time></div>
-          <p>Clause 6.4 does not exist. Which did you mean?</p>
-          <div class="opts"><button type="button" data-resolve>6.3</button><button type="button" data-resolve>6.2</button><button type="button" data-resolve>6.1</button></div>
-        </aside>
-        <aside class="comment pop">
-          <div class="who"><i>R</i>Reviewer<time>11:49 PM</time></div>
-          <p>Has the point in this note been dealt with, so it can come out?</p>
-          <div class="opts"><button type="button" data-resolve>Resolve</button></div>
-        </aside>
-        <aside class="comment pop">
-          <div class="who"><i>R</i>Reviewer<time>11:49 PM</time></div>
-          <p>Is the Buyer Linden Bidco Limited or Linden Holdings Limited?</p>
-          <div class="opts"><button type="button" data-resolve>Bidco</button><button type="button" data-resolve>Holdings</button></div>
-        </aside>
+    <div class="ex rl">
+      <div class="row">
+        <div><p>2. Price. The price for the Shares is <mark class="q">twelve million five hundred thousand pounds (&pound;1,250,000)</mark>, payable at Completion.</p></div>
+        <div class="note">
+          <aside class="comment pop">
+            <div class="who"><i aria-hidden="true">R</i>Reviewer<time>11:49 PM</time></div>
+            <p>Should this be 12,500,000 or 1,250,000?</p>
+            <div class="opts needs-js"><button type="button" data-resolve>12,500,000</button><button type="button" data-resolve>1,250,000</button></div>
+          </aside>
+        </div>
+      </div>
+      <div class="row">
+        <div><p class="changed">3. Exclusivity. The <del>Sellar</del><ins>Seller</ins> shall not solicit any other offer for the Shares during the exclusivity period of sixty (60) days.</p></div>
+      </div>
+      <div class="row">
+        <div><p>6.2 The Seller&rsquo;s total liability shall not exceed the price, subject to <mark class="q">clause 6.4</mark>. <mark class="q">[NTD: client will go to 2x the price if pushed.]</mark></p></div>
+        <div class="note">
+          <aside class="comment pop">
+            <div class="who"><i aria-hidden="true">R</i>Reviewer<time>11:49 PM</time></div>
+            <p>Clause 6.4 does not exist. Which did you mean?</p>
+            <div class="opts needs-js"><button type="button" data-resolve>6.3</button><button type="button" data-resolve>6.2</button><button type="button" data-resolve>6.1</button></div>
+          </aside>
+          <aside class="comment pop">
+            <div class="who"><i aria-hidden="true">R</i>Reviewer<time>11:49 PM</time></div>
+            <p>Has the point in this note been dealt with, so it can come out?</p>
+            <div class="opts needs-js"><button type="button" data-resolve>Resolve</button></div>
+          </aside>
+        </div>
+      </div>
+      <div class="row">
+        <div><p>Signed for and on behalf of <mark class="q">LINDEN HOLDINGS LIMITED</mark></p></div>
+        <div class="note">
+          <aside class="comment pop">
+            <div class="who"><i aria-hidden="true">R</i>Reviewer<time>11:49 PM</time></div>
+            <p>Is the Buyer Linden Bidco Limited or Linden Holdings Limited?</p>
+            <div class="opts needs-js"><button type="button" data-resolve>Bidco</button><button type="button" data-resolve>Holdings</button></div>
+          </aside>
+        </div>
       </div>
     </div>
 
     <div class="row"><div>
-      <p class="figure-cap tight">Figure 2. The email it comes in</p>
-      <div class="email pop">
-        <div class="head"><b>Re: Project Linden - SPA execution version</b> &middot; from Second Eye</div>
-<pre><span class="verdict">Don't send yet: 3 things to fix first.</span>
-
-Fix before sending:
+      <p class="figure-cap"><span class="fig">Figure 2.</span> The note that comes with it.</p>
+      <div class="email">
+        <div class="head">
+          <span class="av" aria-hidden="true"><svg><use href="#eye"/></svg></span>
+          <div>
+            <div class="from">Second Eye <time>11:49 PM</time></div>
+            <div class="subj">Re: Project Linden - SPA execution version</div>
+            <div class="to">To: you</div>
+          </div>
+        </div>
+        <p class="verdict">Don&rsquo;t send yet: 3 things to fix first.</p>
+<pre><b>Fix before sending:</b>
   A. Clause 6.2: Drafting note left in: [NTD: client will go to 2x the price if pushed.]. Has the point in this note been dealt with, so it can come out?
   B. Clause 2: 'twelve million five hundred thousand pounds (&pound;1,250,000)' disagrees with itself. Should this be 12,500,000 or 1,250,000?
   C. Signature page: The Buyer's signature block names Linden Holdings Limited as the Buyer, but the parties clause says Linden Bidco Limited. Is the Buyer Linden Bidco Limited or Linden Holdings Limited?
 
-Your call:
+<b>Your call:</b>
   D. You said you removed "exclusivity period", but it is still in the document. The covering email says it came out and I can still find it. Either the deletion did not make it into this version, or this is the draft from before the change.
 
-Quick questions:
+<b>Quick questions:</b>
   E. Clause 6.2: clause 6.4 does not exist. Which did you mean?   [6.3 or 6.2 or 6.1]
   F. Your note says version 5, but the file attached is Linden SPA v4 (execution version).docx. Is this the version you meant to send?
 
-Tracked in the attached copy:
+<b>Tracked in the attached copy:</b>
   1. Clause 3: &ldquo;Sellar&rdquo; &rarr; &ldquo;Seller&rdquo;
 
 Reply with the answers, e.g. "12,500,000; LINDEN BIDCO LIMITED; 6.3". Reply "clean copy" to accept my changes, or "undo 1" to reverse one, or "A is fine" to dismiss a point.</pre>
-        <div class="attach">Attached: Linden SPA v4 (execution version) (redline).docx</div>
+        <div class="attach"><svg aria-hidden="true"><use href="#docx"/></svg><span>Linden SPA v4 (execution version) (redline).docx</span></div>
       </div>
     </div></div>
 
-    <div class="row"><div>
-      <h2 class="spaced">Caught before it went out.</h2>
-      <p class="kicker">Each one found by code, not guessed by AI.</p>
-      <ul class="caught">
-        <li><b>The execution version, still headed &ldquo;DRAFT&nbsp;4&rdquo;.</b><span>&ldquo;This is going out as final, but it is still marked as a draft.&rdquo;</span></li>
-        <li><b>The last client&rsquo;s name, left in the file&rsquo;s properties.</b><span>&ldquo;The file&rsquo;s properties name Harbourside Foods Limited, which this document never mentions.&rdquo;</span></li>
-        <li><b>Speaker notes in the board deck: &ldquo;we can go to &pound;3m&rdquo;.</b><span>&ldquo;Speaker notes are on slide 3&hellip; anyone who opens it in Normal view reads them.&rdquo;</span></li>
-        <li><b>&ldquo;With the disclosure letter&rdquo;, and no disclosure letter.</b><span>&ldquo;Your note says the disclosure letter is attached, but it is not.&rdquo;</span></li>
-      </ul>
-    </div></div>
-
-    <div class="folio">Page 1 of 3</div>
+    <div class="folio">Page 1 of 2</div>
   </article>
 
-  <!-- 2: the thread is the interface -->
+  <!-- 2: the thread is the interface; where documents go -->
   <article class="page" aria-labelledby="h-reply">
-    <div class="running"><span>Second Eye</span><span>Legal review by email</span></div>
+    <div class="running"><span>Second Eye</span></div>
     <div class="row"><div>
       <h2 id="h-reply">Then just reply.</h2>
-      <p class="kicker">Talk to it like a junior.</p>
+      <p class="kicker">Answer its questions, take back a change, or ask for the next thing, the way you&rsquo;d write to a junior.</p>
       <dl class="cmds">
         <dt><kbd>12,500,000</kbd></dt><dd>Answers its question.</dd>
         <dt><kbd>undo 1</kbd></dt><dd>Takes back change 1.</dd>
@@ -558,64 +524,33 @@ Reply with the answers, e.g. "12,500,000; LINDEN BIDCO LIMITED; 6.3". Reply "cle
     </div></div>
 
     <div class="row"><div>
-      <h2 class="spaced">It reads your email too.</h2>
-      <p class="kicker">So it catches what Word can&rsquo;t.</p>
-      <div class="trio">
-        <div><span class="n"><span class="w">Wrong</span> party</span><span class="what">The NDA says Acme. The email goes to Beta.</span></div>
-        <div><span class="n"><span class="w">Wrong</span> file</span><span class="what">The email says NDA. The file isn&rsquo;t one.</span></div>
-        <div><span class="n"><span class="w">Wrong</span> claim</span><span class="what">&ldquo;Clean copy&rdquo;, still full of changes.</span></div>
-      </div>
-    </div></div>
+      <h2 class="spaced" id="h-where">Where your documents go.</h2>
+      <ul class="trio">
+        <li><span class="n">To you.</span><span class="what">Replies go only to the person who sent it.</span></li>
+        <li><span class="n">Not to them.</span><span class="what">Anyone outside your firm hears nothing.</span></li>
+        <li><span class="n">Sealed.</span><span class="what">Documents are encrypted under your firm&rsquo;s key.</span></li>
+      </ul>
+      <p class="promise">Nothing kept after 7 days. Nothing learned unless you ask.</p>
+      <p class="signoff"><a href="/security.html">Security in one minute</a> <span aria-hidden="true">&middot;</span> <a href="/trust.html">Full details for your general counsel</a></p>
 
-    <div class="row"><div>
-      <h2 class="spaced">Checks on every draft.</h2>
-      <p class="kicker">Instant, and always on.</p>
-      <p>Broken cross-references. Blanks left in. Words and numbers that disagree. Sums that don&rsquo;t add up. Wrong dates. Comments and hidden text left in.</p>
-      <div class="trio">
-        <div><span class="n">27/27</span><span class="what">planted mistakes caught.</span></div>
-        <div><span class="n">0</span><span class="what">false alarms on 15 clean documents.</span></div>
+      <div class="footnote">
+        <p>Our model provider may keep copies for up to 30 days. Details on the <a href="/trust.html">Trust page</a>.</p>
       </div>
-      <p class="fine">On our own test documents.</p>
     </div></div>
-    <div class="folio">Page 2 of 3</div>
+    <div class="folio">Page 2 of 2</div>
   </article>
-
-  <!-- 3: what to ask it, where documents go -->
-  <article class="page" aria-labelledby="h-ask">
-    <div class="running"><span>Second Eye</span><span>Legal review by email</span></div>
-    <div class="row"><div>
-      <h2 id="h-ask">What you can ask.</h2>
-      <ol class="ladder">
-        <li class="done"><span class="state"><b>Now</b></span><span class="ask">&ldquo;Check this.&rdquo; &ldquo;Clean copy.&rdquo;<br>&ldquo;Renumber.&rdquo; &ldquo;Sig pages.&rdquo; &ldquo;Deadlines?&rdquo;</span></li>
-        <li class="next"><span class="state"><b>Next</b></span><span class="ask">&ldquo;Here&rsquo;s their draft.&rdquo; &ldquo;What changed?&rdquo;<br>&ldquo;Use our playbook.&rdquo;</span></li>
-        <li class="plan"><span class="state"><b>Later</b></span><span class="ask">&ldquo;Check the cites.&rdquo; &ldquo;Draft me an NDA.&rdquo;</span></li>
-        <li class="stretch"><span class="state"><b>Someday</b></span><span class="ask">&ldquo;What&rsquo;s the law here?&rdquo;</span></li>
-      </ol>
-    </div></div>
-
-    <div class="row"><div>
-      <h2 class="spaced">Where your documents go.</h2>
-      <div class="trio">
-        <div><span class="n">To you</span><span class="what">Replies go only to the sender.</span></div>
-        <div><span class="n">Not to them</span><span class="what">Outsiders get no reply.</span></div>
-        <div><span class="n">Sealed</span><span class="what">Documents encrypted under your firm&rsquo;s key.</span></div>
-      </div>
-      <p class="nos">Nothing kept after 7 days. Nothing learned unless you ask.</p>
-      <p class="fine">Anthropic, which runs the model, may keep its own copies of review sessions for up to 30 days.</p>
-      <p class="fine">It never accepts a change for you. You decide.</p>
-      <p class="signoff"><a href="/security.html">Security in one minute</a>. <a href="/trust.html">Full details for your general counsel</a>.</p>
-    </div></div>
-    <div class="folio">Page 3 of 3</div>
-  </article>
-
 </main>
 
+<footer class="docfoot">
+  <p>Second Eye does the work you send it, but it doesn&rsquo;t give legal advice: the lawyer who sends a document stays responsible for every word.</p>
+  <nav aria-label="Footer"><a href="/security.html">Security</a> <span aria-hidden="true">&middot;</span> <a href="/trust.html">Trust</a> <span aria-hidden="true">&middot;</span> <a href="https://github.com/jamesbaker1/second-eye">Open source on GitHub</a></nav>
+</footer>
+
 <div class="statusbar">
-  <span id="sb-page">Page 1 of 3</span>
+  <span id="sb-page">Page 1 of 2</span>
   <span id="sb-words" class="wide"></span>
-  <span class="wide">English (United States)</span>
+  <span class="wide">English (United Kingdom)</span>
   <span class="grow" id="sb-msg" aria-live="polite">Track Changes: On</span>
-  <label class="wide"><span class="sr">Zoom</span><input id="zoom" type="range" min="80" max="130" value="100" step="5"><span id="zoom-n">100%</span></label>
 </div>
 
 <script>
@@ -626,7 +561,7 @@ Reply with the answers, e.g. "12,500,000; LINDEN BIDCO LIMITED; 6.3". Reply "cle
   var sleep = function (ms) { return new Promise(function (r) { setTimeout(r, ms); }); };
   var pages = $$('.page'), current = 0, msg = $('#sb-msg'), view = $('#view');
 
-  // ---- the ribbon works ----
+  // The ribbon works.
   function setView(v, note) {
     view.value = v;
     if (v === 'all') document.body.removeAttribute('data-view'); else document.body.dataset.view = v;
@@ -635,88 +570,56 @@ Reply with the answers, e.g. "12,500,000; LINDEN BIDCO LIMITED; 6.3". Reply "cle
   view.addEventListener('change', function () { setView(view.value); });
   $('#accept').addEventListener('click', function () { setView('final', 'All changes accepted. Switch to All Markup to bring them back.'); });
   $('#reject').addEventListener('click', function () { setView('original', 'All changes rejected. Switch to All Markup to bring them back.'); });
-  $('#next').addEventListener('click', function () { go(current + 1); });
-  $('#prev').addEventListener('click', function () { go(current - 1); });
   function go(i) {
     i = Math.max(0, Math.min(pages.length - 1, i));
     pages[i].scrollIntoView({ behavior: root.classList.contains('anim') ? 'smooth' : 'auto', block: 'start' });
   }
+  $('#next').addEventListener('click', function () { go(current + 1); });
+  $('#prev').addEventListener('click', function () { go(current - 1); });
   $$('[data-resolve]').forEach(function (b) {
     b.addEventListener('click', function () { b.closest('.comment').classList.add('resolved'); });
   });
 
-  // ---- the status bar tells the truth ----
+  // The status bar tells the truth.
   $('#sb-words').textContent = $('main').innerText.trim().split(/\s+/).length + ' words';
-  var pageIO = new IntersectionObserver(function (entries) {
-    entries.forEach(function (e) {
-      if (!e.isIntersecting) return;
-      current = pages.indexOf(e.target);
-      $('#sb-page').textContent = 'Page ' + (current + 1) + ' of ' + pages.length;
-    });
-  }, { rootMargin: '-45% 0px -50% 0px' });
-  pages.forEach(function (p) { pageIO.observe(p); });
-  $('#zoom').addEventListener('input', function (e) {
-    $('main').style.zoom = e.target.value / 100;
-    $('#zoom-n').textContent = e.target.value + '%';
-  });
-
-  if (!root.classList.contains('anim')) return;
-
-  try {
-    // Scroll reveals.
-    var targets = $$('.page h2, .page .kicker, .page .subtitle, .steps li, .nos, .trio, .ladder li, .caught li');
-    targets.forEach(function (el) { el.classList.add('reveal'); });
-    $$('.ladder li').forEach(function (li, i) { li.style.setProperty('--d', (i * 60) + 'ms'); });
-    $$('.steps li').forEach(function (li, i) { li.style.setProperty('--d', (i * 120) + 'ms'); });
-
+  if ('IntersectionObserver' in window) {
     var io = new IntersectionObserver(function (entries) {
       entries.forEach(function (e) {
         if (!e.isIntersecting) return;
-        io.unobserve(e.target);
-        e.target.classList.add('in');
-        $$('[data-count]', e.target).forEach(countUp);
-        if (e.target.matches('h2.rl')) redline(e.target, 28);
+        current = pages.indexOf(e.target);
+        $('#sb-page').textContent = 'Page ' + (current + 1) + ' of ' + pages.length;
       });
-    }, { rootMargin: '0px 0px -8% 0px' });
-    targets.forEach(function (el) { io.observe(el); });
-
-    function countUp(el) {
-      var end = +el.dataset.count, suffix = el.dataset.suffix || '', t0 = performance.now(), dur = 1100;
-      (function tick(now) {
-        var k = Math.min(1, (now - t0) / dur), eased = 1 - Math.pow(1 - k, 3);
-        el.textContent = Math.round(end * eased) + suffix;
-        if (k < 1) requestAnimationFrame(tick);
-      })(t0);
-    }
-
-    // The redline, performed in reading order: strike, then type the insertion.
-    async function type(el, speed) {
-      var text = el.textContent.replace(/\s+/g, ' ');
-      el.textContent = '';
-      el.classList.add('shown', 'typing');
-      for (var i = 1; i <= text.length; i++) { el.textContent = text.slice(0, i); await sleep(speed); }
-      el.classList.remove('typing');
-    }
-    async function redline(scope, speed) {
-      var marks = $$('del, ins, mark.q', scope);
-      for (var i = 0; i < marks.length; i++) {
-        var n = marks[i];
-        if (n.tagName === 'DEL') { n.classList.add('struck'); await sleep(420); }
-        else if (n.tagName === 'INS') { await type(n, speed); await sleep(240); }
-        else { n.classList.add('lit'); await sleep(300); }
-      }
-    }
-    (async function () {
-      await sleep(600);
-      await redline($('h1.rl'), 60);
-      $('#c0').classList.add('in');
-      await sleep(250);
-      await redline($('.sheet'), 30);
-      var pops = $$('.pop:not(#c0)');
-      for (var i = 0; i < pops.length; i++) { pops[i].classList.add('in'); await sleep(350); }
-    })().catch(function () { root.classList.remove('anim'); });
-  } catch (e) {
-    root.classList.remove('anim');
+    }, { rootMargin: '-45% 0px -50% 0px' });
+    pages.forEach(function (p) { io.observe(p); });
   }
+
+  if (!root.classList.contains('anim')) return;
+
+  // The redline, performed in reading order: strike, then type the insertion.
+  async function type(el, speed) {
+    var text = el.textContent.replace(/\s+/g, ' ');
+    el.textContent = '';
+    el.classList.add('shown', 'typing');
+    for (var i = 1; i <= text.length; i++) { el.textContent = text.slice(0, i); await sleep(speed); }
+    el.classList.remove('typing');
+  }
+  async function redline(scope, speed) {
+    var marks = $$('del, ins, mark.q', scope);
+    for (var i = 0; i < marks.length; i++) {
+      var n = marks[i];
+      if (n.tagName === 'DEL') { n.classList.add('struck'); await sleep(420); }
+      else if (n.tagName === 'INS') { await type(n, speed); await sleep(240); }
+      else { n.classList.add('lit'); await sleep(260); }
+    }
+  }
+  (async function () {
+    await sleep(500);
+    await redline($('h1.rl'), 60);
+    $('#c0').classList.add('in');
+    await sleep(250);
+    await redline($('.ex'), 25);
+    var pops = $$('.pop:not(#c0)');
+    for (var i = 0; i < pops.length; i++) { pops[i].classList.add('in'); await sleep(300); }
+  })().catch(function () { root.classList.remove('anim'); });
 })();
 </script>

@@ -2,59 +2,55 @@
 <html lang="en">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Second Eye Trust</title>
+<title>Second Eye: Trust</title>
 <meta name="description" content="Where a document goes, who processes it, how long it is kept, and what a firm controls. For a firm's general counsel and risk committee.">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%231F55AE'/%3E%3Cpath d='M4.5 16c3.4-5.4 7.2-8 11.5-8s8.1 2.6 11.5 8c-3.4 5.4-7.2 8-11.5 8s-8.1-2.6-11.5-8z' fill='none' stroke='%23fff' stroke-width='2.4' stroke-linejoin='round'/%3E%3Ccircle cx='16' cy='16' r='4.3' fill='%23fff'/%3E%3C/svg%3E">
+<meta name="color-scheme" content="light dark">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;0,6..72,500;1,6..72,300;1,6..72,400&family=Public+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=Public+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
 
 <style>
 /* The landing page's paper and ink, without the word-processor chrome: one
    printed memo on the desk. Same tokens as index.html, light and dark. */
 :root {
-  --canvas:     #E4E4E2;
+  --canvas:     #E6E5E1;
   --page:       #FFFFFF;
-  --markup:     #F3F3F1;
+  --markup:     #F4F3F0;
   --ink:        #1A1D21;
-  --muted:      #666A70;
-  --rule:       #DAD9D4;
-  --heading:    #2F5496;
-  --strike:     #9E2B3A;
-  --insert:     #1D6A6E;
-  --flag:       #B4772A;
-  --comment-bg: #FBF3E4;
+  --muted:      #5D6168;
+  --rule:       #DCDAD4;
+  --chrome:     #1F55AE;
+  --chrome-ink: #FFFFFF;
+  --heading:    #2B4F8E;
+  --strike:     #A3283A;
+  --insert:     #17675F;
+  --flag:       #95590F;
+  --comment-bg: #FBF4E6;
+  --shadow:     0 0 0 1px rgb(0 0 0 / .05), 0 1px 2px rgb(0 0 0 / .06), 0 12px 32px -16px rgb(0 0 0 / .3);
 
   --display: "Newsreader", "Iowan Old Style", Georgia, serif;
   --body:    "Public Sans", -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+  --ui:      -apple-system, "Segoe UI", system-ui, Helvetica, Arial, sans-serif;
   --mono:    "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
 }
 @media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --canvas:     #121315;
-    --page:       #1D1F22;
-    --markup:     #17191B;
-    --ink:        #E8E6E1;
-    --muted:      #9A9DA3;
-    --rule:       #33363B;
-    --heading:    #8FB0EA;
-    --strike:     #E0798A;
-    --insert:     #5FBFC3;
-    --flag:       #D9A45F;
-    --comment-bg: #2A261D;
+  :root {
+    --canvas:     #0F1012;
+    --page:       #1C1E21;
+    --markup:     #17191C;
+    --ink:        #E9E7E2;
+    --muted:      #A1A5AB;
+    --rule:       #32353A;
+    --chrome:     #1A1B1E;
+    --chrome-ink: #DCDCDA;
+    --heading:    #93B3EC;
+    --strike:     #EF8C9B;
+    --insert:     #67C7BB;
+    --flag:       #DDA860;
+    --comment-bg: #29251D;
+    --shadow:     0 0 0 1px rgb(255 255 255 / .05), 0 12px 32px -16px rgb(0 0 0 / .8);
   }
-}
-:root[data-theme="dark"] {
-  --canvas:     #121315;
-  --page:       #1D1F22;
-  --markup:     #17191B;
-  --ink:        #E8E6E1;
-  --muted:      #9A9DA3;
-  --rule:       #33363B;
-  --heading:    #8FB0EA;
-  --strike:     #E0798A;
-  --insert:     #5FBFC3;
-  --flag:       #D9A45F;
-  --comment-bg: #2A261D;
 }
 
 *, *::before, *::after { box-sizing: border-box; }
@@ -66,7 +62,7 @@ body {
   font-size: 16px;
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
-  padding: 0 0 2.4rem;
+  padding: 0 0 1.6rem;
 }
 a { color: var(--heading); text-underline-offset: .15em; }
 code { font-family: var(--mono); font-size: .86em; background: var(--markup); padding: .05em .3em; border-radius: 3px; overflow-wrap: anywhere; }
@@ -76,20 +72,20 @@ code { font-family: var(--mono); font-size: .86em; background: var(--markup); pa
   max-width: 50rem;
   margin: 1.4rem auto;
   background: var(--page);
-  box-shadow: 0 0 0 1px var(--rule), 0 10px 30px -14px rgb(0 0 0 / .35);
+  box-shadow: var(--shadow);
   padding: 2.2rem var(--pad) 1.6rem;
 }
 @media (max-width: 52rem) { .page { margin: .8rem 16px; } }
 
-.running { display: flex; justify-content: space-between; gap: 1rem; font-size: .7rem; color: var(--muted); letter-spacing: .04em; padding-bottom: 1.6rem; }
+.running { font-family: var(--ui); display: flex; justify-content: space-between; gap: 1rem; font-size: .7rem; color: var(--muted); letter-spacing: .04em; padding-bottom: 1.6rem; }
 .running a { color: inherit; }
-.folio { text-align: center; font-size: .7rem; color: var(--muted); padding-top: 2rem; }
+.folio { font-family: var(--ui); text-align: center; font-size: .7rem; color: var(--muted); padding-top: 2rem; }
 
 h1, h2, h3 { margin: 0; text-wrap: balance; }
-h1 { font-family: var(--display); font-weight: 300; font-size: clamp(2rem, 6vw, 3.1rem); line-height: 1.05; letter-spacing: -.015em; }
+h1 { font-family: var(--display); font-weight: 400; font-size: clamp(2rem, 6vw, 3.1rem); line-height: 1.05; letter-spacing: -.015em; }
 h1 ins { color: var(--insert); text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: .09em; }
-.lede { font-size: 1.05rem; color: var(--muted); max-width: 38rem; margin: 1rem 0 0; }
-h2 { font-weight: 300; font-size: clamp(1.4rem, 3.4vw, 1.9rem); line-height: 1.15; color: var(--heading); letter-spacing: -.01em; margin: 2.8rem 0 .9rem; }
+.lede { font-size: 1.05rem; color: var(--muted); max-width: 38rem; margin: 1rem 0 .9rem; }
+h2 { font-weight: 400; font-size: clamp(1.4rem, 3.4vw, 1.9rem); line-height: 1.15; color: var(--heading); letter-spacing: -.01em; margin: 2.8rem 0 .9rem; }
 h3 { font-size: 1rem; font-weight: 600; margin: 1.4rem 0 .3rem; }
 p { margin: 0 0 .8rem; }
 ul { margin: 0 0 .8rem; padding-left: 1.2rem; }
@@ -126,7 +122,33 @@ th { font-weight: 600; font-size: .78rem; color: var(--muted); letter-spacing: .
 blockquote { margin: .6rem 0 .8rem; padding: .5rem 1rem; border-left: 3px solid var(--rule); font-family: var(--display); font-size: 1.1rem; font-style: italic; }
 .src { font-size: .8rem; color: var(--muted); overflow-wrap: anywhere; }
 .note { background: var(--comment-bg); border: 1px solid var(--rule); padding: .8rem 1rem; font-size: .9rem; margin: 1rem 0; }
+
+/* The landing page's title bar and footer, so the three pages read as one. */
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.titlebar { background: var(--chrome); color: var(--chrome-ink); font: .8rem/1 var(--ui); display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: .8rem; padding: .55rem 16px; }
+.titlebar svg { width: 1.15rem; height: 1.15rem; display: block; }
+.tb-name { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tb-name span { font-weight: 400; opacity: .75; }
+.tb-links { justify-self: end; display: flex; gap: 1rem; }
+.titlebar a { color: inherit; text-decoration: none; opacity: .9; padding: .2rem 0; white-space: nowrap; }
+.titlebar a:hover, .titlebar a[aria-current] { opacity: 1; text-decoration: underline; text-underline-offset: .25em; }
+.titlebar :focus-visible { outline-color: currentColor; }
+.docfoot { max-width: 50rem; margin: 1.6rem auto .5rem; padding: 0 16px; text-align: center; font: .82rem/1.55 var(--ui); color: var(--muted); }
+.docfoot p { margin: 0 auto .5rem; max-width: 36rem; }
+.docfoot a { color: inherit; }
+.docfoot a:hover { color: var(--ink); }
+:focus-visible { outline: 2px solid var(--heading); outline-offset: 2px; border-radius: 3px; }
 </style>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="eye" viewBox="0 0 32 32"><path d="M3.5 16c3.6-5.8 7.8-8.6 12.5-8.6s8.9 2.8 12.5 8.6c-3.6 5.8-7.8 8.6-12.5 8.6S7.1 21.8 3.5 16z" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linejoin="round"/><circle cx="16" cy="16" r="4.4" fill="currentColor"/></symbol>
+</svg>
+
+<header class="titlebar">
+  <a href="/" aria-label="Second Eye, home"><svg aria-hidden="true"><use href="#eye"/></svg></a>
+  <div class="tb-name">Trust.docx</div>
+  <nav class="tb-links" aria-label="Site"><a href="/security.html">Security</a><a href="/trust.html" aria-current="page">Trust</a></nav>
+</header>
 
 <main>
 <article class="page">
@@ -279,3 +301,8 @@ blockquote { margin: .6rem 0 .8rem; padding: .5rem 1rem; border-left: 3px solid 
   <div class="folio">Trust</div>
 </article>
 </main>
+
+<footer class="docfoot">
+  <p>Second Eye does the work you send it, but it doesn&rsquo;t give legal advice: the lawyer who sends a document stays responsible for every word.</p>
+  <nav aria-label="Footer"><a href="/security.html">Security</a> <span aria-hidden="true">&middot;</span> <a href="/trust.html">Trust</a> <span aria-hidden="true">&middot;</span> <a href="https://github.com/jamesbaker1/second-eye">Open source on GitHub</a></nav>
+</footer>
